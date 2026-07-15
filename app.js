@@ -84,7 +84,7 @@ function dashboardHTML() {
   return `
   <div class="panel">
     <div class="level-hero">
-      <div class="level-badge" style="--pct:${li.pct}%"><div class="inner"><div class="num">${li.level}</div><div class="lbl">LVL</div></div></div>
+      <div class="level-num">${li.level}<sup>lvl</sup></div>
       <div style="flex:1">
         <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
         <h2>${esc(li.title)}</h2>
