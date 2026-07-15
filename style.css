@@ -5,14 +5,10 @@
   --bg: #FAF9F5;
   --panel: #FFFFFF;
   --ink: #1A1917;
-  --text: #1A1917;
   --text-dim: #6B6960;
   --hairline: #DEDBD1;
   --hairline-soft: #EAE7DD;
   --accent: #C0392B;
-  --accent-2: #C0392B;
-  --gold: #C0392B;
-  --danger: #C0392B;
   --good: #3E6B4F;
   --serif: Georgia, "Times New Roman", serif;
   --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -25,7 +21,7 @@ body {
   margin: 0;
   font-family: var(--serif);
   background: var(--bg);
-  color: var(--text);
+  color: var(--ink);
   min-height: 100vh;
   line-height: 1.55;
 }
@@ -134,10 +130,9 @@ a { color: var(--accent); }
   border-bottom: 1px solid var(--text-dim);
 }
 .btn.ghost:hover { color: var(--ink); border-bottom-color: var(--ink); background: transparent; }
-.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
 
 textarea, input[type=text] {
-  width: 100%; background: var(--panel); color: var(--text);
+  width: 100%; background: var(--panel); color: var(--ink);
   border: 1px solid var(--hairline); border-radius: 0;
   padding: 12px; font-size: 15px; font-family: var(--serif); line-height: 1.55;
 }
@@ -229,7 +224,6 @@ footer.foot button {
 }
 footer.foot button:hover { color: var(--ink); }
 
-.boss-locked { text-align: center; padding: 30px 0; color: var(--text-dim); }
 .stage { border-top: 1px solid var(--hairline); padding-top: 16px; margin-top: 18px; }
 .pill {
   display: inline-block; font-family: var(--sans); font-size: 10px;

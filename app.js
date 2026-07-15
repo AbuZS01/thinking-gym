@@ -11,6 +11,10 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+function frameworkNames(ids) {
+  return ids.map((f) => (MTC_FRAMEWORKS.find((fw) => fw.id === f) || {}).name).filter(Boolean).join(" &middot; ");
+}
+
 function route() {
   const h = location.hash || "#/dashboard";
   return h.slice(2) || "dashboard";
@@ -142,7 +146,7 @@ function questHTML() {
   const hasCore = quest.items.some((i) => i.core);
   return `<div class="panel">
     <h2>Today's Thinking Quest</h2>
-    <p class="subtle">Nine exercises, one of each type. About 20&ndash;30 minutes total. ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? The <span style="color:var(--gold)">&#9733; core</span> three keep your streak alive and target your weakest frameworks.` : ""}</p>
+    <p class="subtle">Nine exercises, one of each type. About 20&ndash;30 minutes total. ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? The <span style="color:var(--accent)">&#9733; core</span> three keep your streak alive and target your weakest frameworks.` : ""}</p>
   </div>
   <div class="grid">
     ${quest.items.map((item) => {
@@ -151,7 +155,7 @@ function questHTML() {
       return `<div class="card ${done ? "done" : ""}" data-start-exercise="${ex.id}">
         <span class="tag">${TYPE_LABELS[item.type]}</span>${item.core ? `<span class="tag core">&#9733; Core</span>` : ""}
         <h3>${esc(ex.title)}</h3>
-        <p class="subtle">${ex.frameworks.map((f) => (MTC_FRAMEWORKS.find((fw) => fw.id === f) || {}).name).filter(Boolean).join(" &middot; ")}</p>
+        <p class="subtle">${frameworkNames(ex.frameworks)}</p>
       </div>`;
     }).join("")}
   </div>`;
@@ -164,7 +168,7 @@ function exerciseHTML(id) {
   if (!ex) return `<div class="panel">Exercise not found. <button class="btn" data-nav="quest">Back to Quest</button></div>`;
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const alreadyDone = quest.completed.includes(id);
-  const fwNames = ex.frameworks.map((f) => (MTC_FRAMEWORKS.find((fw) => fw.id === f) || {}).name).filter(Boolean).join(" &middot; ");
+  const fwNames = frameworkNames(ex.frameworks);
 
   const header = `<div class="panel">
     <span class="pill">${TYPE_LABELS[ex.type]}</span><span class="pill">${fwNames}</span>
@@ -173,7 +177,7 @@ function exerciseHTML(id) {
   </div>`;
 
   if (alreadyDone) {
-    const record = [...STATE.history].reverse().find((h) => h.exerciseId === id);
+    const record = MTC.lastRecordFor(STATE, id);
     return header + `<div class="panel">
       <p class="subtle">You already completed this today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} XP` : ""}.</p>
       ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
@@ -198,7 +202,7 @@ function exerciseHTML(id) {
   } else {
     const total = ex.rubric.length;
     const checkedCount = exUI.checked.size;
-    const scorePreview = Math.round((checkedCount / total) * 100);
+    const scorePreview = MTC.rubricScore(checkedCount, total);
     assessmentHTML = `
       <div class="panel">
         <h3>Self-Assessment</h3>
@@ -206,7 +210,7 @@ function exerciseHTML(id) {
         ${ex.rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-rubric-idx="${i}" ${exUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
         <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
-        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; est. XP: <b>${Math.round(ex.xpBase * (scorePreview / 100) * MTC.hintPenaltyFactor(exUI.hintsRevealed))}</b></p>
+        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; est. XP: <b>${MTC.estimateXp(ex.xpBase, scorePreview, exUI.hintsRevealed)}</b></p>
         <button class="btn" data-submit-exercise>Submit</button>
       </div>`;
   }
@@ -220,20 +224,12 @@ function exerciseHTML(id) {
 
 /* ---------- Boss Battle ---------- */
 
-const BOSS_RUBRIC = [
-  "Directly addressed Stage 1's question",
-  "Directly addressed Stage 2's question",
-  "Directly addressed Stage 3's question",
-  "Explicitly named which thinking frameworks I applied",
-  "Engaged honestly with the 'no perfect answer' tension instead of picking a falsely clean side",
-];
-
 function bossHTML() {
   const battleState = MTC.getCurrentBossBattle(STATE);
   const battle = MTC.getBossBattleDef(battleState.battleId);
 
   if (battleState.completed) {
-    const record = [...STATE.history].reverse().find((h) => h.exerciseId === battle.id && h.type === "boss");
+    const record = MTC.lastRecordFor(STATE, battle.id, "boss");
     return `<div class="panel">
       <span class="pill">${esc(battle.domain)}</span>
       <h2>${esc(battle.name)}</h2>
@@ -247,7 +243,7 @@ function bossHTML() {
   if (!bossUI || bossUI.battleId !== battle.id) {
     bossUI = { battleId: battle.id, hintsShown: new Set(), checked: new Set(), showResolution: false, draft: "" };
   }
-  const rubric = battle.rubric || BOSS_RUBRIC;
+  const rubric = battle.rubric;
 
   const stagesHTML = battle.stages.map((s, i) => `
     <div class="stage">
@@ -264,12 +260,12 @@ function bossHTML() {
   } else {
     const total = rubric.length;
     const checkedCount = bossUI.checked.size;
-    const scorePreview = Math.round((checkedCount / total) * 100);
+    const scorePreview = MTC.rubricScore(checkedCount, total);
     resolutionHTML = `<div class="panel">
       <h3>Self-Assessment</h3>
       ${rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-boss-rubric-idx="${i}" ${bossUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
       <div class="model-answer"><div class="lbl">Expert Framing (no perfect answer)</div>${esc(battle.noPerfectAnswerNote)}</div>
-      <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${Math.round(battle.xpBase * (scorePreview / 100))}</b></p>
+      <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${MTC.estimateXp(battle.xpBase, scorePreview, 0)}</b></p>
       <button class="btn" data-submit-boss="${battle.id}">Submit</button>
     </div>`;
   }
@@ -288,30 +284,34 @@ function bossHTML() {
 
 /* ---------- Toolbox ---------- */
 
-function toolboxHTML() {
+function toolboxResultsHTML() {
   const q = toolboxFilter.toLowerCase();
   const items = MTC_TOOLBOX.filter((t) => !q || t.name.toLowerCase().includes(q) || t.summary.toLowerCase().includes(q));
+  return items.map((t) => `<div class="panel"><h3>${esc(t.name)}</h3><p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p></div>`).join("") || `<p class="subtle">No tools match.</p>`;
+}
+
+function toolboxHTML() {
   return `<div class="panel">
     <h2>Thinking Toolbox</h2>
     <input type="text" id="toolbox-search" placeholder="Search tools..." value="${esc(toolboxFilter)}" />
   </div>
-  <div class="grid">
-    ${items.map((t) => `<div class="panel"><h3>${esc(t.name)}</h3><p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p></div>`).join("") || `<p class="subtle">No tools match.</p>`}
-  </div>`;
+  <div class="grid" id="toolbox-results">${toolboxResultsHTML()}</div>`;
 }
 
 /* ---------- Framework encyclopedia ---------- */
 
-function frameworksListHTML() {
+function frameworksResultsHTML() {
   const q = frameworksFilter.toLowerCase();
   const items = MTC_FRAMEWORKS.filter((f) => !q || f.name.toLowerCase().includes(q) || f.core.toLowerCase().includes(q));
+  return items.map((f) => `<div class="card panel" data-nav="frameworks/${f.id}"><h3>${esc(f.name)}</h3><p class="subtle">${esc(f.core)}</p></div>`).join("") || `<p class="subtle">No frameworks match.</p>`;
+}
+
+function frameworksListHTML() {
   return `<div class="panel">
     <h2>Framework Encyclopedia</h2>
     <input type="text" id="frameworks-search" placeholder="Search frameworks..." value="${esc(frameworksFilter)}" />
   </div>
-  <div class="grid">
-    ${items.map((f) => `<div class="card panel" data-nav="frameworks/${f.id}"><h3>${esc(f.name)}</h3><p class="subtle">${esc(f.core)}</p></div>`).join("") || `<p class="subtle">No frameworks match.</p>`}
-  </div>`;
+  <div class="grid" id="frameworks-results">${frameworksResultsHTML()}</div>`;
 }
 
 function frameworkDetailHTML(id) {
@@ -353,7 +353,7 @@ function achievementsHTML() {
 /* ---------- Journal ---------- */
 
 function journalHTML() {
-  const entries = [...STATE.history].reverse().slice(0, 100);
+  const entries = STATE.history.slice(-100).reverse();
   const header = `<div class="panel">
     <h2>Journal</h2>
     <p class="subtle">Every answer you submit is recorded here, so you can watch how your reasoning changes over time. Use "Export progress" in the footer to back it up.</p>
@@ -391,7 +391,6 @@ function resultToastHTML(result) {
 /* ---------- Main render ---------- */
 
 function render() {
-  STATE = MTC.loadState();
   const app = document.getElementById("app");
   if (!STATE.name) {
     app.innerHTML = onboardingHTML();
@@ -414,16 +413,6 @@ function render() {
   if (pendingResult) app.insertAdjacentHTML("beforeend", resultToastHTML(pendingResult));
 }
 
-function refocus(id) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.focus();
-    const v = el.value;
-    el.value = "";
-    el.value = v;
-  }
-}
-
 /* ---------- Events ---------- */
 
 document.addEventListener("click", (e) => {
@@ -444,7 +433,7 @@ document.addEventListener("click", (e) => {
 
   if (e.target.closest("[data-submit-exercise]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
-    const score = Math.round((exUI.checked.size / ex.rubric.length) * 100);
+    const score = MTC.rubricScore(exUI.checked.size, ex.rubric.length);
     const result = MTC.submitExercise(STATE, exUI.exerciseId, score, exUI.hintsRevealed, exUI.draft);
     pendingResult = result;
     exUI = null;
@@ -464,8 +453,8 @@ document.addEventListener("click", (e) => {
   const submitBoss = e.target.closest("[data-submit-boss]");
   if (submitBoss) {
     const battleId = submitBoss.dataset.submitBoss;
-    const rubric = MTC.getBossBattleDef(battleId).rubric || BOSS_RUBRIC;
-    const score = Math.round((bossUI.checked.size / rubric.length) * 100);
+    const rubric = MTC.getBossBattleDef(battleId).rubric;
+    const score = MTC.rubricScore(bossUI.checked.size, rubric.length);
     const result = MTC.submitBossBattle(STATE, battleId, score, bossUI.draft);
     pendingResult = result;
     bossUI = null;
@@ -514,7 +503,7 @@ document.addEventListener("change", (e) => {
     file.text().then((text) => {
       if (!confirm("Importing will replace ALL progress on this device with the file's progress. Continue?")) return;
       try {
-        MTC.importState(text);
+        STATE = MTC.importState(text);
         exUI = null;
         bossUI = null;
         pendingResult = null;
@@ -540,8 +529,13 @@ document.addEventListener("change", (e) => {
 document.addEventListener("input", (e) => {
   if (e.target.id === "ex-draft") { if (exUI) exUI.draft = e.target.value; return; }
   if (e.target.id === "boss-draft") { if (bossUI) bossUI.draft = e.target.value; return; }
-  if (e.target.id === "toolbox-search") { toolboxFilter = e.target.value; render(); refocus("toolbox-search"); }
-  else if (e.target.id === "frameworks-search") { frameworksFilter = e.target.value; render(); refocus("frameworks-search"); }
+  if (e.target.id === "toolbox-search") {
+    toolboxFilter = e.target.value;
+    document.getElementById("toolbox-results").innerHTML = toolboxResultsHTML();
+  } else if (e.target.id === "frameworks-search") {
+    frameworksFilter = e.target.value;
+    document.getElementById("frameworks-results").innerHTML = frameworksResultsHTML();
+  }
 });
 
 document.addEventListener("submit", (e) => {
@@ -555,6 +549,13 @@ document.addEventListener("submit", (e) => {
 });
 
 window.addEventListener("hashchange", render);
+// STATE is cached in memory; pick up writes from other tabs.
+window.addEventListener("storage", (e) => {
+  if (e.key === "mtc_state_v1") {
+    STATE = MTC.loadState();
+    render();
+  }
+});
 window.addEventListener("DOMContentLoaded", () => {
   if (!location.hash) location.hash = "#/dashboard";
   render();

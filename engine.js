@@ -132,7 +132,13 @@ const MTC = (() => {
     return rows;
   }
 
-  function pickExerciseForType(state, type) {
+  function weakFrameworkIds(state) {
+    return weaknessProfile(state)
+      .filter((w) => w.attempts > 0 && w.avg < 70)
+      .map((w) => w.id);
+  }
+
+  function pickExerciseForType(state, type, weak) {
     const pool = MTC_EXERCISES.filter((e) => e.type === type);
     const recentIds = state.history
       .filter((h) => h.type === type)
@@ -141,9 +147,6 @@ const MTC = (() => {
     let candidates = pool.filter((e) => !recentIds.includes(e.id));
     if (candidates.length === 0) candidates = pool;
 
-    const weak = weaknessProfile(state)
-      .filter((w) => w.attempts > 0 && w.avg < 70)
-      .map((w) => w.id);
     const weakMatches = candidates.filter((e) => e.frameworks.some((f) => weak.includes(f)));
 
     const useWeak = weakMatches.length > 0 && Math.random() < 0.6;
@@ -154,15 +157,13 @@ const MTC = (() => {
   function getOrCreateDailyQuest(state) {
     const today = todayStr();
     if (state.dailyQuest && state.dailyQuest.date === today) return state.dailyQuest;
+    const weak = weakFrameworkIds(state);
     const items = MTC_QUEST_TYPES.map((type) => {
-      const ex = pickExerciseForType(state, type);
+      const ex = pickExerciseForType(state, type, weak);
       return { exerciseId: ex.id, type, core: false };
     });
     // Core trio for short sessions: the warm-up plus the two exercises that
     // best target the player's current weak frameworks.
-    const weak = weaknessProfile(state)
-      .filter((w) => w.attempts > 0 && w.avg < 70)
-      .map((w) => w.id);
     const ranked = items
       .filter((it) => it.type !== "warmup")
       .map((it) => {
@@ -185,49 +186,78 @@ const MTC = (() => {
     return Math.max(0.4, 1 - hintsUsed * 0.2);
   }
 
-  function submitExercise(state, exerciseId, selfScore, hintsUsed, answerText) {
-    const ex = getExercise(exerciseId);
-    if (!ex) throw new Error("Unknown exercise: " + exerciseId);
-    const clampedScore = Math.max(0, Math.min(100, selfScore));
-    const xpAwarded = Math.round(ex.xpBase * (clampedScore / 100) * hintPenaltyFactor(hintsUsed));
+  // Single source of truth for the XP formula — used both to award XP on
+  // submit and to show the "est. XP" preview in the UI.
+  function estimateXp(xpBase, score, hintsUsed) {
+    const clamped = Math.max(0, Math.min(100, score));
+    return Math.round(xpBase * (clamped / 100) * hintPenaltyFactor(hintsUsed || 0));
+  }
 
-    state.totalExercises++;
-    state.typeCounts[ex.type] = (state.typeCounts[ex.type] || 0) + 1;
-    for (const fw of ex.frameworks) {
+  function rubricScore(checkedCount, total) {
+    return Math.round((checkedCount / total) * 100);
+  }
+
+  function trimAnswer(text) {
+    return String(text || "").trim().slice(0, 8000);
+  }
+
+  function lastRecordFor(state, exerciseId, type) {
+    for (let i = state.history.length - 1; i >= 0; i--) {
+      const h = state.history[i];
+      if (h.exerciseId === exerciseId && (!type || h.type === type)) return h;
+    }
+    return null;
+  }
+
+  // Shared bookkeeping for every scored attempt (exercise or boss battle):
+  // framework stats, history, streak, XP, level-ups, achievements, persistence.
+  function applyAttempt(state, frameworks, historyEntry) {
+    for (const fw of frameworks) {
       state.frameworkCounts[fw] = (state.frameworkCounts[fw] || 0) + 1;
       if (!state.weaknessScores[fw]) state.weaknessScores[fw] = { attempts: 0, totalScore: 0 };
       state.weaknessScores[fw].attempts++;
-      state.weaknessScores[fw].totalScore += clampedScore;
+      state.weaknessScores[fw].totalScore += historyEntry.score;
     }
-    if (ex.flag) state.flags[ex.flag] = (state.flags[ex.flag] || 0) + 1;
-
-    state.history.push({
-      date: todayStr(),
-      exerciseId,
-      type: ex.type,
-      score: clampedScore,
-      xp: xpAwarded,
-      hintsUsed,
-      answer: String(answerText || "").trim().slice(0, 8000),
-    });
-
-    const quest = getOrCreateDailyQuest(state);
-    if (!quest.completed.includes(exerciseId)) quest.completed.push(exerciseId);
+    state.history.push(historyEntry);
 
     const beforeLevel = deriveLevel(state.totalXp).level;
     updateStreak(state);
-    state.totalXp += xpAwarded;
+    state.totalXp += historyEntry.xp;
     const afterLevel = deriveLevel(state.totalXp).level;
     const achievementsUnlocked = checkAchievements(state);
     saveState(state);
 
     return {
-      xpAwarded,
+      xpAwarded: historyEntry.xp,
       leveledUp: afterLevel > beforeLevel,
       newLevel: afterLevel,
       achievementsUnlocked,
-      questComplete: quest.completed.length >= quest.items.length,
     };
+  }
+
+  function submitExercise(state, exerciseId, selfScore, hintsUsed, answerText) {
+    const ex = getExercise(exerciseId);
+    if (!ex) throw new Error("Unknown exercise: " + exerciseId);
+    const score = Math.max(0, Math.min(100, selfScore));
+
+    state.totalExercises++;
+    state.typeCounts[ex.type] = (state.typeCounts[ex.type] || 0) + 1;
+    if (ex.flag) state.flags[ex.flag] = (state.flags[ex.flag] || 0) + 1;
+
+    const quest = getOrCreateDailyQuest(state);
+    if (!quest.completed.includes(exerciseId)) quest.completed.push(exerciseId);
+
+    const result = applyAttempt(state, ex.frameworks, {
+      date: todayStr(),
+      exerciseId,
+      type: ex.type,
+      score,
+      xp: estimateXp(ex.xpBase, score, hintsUsed),
+      hintsUsed,
+      answer: trimAnswer(answerText),
+    });
+    result.questComplete = quest.completed.length >= quest.items.length;
+    return result;
   }
 
   function getCurrentBossBattle(state) {
@@ -246,28 +276,20 @@ const MTC = (() => {
 
   function submitBossBattle(state, battleId, selfScore, answerText) {
     const battle = getBossBattleDef(battleId);
-    const clampedScore = Math.max(0, Math.min(100, selfScore));
-    const xpAwarded = Math.round(battle.xpBase * (clampedScore / 100));
+    const score = Math.max(0, Math.min(100, selfScore));
 
     state.bossBattlesCompleted++;
-    for (const fw of battle.frameworks) {
-      state.frameworkCounts[fw] = (state.frameworkCounts[fw] || 0) + 1;
-      if (!state.weaknessScores[fw]) state.weaknessScores[fw] = { attempts: 0, totalScore: 0 };
-      state.weaknessScores[fw].attempts++;
-      state.weaknessScores[fw].totalScore += clampedScore;
-    }
-    state.history.push({ date: todayStr(), exerciseId: battleId, type: "boss", score: clampedScore, xp: xpAwarded, hintsUsed: 0, answer: String(answerText || "").trim().slice(0, 8000) });
-
-    const beforeLevel = deriveLevel(state.totalXp).level;
-    updateStreak(state);
-    state.totalXp += xpAwarded;
-    const afterLevel = deriveLevel(state.totalXp).level;
-
     if (state.bossBattle && state.bossBattle.battleId === battleId) state.bossBattle.completed = true;
-    const achievementsUnlocked = checkAchievements(state);
-    saveState(state);
 
-    return { xpAwarded, leveledUp: afterLevel > beforeLevel, newLevel: afterLevel, achievementsUnlocked };
+    return applyAttempt(state, battle.frameworks, {
+      date: todayStr(),
+      exerciseId: battleId,
+      type: "boss",
+      score,
+      xp: estimateXp(battle.xpBase, score, 0),
+      hintsUsed: 0,
+      answer: trimAnswer(answerText),
+    });
   }
 
   function exportStateJSON() {
@@ -286,18 +308,16 @@ const MTC = (() => {
 
   return {
     todayStr,
-    isoWeekKey,
     deriveLevel,
     titleForLevel,
-    xpCostForLevel,
     loadState,
     saveState,
-    defaultState,
-    statsView,
     weaknessProfile,
     getOrCreateDailyQuest,
     getExercise,
-    hintPenaltyFactor,
+    estimateXp,
+    rubricScore,
+    lastRecordFor,
     exportStateJSON,
     importState,
     submitExercise,
