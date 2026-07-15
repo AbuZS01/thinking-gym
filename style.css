@@ -90,6 +90,7 @@ a { color: var(--accent-2); }
   color: var(--text-dim); background: var(--bg-panel); border: 1px solid var(--border);
   padding: 2px 7px; border-radius: 999px; margin-bottom: 8px;
 }
+.card .tag.core { color: var(--gold); border-color: var(--gold); margin-left: 4px; }
 .card.done { opacity: 0.6; }
 .card.done::after { content: "✓ done"; float: right; color: var(--good); font-size: 12px; }
 
@@ -122,6 +123,12 @@ textarea { min-height: 120px; resize: vertical; }
   padding: 12px; margin-top: 10px; font-size: 13.5px; line-height: 1.5;
 }
 .model-answer .lbl { color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+
+.journal-answer {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; margin-top: 8px; font-size: 13.5px; line-height: 1.55;
+  white-space: pre-wrap; overflow-wrap: break-word;
+}
 
 .weak-row { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 8px; }
 .weak-row .name { width: 170px; flex-shrink: 0; color: var(--text-dim); }

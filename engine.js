@@ -99,7 +99,8 @@ const MTC = (() => {
     if (state.lastActiveDate) {
       const prev = new Date(state.lastActiveDate + "T00:00:00Z");
       const diffDays = Math.round((new Date(today + "T00:00:00Z") - prev) / 86400000);
-      state.streak = diffDays === 1 ? state.streak + 1 : 1;
+      // diffDays === 2 means exactly one missed day — forgiven as a grace day
+      state.streak = diffDays <= 2 ? state.streak + 1 : 1;
     } else {
       state.streak = 1;
     }
@@ -155,8 +156,22 @@ const MTC = (() => {
     if (state.dailyQuest && state.dailyQuest.date === today) return state.dailyQuest;
     const items = MTC_QUEST_TYPES.map((type) => {
       const ex = pickExerciseForType(state, type);
-      return { exerciseId: ex.id, type };
+      return { exerciseId: ex.id, type, core: false };
     });
+    // Core trio for short sessions: the warm-up plus the two exercises that
+    // best target the player's current weak frameworks.
+    const weak = weaknessProfile(state)
+      .filter((w) => w.attempts > 0 && w.avg < 70)
+      .map((w) => w.id);
+    const ranked = items
+      .filter((it) => it.type !== "warmup")
+      .map((it) => {
+        const ex = getExercise(it.exerciseId);
+        return { it, overlap: ex.frameworks.filter((f) => weak.includes(f)).length };
+      })
+      .sort((a, b) => b.overlap - a.overlap);
+    items.find((it) => it.type === "warmup").core = true;
+    ranked.slice(0, 2).forEach((r) => { r.it.core = true; });
     state.dailyQuest = { date: today, items, completed: [] };
     saveState(state);
     return state.dailyQuest;
@@ -167,10 +182,10 @@ const MTC = (() => {
   }
 
   function hintPenaltyFactor(hintsUsed) {
-    return Math.max(0.6, 1 - hintsUsed * 0.1);
+    return Math.max(0.4, 1 - hintsUsed * 0.2);
   }
 
-  function submitExercise(state, exerciseId, selfScore, hintsUsed) {
+  function submitExercise(state, exerciseId, selfScore, hintsUsed, answerText) {
     const ex = getExercise(exerciseId);
     if (!ex) throw new Error("Unknown exercise: " + exerciseId);
     const clampedScore = Math.max(0, Math.min(100, selfScore));
@@ -193,6 +208,7 @@ const MTC = (() => {
       score: clampedScore,
       xp: xpAwarded,
       hintsUsed,
+      answer: String(answerText || "").trim().slice(0, 8000),
     });
 
     const quest = getOrCreateDailyQuest(state);
@@ -228,7 +244,7 @@ const MTC = (() => {
     return MTC_BOSS_BATTLES.find((b) => b.id === battleId);
   }
 
-  function submitBossBattle(state, battleId, selfScore) {
+  function submitBossBattle(state, battleId, selfScore, answerText) {
     const battle = getBossBattleDef(battleId);
     const clampedScore = Math.max(0, Math.min(100, selfScore));
     const xpAwarded = Math.round(battle.xpBase * (clampedScore / 100));
@@ -240,7 +256,7 @@ const MTC = (() => {
       state.weaknessScores[fw].attempts++;
       state.weaknessScores[fw].totalScore += clampedScore;
     }
-    state.history.push({ date: todayStr(), exerciseId: battleId, type: "boss", score: clampedScore, xp: xpAwarded, hintsUsed: 0 });
+    state.history.push({ date: todayStr(), exerciseId: battleId, type: "boss", score: clampedScore, xp: xpAwarded, hintsUsed: 0, answer: String(answerText || "").trim().slice(0, 8000) });
 
     const beforeLevel = deriveLevel(state.totalXp).level;
     updateStreak(state);
@@ -252,6 +268,20 @@ const MTC = (() => {
     saveState(state);
 
     return { xpAwarded, leveledUp: afterLevel > beforeLevel, newLevel: afterLevel, achievementsUnlocked };
+  }
+
+  function exportStateJSON() {
+    return JSON.stringify(loadState(), null, 2);
+  }
+
+  function importState(json) {
+    const parsed = JSON.parse(json);
+    if (!parsed || typeof parsed !== "object" || typeof parsed.totalXp !== "number" || !Array.isArray(parsed.history)) {
+      throw new Error("Not a valid progress file");
+    }
+    const state = Object.assign(defaultState(), parsed);
+    saveState(state);
+    return state;
   }
 
   return {
@@ -267,6 +297,9 @@ const MTC = (() => {
     weaknessProfile,
     getOrCreateDailyQuest,
     getExercise,
+    hintPenaltyFactor,
+    exportStateJSON,
+    importState,
     submitExercise,
     getCurrentBossBattle,
     getBossBattleDef,

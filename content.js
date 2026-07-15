@@ -662,6 +662,13 @@ const MTC_BOSS_BATTLES = [
       { question: "A single serious side-effect case goes viral on social media. What does risk-assessment thinking say about the gap between vivid single cases and population statistics, and how should communication handle that gap honestly?", considerations: "Address availability bias without being dismissive of the real, if rare, harm — dismissiveness itself erodes trust." },
     ],
     noPerfectAnswerNote: "There is no framing that satisfies both the population-level statistics and the individual affected by the rare side effect — any honest answer has to hold both truths at once without collapsing into either 'it's basically risk-free' or 'the anecdote proves it's dangerous.'",
+    rubric: [
+      "Compared population-level expected harm from the disease vs. the vaccine, with my assumptions stated",
+      "Identified the second-order risk of messaging aimed at the hesitant group (reactance, lost trust)",
+      "Addressed the vivid-anecdote vs. statistics gap without dismissing the real, rare harm",
+      "Explicitly named which thinking frameworks I applied",
+      "Held both truths at once instead of collapsing into 'basically risk-free' or 'proven dangerous'",
+    ],
     xpBase: 100 },
 
   { id: "boss-2", name: "The Hostile Takeover", domain: "Business / Game theory",
@@ -673,6 +680,13 @@ const MTC_BOSS_BATTLES = [
       { question: "What second-order consequence follows from a public, contentious fight, regardless of who wins it?", considerations: "Consider effects on employee morale, customer confidence, and your company's valuation in the eyes of future acquirers or investors." },
     ],
     noPerfectAnswerNote: "Fighting risks losing anyway at a worse price after burning trust; negotiating risks the board being accused of not maximizing shareholder value by resisting harder — there's no move here that isn't a bet under real uncertainty.",
+    rubric: [
+      "Mapped the acquirer's likely best response to both fighting and negotiating",
+      "Red-teamed my own defense and found its weakest point (e.g. shareholder vs. management incentives)",
+      "Traced a consequence of a public fight that applies even if we win it",
+      "Explicitly named which thinking frameworks I applied",
+      "Treated both paths as bets under uncertainty rather than declaring a clean winner",
+    ],
     xpBase: 100 },
 
   { id: "boss-3", name: "The Whistleblower", domain: "Ethics / Organizational systems",
@@ -684,6 +698,13 @@ const MTC_BOSS_BATTLES = [
       { question: "Trace two rounds of second-order consequences for both 'stay quiet' and 'escalate externally' — what happens after the immediate outcome in each case?", considerations: "Consider legal exposure, trust, your own career, and the affected customers' actual safety in both branches." },
     ],
     noPerfectAnswerNote: "Escalating can be professionally and legally costly to you personally even when it's the right call; staying quiet protects you and the company short-term while leaving real people at risk — there is no answer here that has no cost.",
+    rubric: [
+      "Applied at least two different ethical lenses and noted where they conflict",
+      "Read 'don't escalate' as a systems signal about how the next issue will be handled",
+      "Traced two rounds of consequences for both staying quiet and escalating",
+      "Explicitly named which thinking frameworks I applied",
+      "Faced the personal cost honestly instead of assuming the right choice is free",
+    ],
     xpBase: 100 },
 
   { id: "boss-4", name: "The AI Deployment Decision", domain: "Technology / Risk",
@@ -695,6 +716,13 @@ const MTC_BOSS_BATTLES = [
       { question: "From an ethical-reasoning standpoint, does it matter that the errors are now made by an opaque system instead of an accountable human? Why or why not?", considerations: "Consider whether affected customers have a meaningful way to understand or contest an AI-driven decision, versus a human one." },
     ],
     noPerfectAnswerNote: "Shipping now trades a known, explainable error rate for an unknown, differently-shaped one in the name of speed; waiting cedes ground to competitors while the current human process keeps making its own errors in the meantime — neither option is risk-free.",
+    rubric: [
+      "Explained why 'better on average' isn't automatically the right shipping criterion",
+      "Weighed first-mover advantage against reputational tail risk explicitly",
+      "Addressed whether opaque AI errors differ ethically from accountable human ones",
+      "Explicitly named which thinking frameworks I applied",
+      "Engaged the ship-vs-wait tension instead of picking a falsely clean side",
+    ],
     xpBase: 100 },
 
   { id: "boss-5", name: "The Siege", domain: "History / Strategy",
@@ -706,6 +734,13 @@ const MTC_BOSS_BATTLES = [
       { question: "What's the decision-theory framing here: is this an averageable bet, or a ruin-risk decision, and why does that change how you should weigh the uncertainty?", considerations: "A city under siege is not a repeatable bet — a wrong call here can be irreversible for the people inside, unlike a bet you could make many times." },
     ],
     noPerfectAnswerNote: "The generous terms being offered early is itself ambiguous evidence — it could mean the besieger is weaker than they appear (negotiate from strength) or that they expect to win regardless and are being magnanimous (negotiate from weakness) — the same fact supports opposite strategies depending on which read is correct, and you cannot fully verify which from inside the city.",
+    rubric: [
+      "Read the offer's early timing as evidence and considered both interpretations of it",
+      "Built two or three genuinely distinct scenarios and looked for the decision robust across them",
+      "Identified this as a ruin-risk decision, not an averageable bet",
+      "Explicitly named which thinking frameworks I applied",
+      "Acknowledged the same fact supports opposite strategies and can't be verified from inside",
+    ],
     xpBase: 100 },
 
   { id: "boss-6", name: "The Market Crash Call", domain: "Economics / Probabilistic thinking",
@@ -717,6 +752,13 @@ const MTC_BOSS_BATTLES = [
       { question: "Name the specific cognitive bias risk in following the analyst whose call you found more emotionally compelling, and how you'd correct for it.", considerations: "Consider confirmation bias toward whichever narrative matches your prior fear or optimism, and how you'd deliberately seek the disconfirming case." },
     ],
     noPerfectAnswerNote: "Acting on the crash prediction and being wrong costs real, certain returns during the wait; ignoring it and being wrong risks a large, possibly correlated loss — under genuine uncertainty about which analyst is right, there's no allocation that's safe against both outcomes.",
+    rubric: [
+      "Anchored on the base rate of 'this time is different' claims before adjusting for specifics",
+      "Expressed the decision as an allocation reflecting uncertainty, not a binary crash/no-crash call",
+      "Named my likely confirmation bias and a concrete way to correct for it",
+      "Explicitly named which thinking frameworks I applied",
+      "Accepted that no allocation is safe against both outcomes instead of forcing false certainty",
+    ],
     xpBase: 100 },
 ];
 

@@ -23,10 +23,20 @@ browser's `localStorage`, so it's fully private and works offline.
 - **Leveling & Achievements** — an RPG-style level curve (1 → 100, with titles
   from "Beginner Observer" to "Grand Strategist"), XP, streaks, and 20
   achievements.
+- **Journal** — every answer you submit is saved and browsable, so you can
+  watch how your reasoning changes over time.
+- **Export / Import** — back up all progress (including the journal) to a JSON
+  file from the footer, and restore it on any device.
 
 Every exercise uses a self-assessment model: you attempt it, optionally reveal
-progressive Socratic hints, then check off a rubric against the model answer
-and expert note — your XP is earned from how many criteria you honestly met.
+progressive Socratic hints (each hint costs 20% of the exercise's XP), then
+check off a rubric against the model answer and expert note — your XP is
+earned from how many criteria you honestly met.
+
+Two mechanics keep the daily habit sustainable: missing a single day does not
+reset your streak (one grace day is always forgiven), and each daily quest
+marks a ★ core trio — the warm-up plus the two exercises that best target your
+weakest frameworks — so a short session still counts.
 
 ## Running it
 

@@ -40,6 +40,7 @@ function navHTML() {
       ${navBtn("dashboard", "Dashboard")}
       ${navBtn("quest", "Daily Quest")}
       ${navBtn("boss", "Boss Battle")}
+      ${navBtn("journal", "Journal")}
       ${navBtn("toolbox", "Toolbox")}
       ${navBtn("frameworks", "Frameworks")}
       ${navBtn("achievements", "Achievements")}
@@ -51,7 +52,10 @@ function navHTML() {
 function footerHTML() {
   return `<footer class="foot">
     Local &amp; private &mdash; your progress lives only in this browser's storage.
+    &middot; <button data-export-progress>Export progress</button>
+    &middot; <button data-import-progress>Import progress</button>
     &middot; <button data-reset-progress>Reset all progress</button>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
   </footer>`;
 }
 
@@ -82,6 +86,7 @@ function dashboardHTML() {
     <div class="level-hero">
       <div class="level-badge" style="--pct:${li.pct}%"><div class="inner"><div class="num">${li.level}</div><div class="lbl">LVL</div></div></div>
       <div style="flex:1">
+        <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
         <h2>${esc(li.title)}</h2>
         <div class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP to next level</div>
         <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
@@ -118,6 +123,7 @@ function dashboardHTML() {
   </div>
 
   <div class="grid tight">
+    <div class="panel card" data-nav="journal"><h3>Journal</h3><p class="subtle">${STATE.history.length} answer${STATE.history.length === 1 ? "" : "s"} recorded</p></div>
     <div class="panel card" data-nav="toolbox"><h3>Thinking Toolbox</h3><p class="subtle">${MTC_TOOLBOX.length} quick-reference tools</p></div>
     <div class="panel card" data-nav="frameworks"><h3>Framework Encyclopedia</h3><p class="subtle">${MTC_FRAMEWORKS.length} thinking styles, deep-dived</p></div>
   </div>`;
@@ -128,21 +134,22 @@ function dashboardHTML() {
 const TYPE_LABELS = {
   warmup: "Warm-up", challenge: "Challenge", case: "Real-World Case", reflection: "Reflection",
   creativity: "Creativity", logic_puzzle: "Logic Puzzle", decision: "Decision Scenario",
-  bias: "Bias Detection", observation: "Observation",
+  bias: "Bias Detection", observation: "Observation", boss: "Boss Battle",
 };
 
 function questHTML() {
   const quest = MTC.getOrCreateDailyQuest(STATE);
+  const hasCore = quest.items.some((i) => i.core);
   return `<div class="panel">
     <h2>Today's Thinking Quest</h2>
-    <p class="subtle">Nine exercises, one of each type. About 20&ndash;30 minutes total. ${quest.completed.length}/${quest.items.length} done.</p>
+    <p class="subtle">Nine exercises, one of each type. About 20&ndash;30 minutes total. ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? The <span style="color:var(--gold)">&#9733; core</span> three keep your streak alive and target your weakest frameworks.` : ""}</p>
   </div>
   <div class="grid">
     ${quest.items.map((item) => {
       const ex = MTC.getExercise(item.exerciseId);
       const done = quest.completed.includes(item.exerciseId);
       return `<div class="card ${done ? "done" : ""}" data-start-exercise="${ex.id}">
-        <span class="tag">${TYPE_LABELS[item.type]}</span>
+        <span class="tag">${TYPE_LABELS[item.type]}</span>${item.core ? `<span class="tag core">&#9733; Core</span>` : ""}
         <h3>${esc(ex.title)}</h3>
         <p class="subtle">${ex.frameworks.map((f) => (MTC_FRAMEWORKS.find((fw) => fw.id === f) || {}).name).filter(Boolean).join(" &middot; ")}</p>
       </div>`;
@@ -169,6 +176,7 @@ function exerciseHTML(id) {
     const record = [...STATE.history].reverse().find((h) => h.exerciseId === id);
     return header + `<div class="panel">
       <p class="subtle">You already completed this today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} XP` : ""}.</p>
+      ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
       <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
       <div class="field"><button class="btn" data-nav="quest">Back to Quest</button></div>
@@ -176,12 +184,12 @@ function exerciseHTML(id) {
   }
 
   if (!exUI || exUI.exerciseId !== id) {
-    exUI = { exerciseId: id, hintsRevealed: 0, checked: new Set(), showAssessment: false };
+    exUI = { exerciseId: id, hintsRevealed: 0, checked: new Set(), showAssessment: false, draft: "" };
   }
 
   const hintsHTML = ex.hints.slice(0, exUI.hintsRevealed).map((h) => `<div class="hint-box">${esc(h)}</div>`).join("");
   const hintBtn = exUI.hintsRevealed < ex.hints.length
-    ? `<button class="btn ghost" data-hint>Show a hint (${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
+    ? `<button class="btn ghost" data-hint>Show a hint (&minus;20% XP each &middot; ${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
     : `<p class="subtle">All hints revealed.</p>`;
 
   let assessmentHTML = "";
@@ -198,13 +206,13 @@ function exerciseHTML(id) {
         ${ex.rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-rubric-idx="${i}" ${exUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
         <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
-        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; est. XP: <b>${Math.round(ex.xpBase * (scorePreview / 100) * Math.max(0.6, 1 - exUI.hintsRevealed * 0.1))}</b></p>
+        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; est. XP: <b>${Math.round(ex.xpBase * (scorePreview / 100) * MTC.hintPenaltyFactor(exUI.hintsRevealed))}</b></p>
         <button class="btn" data-submit-exercise>Submit</button>
       </div>`;
   }
 
   return header + `<div class="panel">
-    <textarea placeholder="Jot your own answer here first (this is just for you &mdash; it isn't saved or graded automatically)."></textarea>
+    <textarea id="ex-draft" placeholder="Write your answer here &mdash; it's saved to your journal when you submit.">${esc(exUI.draft)}</textarea>
     <div class="field">${hintBtn}</div>
     ${hintsHTML}
   </div>${assessmentHTML}`;
@@ -225,18 +233,21 @@ function bossHTML() {
   const battle = MTC.getBossBattleDef(battleState.battleId);
 
   if (battleState.completed) {
+    const record = [...STATE.history].reverse().find((h) => h.exerciseId === battle.id && h.type === "boss");
     return `<div class="panel">
       <span class="pill">${esc(battle.domain)}</span>
       <h2>${esc(battle.name)}</h2>
       <p>${esc(battle.briefing)}</p>
+      ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Expert Framing</div>${esc(battle.noPerfectAnswerNote)}</div>
       <p class="subtle" style="margin-top:12px">Boss defeated this week. A new battle unlocks next week.</p>
     </div>`;
   }
 
   if (!bossUI || bossUI.battleId !== battle.id) {
-    bossUI = { battleId: battle.id, hintsShown: new Set(), checked: new Set(), showResolution: false };
+    bossUI = { battleId: battle.id, hintsShown: new Set(), checked: new Set(), showResolution: false, draft: "" };
   }
+  const rubric = battle.rubric || BOSS_RUBRIC;
 
   const stagesHTML = battle.stages.map((s, i) => `
     <div class="stage">
@@ -251,12 +262,12 @@ function bossHTML() {
   if (!bossUI.showResolution) {
     resolutionHTML = `<div class="field"><button class="btn" data-boss-show-resolution>I've worked through all three stages &mdash; reveal expert framing &amp; self-assess</button></div>`;
   } else {
-    const total = BOSS_RUBRIC.length;
+    const total = rubric.length;
     const checkedCount = bossUI.checked.size;
     const scorePreview = Math.round((checkedCount / total) * 100);
     resolutionHTML = `<div class="panel">
       <h3>Self-Assessment</h3>
-      ${BOSS_RUBRIC.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-boss-rubric-idx="${i}" ${bossUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
+      ${rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-boss-rubric-idx="${i}" ${bossUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
       <div class="model-answer"><div class="lbl">Expert Framing (no perfect answer)</div>${esc(battle.noPerfectAnswerNote)}</div>
       <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${Math.round(battle.xpBase * (scorePreview / 100))}</b></p>
       <button class="btn" data-submit-boss="${battle.id}">Submit</button>
@@ -270,7 +281,7 @@ function bossHTML() {
     ${stagesHTML}
   </div>
   <div class="panel">
-    <textarea placeholder="Work through your reasoning here (this is just for you)."></textarea>
+    <textarea id="boss-draft" placeholder="Work through your reasoning here &mdash; it's saved to your journal when you submit.">${esc(bossUI.draft)}</textarea>
     ${resolutionHTML}
   </div>`;
 }
@@ -339,6 +350,30 @@ function achievementsHTML() {
   </div>`;
 }
 
+/* ---------- Journal ---------- */
+
+function journalHTML() {
+  const entries = [...STATE.history].reverse().slice(0, 100);
+  const header = `<div class="panel">
+    <h2>Journal</h2>
+    <p class="subtle">Every answer you submit is recorded here, so you can watch how your reasoning changes over time. Use "Export progress" in the footer to back it up.</p>
+  </div>`;
+  if (entries.length === 0) {
+    return header + `<div class="panel"><p class="subtle">Nothing here yet &mdash; complete an exercise and your written answer will appear.</p></div>`;
+  }
+  return header + entries.map((h) => {
+    const isBoss = h.type === "boss";
+    const def = isBoss ? MTC.getBossBattleDef(h.exerciseId) : MTC.getExercise(h.exerciseId);
+    const title = def ? (isBoss ? def.name : def.title) : h.exerciseId;
+    return `<div class="panel">
+      <span class="pill">${TYPE_LABELS[h.type] || esc(h.type)}</span><span class="pill">${esc(h.date)}</span>
+      <h3>${esc(title)}</h3>
+      <p class="subtle">Self-assessed ${h.score}% &middot; +${h.xp} XP${h.hintsUsed ? ` &middot; ${h.hintsUsed} hint${h.hintsUsed === 1 ? "" : "s"} used` : ""}</p>
+      ${h.answer ? `<div class="journal-answer">${esc(h.answer)}</div>` : `<p class="subtle">(no written answer was saved with this entry)</p>`}
+    </div>`;
+  }).join("");
+}
+
 /* ---------- Result toast ---------- */
 
 function resultToastHTML(result) {
@@ -368,6 +403,7 @@ function render() {
   else if (r === "quest") body = questHTML();
   else if (r.startsWith("exercise/")) body = exerciseHTML(r.split("/")[1]);
   else if (r === "boss") body = bossHTML();
+  else if (r === "journal") body = journalHTML();
   else if (r === "toolbox") body = toolboxHTML();
   else if (r === "frameworks") body = frameworksListHTML();
   else if (r.startsWith("frameworks/")) body = frameworkDetailHTML(r.split("/")[1]);
@@ -409,7 +445,7 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("[data-submit-exercise]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
     const score = Math.round((exUI.checked.size / ex.rubric.length) * 100);
-    const result = MTC.submitExercise(STATE, exUI.exerciseId, score, exUI.hintsRevealed);
+    const result = MTC.submitExercise(STATE, exUI.exerciseId, score, exUI.hintsRevealed, exUI.draft);
     pendingResult = result;
     exUI = null;
     render();
@@ -428,8 +464,9 @@ document.addEventListener("click", (e) => {
   const submitBoss = e.target.closest("[data-submit-boss]");
   if (submitBoss) {
     const battleId = submitBoss.dataset.submitBoss;
-    const score = Math.round((bossUI.checked.size / BOSS_RUBRIC.length) * 100);
-    const result = MTC.submitBossBattle(STATE, battleId, score);
+    const rubric = MTC.getBossBattleDef(battleId).rubric || BOSS_RUBRIC;
+    const score = Math.round((bossUI.checked.size / rubric.length) * 100);
+    const result = MTC.submitBossBattle(STATE, battleId, score, bossUI.draft);
     pendingResult = result;
     bossUI = null;
     render();
@@ -444,6 +481,21 @@ document.addEventListener("click", (e) => {
     return;
   }
 
+  if (e.target.closest("[data-export-progress]")) {
+    const blob = new Blob([MTC.exportStateJSON()], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `thinking-coach-progress-${MTC.todayStr()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return;
+  }
+
+  if (e.target.closest("[data-import-progress]")) {
+    document.getElementById("import-file").click();
+    return;
+  }
+
   if (e.target.closest("[data-reset-progress]")) {
     if (confirm("This will permanently erase all progress on this device. Continue?")) {
       localStorage.removeItem("mtc_state_v1");
@@ -455,6 +507,24 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("change", (e) => {
+  if (e.target.id === "import-file") {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    file.text().then((text) => {
+      if (!confirm("Importing will replace ALL progress on this device with the file's progress. Continue?")) return;
+      try {
+        MTC.importState(text);
+        exUI = null;
+        bossUI = null;
+        pendingResult = null;
+        render();
+      } catch (err) {
+        alert("That file doesn't look like a Thinking Coach progress export.");
+      }
+    });
+    return;
+  }
   if (e.target.matches("[data-rubric-idx]")) {
     const idx = Number(e.target.dataset.rubricIdx);
     if (e.target.checked) exUI.checked.add(idx); else exUI.checked.delete(idx);
@@ -468,6 +538,8 @@ document.addEventListener("change", (e) => {
 });
 
 document.addEventListener("input", (e) => {
+  if (e.target.id === "ex-draft") { if (exUI) exUI.draft = e.target.value; return; }
+  if (e.target.id === "boss-draft") { if (bossUI) bossUI.draft = e.target.value; return; }
   if (e.target.id === "toolbox-search") { toolboxFilter = e.target.value; render(); refocus("toolbox-search"); }
   else if (e.target.id === "frameworks-search") { frameworksFilter = e.target.value; render(); refocus("frameworks-search"); }
 });
