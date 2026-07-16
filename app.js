@@ -32,14 +32,15 @@ function levelInfo() {
 /* ---------- Layout ---------- */
 
 function navBtn(key, label) {
-  const active = route() === key || route().startsWith(key + "/");
-  return `<button data-nav="${key}" class="${active ? "active" : ""}">${label}</button>`;
+  const r = route();
+  const active = r === key || r.startsWith(key + "/") || (key === "quest" && r.startsWith("exercise/"));
+  return `<a href="#/${key}" data-nav="${key}" ${active ? 'class="active" aria-current="page"' : ""}>${label}</a>`;
 }
 
 function navHTML() {
   const li = levelInfo();
   return `<div class="topnav">
-    <div class="brand"><span class="mark">&#9670;</span> Master Thinking Coach</div>
+    <a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> Master Thinking Coach</a>
     <div class="navlinks">
       ${navBtn("dashboard", "Dashboard")}
       ${navBtn("quest", "Daily Quest")}
@@ -55,10 +56,10 @@ function navHTML() {
 
 function footerHTML() {
   return `<footer class="foot">
-    Local &amp; private &mdash; your progress lives only in this browser's storage.
+    Progress is stored in this browser only.
     &middot; <button data-export-progress>Export progress</button>
     &middot; <button data-import-progress>Import progress</button>
-    &middot; <button data-reset-progress>Reset all progress</button>
+    &middot; <button data-reset-progress>Erase all progress</button>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
   </footer>`;
 }
@@ -68,10 +69,10 @@ function footerHTML() {
 function onboardingHTML() {
   return `<div class="onboarding">
     <h1>Master Thinking Coach</h1>
-    <p>A long-term training program to help you think like an intelligence analyst, strategist, inventor, scientist, entrepreneur, and philosopher &mdash; combined. Daily quests, a thinking-frameworks encyclopedia, achievements, and weekly boss battles with no perfect answer.</p>
+    <p>Daily exercises that train sharper reasoning. Your progress stays on this device.</p>
     <form data-onboard-form>
-      <input type="text" name="playerName" placeholder="What should we call you?" maxlength="40" autofocus />
-      <div class="field"><button class="btn" type="submit">Begin Training</button></div>
+      <input type="text" name="playerName" placeholder="Your name" maxlength="40" autofocus />
+      <div class="field"><button class="btn" type="submit">Start</button></div>
     </form>
   </div>`;
 }
@@ -91,7 +92,7 @@ function dashboardHTML() {
       <div class="level-num">${li.level}<sup>lvl</sup></div>
       <div style="flex:1">
         <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
-        <h2>${esc(li.title)}</h2>
+        <h1>${esc(li.title)}</h1>
         <div class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP to next level</div>
         <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
       </div>
@@ -99,37 +100,37 @@ function dashboardHTML() {
   </div>
 
   <div class="grid">
-    <div class="panel card" data-nav="quest">
+    <a class="panel card" href="#/quest">
       <span class="tag">Today</span>
-      <h3>Daily Quest</h3>
-      <p class="subtle">${quest.completed.length} / ${quest.items.length} exercises done</p>
-      <button class="btn">Continue &rarr;</button>
-    </div>
-    <div class="panel card" data-nav="boss">
+      <h2>Daily Quest</h2>
+      <p class="subtle">${quest.completed.length} / ${quest.items.length} done</p>
+      <span class="cta">Continue &rarr;</span>
+    </a>
+    <a class="panel card" href="#/boss">
       <span class="tag">This week</span>
-      <h3>${battleState.completed ? "Boss Defeated" : "Boss Battle"}</h3>
-      <p class="subtle">${battleState.completed ? "Come back next week for a new one." : esc(battle.name)}</p>
-      <button class="btn secondary">${battleState.completed ? "Review" : "Enter Battle"} &rarr;</button>
-    </div>
-    <div class="panel card" data-nav="achievements">
+      <h2>${battleState.completed ? "Boss Defeated" : "Boss Battle"}</h2>
+      <p class="subtle">${battleState.completed ? "New battle next week." : esc(battle.name)}</p>
+      <span class="cta">${battleState.completed ? "Review" : "Enter"} &rarr;</span>
+    </a>
+    <a class="panel card" href="#/achievements">
       <span class="tag">Progress</span>
-      <h3>Achievements</h3>
+      <h2>Achievements</h2>
       <p class="subtle">${STATE.achievements.length} / ${MTC_ACHIEVEMENTS.length} unlocked</p>
-      <button class="btn secondary">View &rarr;</button>
-    </div>
+      <span class="cta">View &rarr;</span>
+    </a>
   </div>
 
   <div class="panel">
-    <h3>Weakness Radar</h3>
+    <h2>Weakness Radar</h2>
     ${weak.length === 0
-      ? `<p class="subtle">Complete a few exercises to reveal where your thinking is weakest &mdash; the daily quest will start favoring those.</p>`
+      ? `<p class="subtle">Complete a few exercises to reveal your weakest frameworks.</p>`
       : weak.map((w) => `<div class="weak-row"><span class="name">${esc(w.name)}</span><div class="weak-meter"><div class="fill" style="width:${Math.round(w.avg)}%"></div></div><span class="subtle">${Math.round(w.avg)}%</span></div>`).join("")}
   </div>
 
   <div class="grid tight">
-    <div class="panel card" data-nav="journal"><h3>Journal</h3><p class="subtle">${STATE.history.length} answer${STATE.history.length === 1 ? "" : "s"} recorded</p></div>
-    <div class="panel card" data-nav="toolbox"><h3>Thinking Toolbox</h3><p class="subtle">${MTC_TOOLBOX.length} quick-reference tools</p></div>
-    <div class="panel card" data-nav="frameworks"><h3>Framework Encyclopedia</h3><p class="subtle">${MTC_FRAMEWORKS.length} thinking styles, deep-dived</p></div>
+    <a class="panel card" href="#/journal"><h2>Journal</h2><p class="subtle">${STATE.history.length} answer${STATE.history.length === 1 ? "" : "s"}</p><span class="cta">Open &rarr;</span></a>
+    <a class="panel card" href="#/toolbox"><h2>Toolbox</h2><p class="subtle">${MTC_TOOLBOX.length} thinking tools</p><span class="cta">Open &rarr;</span></a>
+    <a class="panel card" href="#/frameworks"><h2>Frameworks</h2><p class="subtle">${MTC_FRAMEWORKS.length} thinking styles</p><span class="cta">Open &rarr;</span></a>
   </div>`;
 }
 
@@ -145,18 +146,19 @@ function questHTML() {
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const hasCore = quest.items.some((i) => i.core);
   return `<div class="panel">
-    <h2>Today's Thinking Quest</h2>
-    <p class="subtle">Nine exercises, one of each type. About 20&ndash;30 minutes total. ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? The <span style="color:var(--accent)">&#9733; core</span> three keep your streak alive and target your weakest frameworks.` : ""}</p>
+    <h1>Daily Quest</h1>
+    <p class="subtle">One of each type &middot; 20&ndash;30 min &middot; ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? Do the <span style="color:var(--accent)">&#9733; core</span> three.` : ""}</p>
   </div>
   <div class="grid">
     ${quest.items.map((item) => {
       const ex = MTC.getExercise(item.exerciseId);
       const done = quest.completed.includes(item.exerciseId);
-      return `<div class="card ${done ? "done" : ""}" data-start-exercise="${ex.id}">
+      return `<a class="card ${done ? "done" : ""}" href="#/exercise/${ex.id}">
         <span class="tag">${TYPE_LABELS[item.type]}</span>${item.core ? `<span class="tag core">&#9733; Core</span>` : ""}
-        <h3>${esc(ex.title)}</h3>
+        <h2>${esc(ex.title)}</h2>
         <p class="subtle">${frameworkNames(ex.frameworks)}</p>
-      </div>`;
+        <span class="cta">${done ? "Review" : "Start"} &rarr;</span>
+      </a>`;
     }).join("")}
   </div>`;
 }
@@ -165,25 +167,26 @@ function questHTML() {
 
 function exerciseHTML(id) {
   const ex = MTC.getExercise(id);
-  if (!ex) return `<div class="panel">Exercise not found. <button class="btn" data-nav="quest">Back to Quest</button></div>`;
+  if (!ex) return `<div class="panel">Exercise not found. <a class="btn" href="#/quest">Daily Quest</a></div>`;
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const alreadyDone = quest.completed.includes(id);
   const fwNames = frameworkNames(ex.frameworks);
 
   const header = `<div class="panel">
-    <span class="pill">${TYPE_LABELS[ex.type]}</span><span class="pill">${fwNames}</span>
-    <h2>${esc(ex.title)}</h2>
+    <a class="crumb" href="#/quest">&larr; Daily Quest</a>
+    <div><span class="pill">${TYPE_LABELS[ex.type]}</span><span class="pill">${fwNames}</span></div>
+    <h1>${esc(ex.title)}</h1>
     <p>${esc(ex.prompt)}</p>
   </div>`;
 
   if (alreadyDone) {
     const record = MTC.lastRecordFor(STATE, id);
     return header + `<div class="panel">
-      <p class="subtle">You already completed this today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} XP` : ""}.</p>
+      <p class="subtle">Completed today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} XP` : ""}.</p>
       ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
       <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
-      <div class="field"><button class="btn" data-nav="quest">Back to Quest</button></div>
+      <div class="field"><a class="btn" href="#/quest">Back to Daily Quest</a></div>
     </div>`;
   }
 
@@ -193,20 +196,20 @@ function exerciseHTML(id) {
 
   const hintsHTML = ex.hints.slice(0, exUI.hintsRevealed).map((h) => `<div class="hint-box">${esc(h)}</div>`).join("");
   const hintBtn = exUI.hintsRevealed < ex.hints.length
-    ? `<button class="btn ghost" data-hint>Show a hint (&minus;20% XP each &middot; ${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
+    ? `<button class="btn ghost" data-hint>Show a hint (&minus;20% XP &middot; ${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
     : `<p class="subtle">All hints revealed.</p>`;
 
   let assessmentHTML = "";
   if (!exUI.showAssessment) {
-    assessmentHTML = `<div class="field"><button class="btn" data-show-assessment>I've made my attempt &mdash; reveal model answer &amp; self-assess</button></div>`;
+    assessmentHTML = `<div class="field"><button class="btn" data-show-assessment>Done &mdash; reveal model answer</button></div>`;
   } else {
     const total = ex.rubric.length;
     const checkedCount = exUI.checked.size;
     const scorePreview = MTC.rubricScore(checkedCount, total);
     assessmentHTML = `
       <div class="panel">
-        <h3>Self-Assessment</h3>
-        <p class="subtle">Honestly check off what you actually did &mdash; this determines your XP for this exercise.</p>
+        <h2>Self-Assessment</h2>
+        <p class="subtle">Check what you actually did &mdash; it sets your XP.</p>
         ${ex.rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-rubric-idx="${i}" ${exUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
         <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
@@ -216,7 +219,7 @@ function exerciseHTML(id) {
   }
 
   return header + `<div class="panel">
-    <textarea id="ex-draft" placeholder="Write your answer here &mdash; it's saved to your journal when you submit.">${esc(exUI.draft)}</textarea>
+    <textarea id="ex-draft" placeholder="Write your answer &mdash; saved to your journal on submit.">${esc(exUI.draft)}</textarea>
     <div class="field">${hintBtn}</div>
     ${hintsHTML}
   </div>${assessmentHTML}`;
@@ -232,7 +235,7 @@ function bossHTML() {
     const record = MTC.lastRecordFor(STATE, battle.id, "boss");
     return `<div class="panel">
       <span class="pill">${esc(battle.domain)}</span>
-      <h2>${esc(battle.name)}</h2>
+      <h1>${esc(battle.name)}</h1>
       <p>${esc(battle.briefing)}</p>
       ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Expert Framing</div>${esc(battle.noPerfectAnswerNote)}</div>
@@ -247,7 +250,7 @@ function bossHTML() {
 
   const stagesHTML = battle.stages.map((s, i) => `
     <div class="stage">
-      <h3>Stage ${i + 1}</h3>
+      <h2>Stage ${i + 1}</h2>
       <p>${esc(s.question)}</p>
       ${bossUI.hintsShown.has(i)
         ? `<div class="hint-box">${esc(s.considerations)}</div>`
@@ -256,13 +259,13 @@ function bossHTML() {
 
   let resolutionHTML = "";
   if (!bossUI.showResolution) {
-    resolutionHTML = `<div class="field"><button class="btn" data-boss-show-resolution>I've worked through all three stages &mdash; reveal expert framing &amp; self-assess</button></div>`;
+    resolutionHTML = `<div class="field"><button class="btn" data-boss-show-resolution>Done &mdash; reveal expert framing</button></div>`;
   } else {
     const total = rubric.length;
     const checkedCount = bossUI.checked.size;
     const scorePreview = MTC.rubricScore(checkedCount, total);
     resolutionHTML = `<div class="panel">
-      <h3>Self-Assessment</h3>
+      <h2>Self-Assessment</h2>
       ${rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-boss-rubric-idx="${i}" ${bossUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
       <div class="model-answer"><div class="lbl">Expert Framing (no perfect answer)</div>${esc(battle.noPerfectAnswerNote)}</div>
       <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${MTC.estimateXp(battle.xpBase, scorePreview, 0)}</b></p>
@@ -272,12 +275,12 @@ function bossHTML() {
 
   return `<div class="panel">
     <span class="pill">${esc(battle.domain)}</span><span class="pill">Week ${esc(battleState.week)}</span>
-    <h2>${esc(battle.name)}</h2>
+    <h1>${esc(battle.name)}</h1>
     <p>${esc(battle.briefing)}</p>
     ${stagesHTML}
   </div>
   <div class="panel">
-    <textarea id="boss-draft" placeholder="Work through your reasoning here &mdash; it's saved to your journal when you submit.">${esc(bossUI.draft)}</textarea>
+    <textarea id="boss-draft" placeholder="Work through your reasoning &mdash; saved to your journal on submit.">${esc(bossUI.draft)}</textarea>
     ${resolutionHTML}
   </div>`;
 }
@@ -287,12 +290,12 @@ function bossHTML() {
 function toolboxResultsHTML() {
   const q = toolboxFilter.toLowerCase();
   const items = MTC_TOOLBOX.filter((t) => !q || t.name.toLowerCase().includes(q) || t.summary.toLowerCase().includes(q));
-  return items.map((t) => `<div class="panel"><h3>${esc(t.name)}</h3><p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p></div>`).join("") || `<p class="subtle">No tools match.</p>`;
+  return items.map((t) => `<div class="panel"><h2>${esc(t.name)}</h2><p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p></div>`).join("") || `<p class="subtle">No tools match.</p>`;
 }
 
 function toolboxHTML() {
   return `<div class="panel">
-    <h2>Thinking Toolbox</h2>
+    <h1>Toolbox</h1>
     <input type="text" id="toolbox-search" placeholder="Search tools..." value="${esc(toolboxFilter)}" />
   </div>
   <div class="grid" id="toolbox-results">${toolboxResultsHTML()}</div>`;
@@ -303,12 +306,12 @@ function toolboxHTML() {
 function frameworksResultsHTML() {
   const q = frameworksFilter.toLowerCase();
   const items = MTC_FRAMEWORKS.filter((f) => !q || f.name.toLowerCase().includes(q) || f.core.toLowerCase().includes(q));
-  return items.map((f) => `<div class="card panel" data-nav="frameworks/${f.id}"><h3>${esc(f.name)}</h3><p class="subtle">${esc(f.core)}</p></div>`).join("") || `<p class="subtle">No frameworks match.</p>`;
+  return items.map((f) => `<a class="card panel" href="#/frameworks/${f.id}"><h2>${esc(f.name)}</h2><p class="subtle">${esc(f.core)}</p><span class="cta">Read &rarr;</span></a>`).join("") || `<p class="subtle">No frameworks match.</p>`;
 }
 
 function frameworksListHTML() {
   return `<div class="panel">
-    <h2>Framework Encyclopedia</h2>
+    <h1>Frameworks</h1>
     <input type="text" id="frameworks-search" placeholder="Search frameworks..." value="${esc(frameworksFilter)}" />
   </div>
   <div class="grid" id="frameworks-results">${frameworksResultsHTML()}</div>`;
@@ -316,11 +319,11 @@ function frameworksListHTML() {
 
 function frameworkDetailHTML(id) {
   const f = MTC_FRAMEWORKS.find((x) => x.id === id);
-  if (!f) return `<div class="panel">Not found. <button class="btn" data-nav="frameworks">Back</button></div>`;
-  const row = (label, val) => `<div class="panel"><h3>${label}</h3><p>${esc(val)}</p></div>`;
+  if (!f) return `<div class="panel">Not found. <a class="btn" href="#/frameworks">Frameworks</a></div>`;
+  const row = (label, val) => `<div class="panel"><h2>${label}</h2><p>${esc(val)}</p></div>`;
   return `<div class="panel">
-      <button class="btn ghost" data-nav="frameworks">&larr; All frameworks</button>
-      <h2 style="margin-top:10px">${esc(f.name)}</h2>
+      <a class="crumb" href="#/frameworks">&larr; Frameworks</a>
+      <h1>${esc(f.name)}</h1>
       <p class="subtle">${esc(f.core)}</p>
     </div>
     ${row("What problem does this solve?", f.problem)}
@@ -335,14 +338,14 @@ function frameworkDetailHTML(id) {
 
 function achievementsHTML() {
   return `<div class="panel">
-    <h2>Achievements</h2>
+    <h1>Achievements</h1>
     <p class="subtle">${STATE.achievements.length} / ${MTC_ACHIEVEMENTS.length} unlocked</p>
   </div>
   <div class="grid tight">
     ${MTC_ACHIEVEMENTS.map((a) => {
       const unlocked = STATE.achievements.includes(a.id);
       return `<div class="panel ach-card ${unlocked ? "" : "locked"}">
-        <h3>${unlocked ? "&#127942; " : "&#128274; "}${esc(a.name)}</h3>
+        <h2>${unlocked ? "&#127942; " : "&#128274; "}${esc(a.name)}</h2>
         <p class="subtle">${esc(a.desc)}</p>
         <p class="xp">+${a.xp} XP</p>
       </div>`;
@@ -355,11 +358,11 @@ function achievementsHTML() {
 function journalHTML() {
   const entries = STATE.history.slice(-100).reverse();
   const header = `<div class="panel">
-    <h2>Journal</h2>
-    <p class="subtle">Every answer you submit is recorded here, so you can watch how your reasoning changes over time. Use "Export progress" in the footer to back it up.</p>
+    <h1>Journal</h1>
+    <p class="subtle">Your answers, newest first.</p>
   </div>`;
   if (entries.length === 0) {
-    return header + `<div class="panel"><p class="subtle">Nothing here yet &mdash; complete an exercise and your written answer will appear.</p></div>`;
+    return header + `<div class="panel"><p class="subtle">Complete an exercise and your answer will appear here.</p></div>`;
   }
   return header + entries.map((h) => {
     const isBoss = h.type === "boss";
@@ -367,7 +370,7 @@ function journalHTML() {
     const title = def ? (isBoss ? def.name : def.title) : h.exerciseId;
     return `<div class="panel">
       <span class="pill">${TYPE_LABELS[h.type] || esc(h.type)}</span><span class="pill">${esc(h.date)}</span>
-      <h3>${esc(title)}</h3>
+      <h2>${esc(title)}</h2>
       <p class="subtle">Self-assessed ${h.score}% &middot; +${h.xp} XP${h.hintsUsed ? ` &middot; ${h.hintsUsed} hint${h.hintsUsed === 1 ? "" : "s"} used` : ""}</p>
       ${h.answer ? `<div class="journal-answer">${esc(h.answer)}</div>` : `<p class="subtle">(no written answer was saved with this entry)</p>`}
     </div>`;
@@ -416,12 +419,6 @@ function render() {
 /* ---------- Events ---------- */
 
 document.addEventListener("click", (e) => {
-  const navEl = e.target.closest("[data-nav]");
-  if (navEl) { navigate(navEl.dataset.nav); return; }
-
-  const startEx = e.target.closest("[data-start-exercise]");
-  if (startEx) { navigate("exercise/" + startEx.dataset.startExercise); return; }
-
   if (e.target.closest("[data-hint]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
     exUI.hintsRevealed = Math.min(ex.hints.length, exUI.hintsRevealed + 1);
