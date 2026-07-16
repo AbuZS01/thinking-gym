@@ -9,10 +9,10 @@ browser's `localStorage`, so it's fully private and works offline.
 
 - **Daily Quest** — 9 exercises a day (warm-up, challenge, real-world case,
   reflection, creativity, logic puzzle, decision scenario, bias detection,
-  observation), pulled from a bank of 36 hand-written exercises and weighted
+  observation), pulled from a bank of 72 hand-written exercises and weighted
   toward whichever thinking frameworks you're weakest in.
 - **Weekly Boss Battle** — a multi-stage, no-perfect-answer scenario (business,
-  history, cybersecurity, AI, ethics, economics) that rotates weekly across 6
+  history, cybersecurity, AI, ethics, economics) that rotates weekly across 9
   battles.
 - **Framework Encyclopedia** — 29 thinking styles (critical thinking, first
   principles, Bayesian thinking, game theory, red-team thinking, etc.), each

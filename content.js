@@ -881,3 +881,410 @@ const MTC_CALIBRATION_INTERVALS = [
   { id: "ci-19", prompt: "Share of Earth's surface covered by water", unit: "percent", answer: 71 },
   { id: "ci-20", prompt: "Year Constantinople fell to the Ottomans", unit: "year", answer: 1453 },
 ];
+
+/* ---------- Content expansion: second wave of exercises ---------- */
+
+MTC_EXERCISES.push(
+  // WARMUP
+  { id: "warmup-5", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["abductive-reasoning", "cognitive-bias-detection"],
+    title: "The Late Colleague",
+    prompt: "A colleague who is never late is 40 minutes late to your meeting and hasn't messaged. Write down the first explanation your mind produced. Then write two more explanations that fit the facts equally well.",
+    hints: ["Notice whether your first explanation assumed something about their character or intent.", "Abduction generates the most plausible story, not the only one — traffic, a family emergency, a calendar sync error, and 'they blew you off' all fit the same two facts.", "Rank your three explanations by base rate: how often does each actually happen to punctual people? The uncharitable one is usually the rarest."],
+    rubric: ["Wrote the genuine first instinct without editing it", "Generated two alternatives that fit the same facts", "Noticed whether the first instinct assumed intent or character", "Considered which explanation is most common in reality, not most vivid"],
+    modelAnswer: "The facts support many stories: an accident, a family emergency, a dead phone, a calendar error, or being stuck in a prior meeting. If your first instinct was about disrespect or unreliability, note that for a habitually punctual person, mundane logistics failures are vastly more common than sudden character changes.",
+    expertNote: "Hanlon's Razor generalizes here: before attributing to intent, exhaust the explanations that require nothing unusual about the person at all." },
+
+  { id: "warmup-6", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["analytical-thinking", "critical-thinking"],
+    title: "The Worsening Hospital",
+    prompt: "A hospital's average recovery time got worse in the year after it hired top specialists and upgraded its ICU. A journalist writes that care quality is declining. What's the alternative explanation, in 2-3 sentences?",
+    hints: ["What kind of patients would start choosing (or being referred to) a hospital after it adds top specialists?", "Better facilities attract harder cases — the patient mix changed, not necessarily the care quality.", "To compare fairly you'd need severity-adjusted outcomes: how does each category of patient fare now vs before?"],
+    rubric: ["Identified the change in patient mix as the alternative explanation", "Explained why better facilities attract harder cases", "Named what a fair comparison would require (severity adjustment)", "Didn't accept or reject the 'declining quality' claim without the missing data"],
+    modelAnswer: "Upgrading attracts sicker, more complex patients — referrals send the hardest cases to the best-equipped hospital. Average recovery time can worsen even while every category of patient does better than before. A fair judgment requires severity-adjusted outcomes, not raw averages.",
+    expertNote: "This is a selection effect wearing the mask of a trend — whenever the population being measured changes, the metric can move in the opposite direction of the underlying reality." },
+
+  { id: "warmup-7", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["second-order-thinking", "strategic-thinking"],
+    title: "Free Shipping",
+    prompt: "An online store announces 'free shipping on all orders, forever.' Nothing is free. List two places the cost likely reappears, and one second-order effect on customer behavior.",
+    hints: ["If shipping revenue disappears but shipping costs don't, where must the money come from?", "Common absorptions: higher base prices, minimum-order thresholds later, squeezed supplier margins, or reduced service elsewhere.", "Second-order: free shipping changes ordering behavior — more frequent small orders, higher return rates ('I'll just send it back'), which raises the very cost being hidden."],
+    rubric: ["Named at least two plausible places the cost reappears", "Identified a behavioral second-order effect, not just an accounting one", "Recognized the policy changes customer behavior, which changes the cost itself", "Avoided 'the company just absorbs it' as a complete answer"],
+    modelAnswer: "The cost typically reappears in higher base prices and in pressure on margins elsewhere (suppliers, support, packaging). Second-order: customers reorganize their behavior around it — smaller, more frequent orders and casual returns — which inflates total shipping volume, so the policy partly manufactures the cost it absorbs.",
+    expertNote: "Pricing moves are never just accounting — they're behavioral interventions, and the behavior change is usually the bigger effect." },
+
+  { id: "warmup-8", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["critical-thinking", "meta-thinking"],
+    title: "The One-Sentence Steelman",
+    prompt: "Pick a position you disagree with (e.g. 'open-plan offices are good', 'homework should be abolished', or your own choice). Write its single strongest sentence — the case its smartest advocate would make — without irony or weakening.",
+    hints: ["If your sentence would make an advocate of the position wince, it's a strawman wearing a suit.", "The test: would someone who holds the view say 'yes, exactly'?", "Strong steelmen usually locate the real value the position protects (e.g. open-plan: serendipitous collaboration and equal spatial status), not the caricature."],
+    rubric: ["Chose a position genuinely disagreed with", "The sentence identifies the real value the position protects", "An actual advocate would endorse the sentence as written", "No irony, hedging, or embedded rebuttal"],
+    modelAnswer: "There's no single right answer — the test is whether an advocate would sign it. Example for open-plan offices: 'Open plans trade individual quiet for constant low-friction access to colleagues, betting that the compounding value of spontaneous collaboration exceeds the cost of interruptions.'",
+    expertNote: "You don't understand a position until you can state it so well its holders would applaud — only then does your disagreement carry information." },
+
+  // CHALLENGE
+  { id: "challenge-5", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["systems-thinking", "second-order-thinking", "red-team-thinking"],
+    title: "The Password Policy Backfire",
+    prompt: "A company mandates password changes every 30 days with strict complexity rules. A year later, security incidents have risen. Explain the mechanism by which a well-intentioned security policy can reduce security, and propose a better policy.",
+    hints: ["Think about what real humans do when forced to invent and memorize a new complex secret every month.", "Predictable mutations (Password1! becomes Password2!), sticky notes, and password reuse across systems are adaptations the policy itself creates.", "Modern guidance (e.g. NIST) dropped forced periodic rotation in favor of long passphrases, breach-triggered resets, and multi-factor authentication."],
+    rubric: ["Explained the adaptation mechanism (humans route around unusable rules)", "Named at least two specific degraded behaviors the policy creates", "Proposed a better policy (passphrases, MFA, breach-triggered resets)", "Framed it as a systems lesson, not just a security tip"],
+    modelAnswer: "The policy exceeds human memory capacity, so users adapt: incremental mutations an attacker can guess, written-down passwords, and reuse across accounts. The system's real behavior is set by the adaptation, not the rule. Better: long memorable passphrases, multi-factor authentication, and forced resets only after suspected compromise — which is where security guidance has actually moved.",
+    expertNote: "Any policy that ignores the adaptive response of the people inside the system is describing an imaginary system — the workaround is the policy." },
+
+  { id: "challenge-6", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["second-order-thinking", "strategic-thinking"],
+    title: "Crippling the Free Tier",
+    prompt: "A freemium product converts 2% of free users to paid. An executive proposes sharply degrading the free tier to 'force upgrades.' Map the first-order effect, then at least two second-order effects that could make revenue fall.",
+    hints: ["First-order: some free users convert, many leave. What did the leaving users contribute besides zero revenue?", "Free users are often the top of the funnel: referrals, word of mouth, community content, and future converts at life stage changes.", "Second-order: degraded free tiers also change the reputation of the paid tier — 'they'll squeeze you once you're in' affects would-be payers, not just free riders."],
+    rubric: ["Stated the first-order trade (some conversions, mass departures)", "Identified free users' non-revenue contributions (referral, funnel, content)", "Traced a reputational second-order effect on paying customers", "Concluded with what data would settle it, not just a verdict"],
+    modelAnswer: "First-order: a conversion bump and a large exodus. Second-order: the exodus cuts referrals and word of mouth, shrinking the future funnel that today's 2% converts from; and the squeeze signals to prospective payers how they'll be treated later, which suppresses exactly the high-intent users the move was meant to harvest. The decisive data: what fraction of current paid users started free, and how long the average conversion takes.",
+    expertNote: "Freemium economics usually die by funnel starvation, not free-rider costs — the free tier's job is to be the top of the funnel, and its cost should be judged as marketing spend." },
+
+  { id: "challenge-7", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["root-cause-analysis", "analytical-thinking"],
+    title: "Five Whys at the Bakery",
+    prompt: "A bakery sells out of croissants by 9am every day, disappointing later customers, yet management won't bake more. Run a Five Whys analysis — invent plausible answers at each level — until you reach a root cause that is actionable.",
+    hints: ["Why #1 is easy: demand exceeds supply. The question is why supply doesn't respond.", "Keep asking: why is production capped? (oven time? staff shift? dough prep the night before?) Why is that constraint set where it is?", "A good chain often ends at an incentive or information failure: e.g. the baker is paid per shift not per sale, or waste from unsold stock is punished more than missed sales — making under-baking rational."],
+    rubric: ["Chained at least four 'why' levels, each answering the previous", "Reached a cause that is actionable, not 'demand is high'", "Considered incentive or information failures, not just physical constraints", "Proposed the fix implied by the root cause"],
+    modelAnswer: "One plausible chain: Sell out by 9am → production is capped at 200 → dough is prepped the prior evening based on a fixed number → the number never updates because no one records turned-away customers → unsold waste is tracked and penalized but missed sales are invisible. Root cause: an asymmetric measurement system that punishes overproduction and never counts underproduction. Fix: track sell-out time and turned-away demand, and set prep quantity from both.",
+    expertNote: "Five Whys chains most often terminate at a measurement asymmetry: what gets counted gets managed, and the invisible cost quietly dominates." },
+
+  { id: "challenge-8", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["game-theory", "cognitive-bias-detection"],
+    title: "The Expiring Discount",
+    prompt: "A vendor quotes you a price and adds: 'this offer expires Friday.' Analyze the deadline as a negotiation move: what is it designed to do, when is it real versus manufactured, and how should you respond?",
+    hints: ["Deadlines compress your evaluation time and invoke scarcity/loss-aversion — that's their job regardless of whether they're real.", "Real deadlines have external anchors (quarter end, capacity commitments, price-list changes); manufactured ones evaporate under a polite test.", "The test: 'I can't decide by Friday; if the price changes, send me the new quote.' A real deadline survives that; a fake one usually gets extended."],
+    rubric: ["Identified the psychological mechanism (scarcity, compressed evaluation)", "Distinguished externally-anchored deadlines from manufactured ones", "Proposed a concrete, polite test of the deadline's reality", "Kept the decision anchored on the deal's standalone value, not the clock"],
+    modelAnswer: "The deadline's function is to substitute time pressure for product merit. Real ones trace to external facts (fiscal quarter, capacity, announced price changes) — you can ask what the deadline is anchored to. The clean response: evaluate the deal as if no deadline existed, then test it: 'If Friday passes, send the revised quote.' Fake urgency almost always extends; real urgency gives you the anchor to verify.",
+    expertNote: "Any negotiation move that works equally well whether or not it's true should be treated as noise until independently verified." },
+
+  // CASE
+  { id: "case-5", type: "case", difficulty: 3, xpBase: 35, frameworks: ["first-principles-thinking", "systems-thinking", "strategic-thinking"],
+    title: "Blockbuster's Golden Handcuffs",
+    prompt: "At its peak, Blockbuster reportedly earned hundreds of millions per year from late fees — a large share of its profit. Netflix launched with no late fees at all. Explain, in systems terms, why Blockbuster couldn't simply copy the no-late-fee model even after seeing it work.",
+    hints: ["The late fees weren't a side revenue stream — ask what fraction of profit they were, and what removing them does to the P&L that executives are judged on.", "This is a reinforcing lock-in: stores, staffing, and shareholder expectations were all built on an income stream that punished the customer experience.", "From first principles: Blockbuster defined itself as a retail chain that rented tapes; Netflix defined itself as home movie access. The first definition makes late fees structural; the second makes them absurd."],
+    rubric: ["Identified that late fees were structural profit, not incidental revenue", "Explained the lock-in: dropping them meant destroying the current P&L to maybe save the future one", "Reframed the two companies' first-principles definitions of their business", "Drew the general lesson about profitable practices that damage customers"],
+    modelAnswer: "Late fees were load-bearing: a major profit line supporting store economics and shareholder expectations. Copying Netflix meant voluntarily blowing a hole in the present income statement for an uncertain future — a trade almost no incumbent management survives making. From first principles, Blockbuster sold 'retail tape rental with penalties'; Netflix sold 'movies at home, frictionless.' The fee wasn't a pricing choice but a symptom of the business definition — which is why it couldn't be removed without redefining the company.",
+    expertNote: "When a company profits from something its customers hate, that line item is a standing invitation for a competitor to build the same business minus the hated part." },
+
+  { id: "case-6", type: "case", difficulty: 3, xpBase: 35, frameworks: ["strategic-thinking", "second-order-thinking", "game-theory"],
+    title: "The Treaty of Hudaybiyyah",
+    prompt: "In 628 CE, the Prophet Muhammad accepted treaty terms at Hudaybiyyah that many companions saw as one-sided: turning back from pilgrimage that year, and a clause returning certain emigrants to Mecca. Within two years the treaty had decisively strengthened his position. Analyze what the apparently unfavorable terms actually purchased, in strategic terms.",
+    hints: ["List what the treaty bought that raw terms don't show: a ten-year truce, recognition as a treaty party, and freedom to redirect attention elsewhere.", "Second-order: peace enabled unimpeded outreach and alliances — the community grew more during the truce than in all the conflict years before it.", "Game-theoretically: signing bound the stronger party to terms it later broke — and breaking a public treaty handed the moral and political initiative to the other side."],
+    rubric: ["Looked past the surface terms to what the agreement structurally purchased", "Identified the second-order growth effect of peace itself", "Analyzed the treaty-breach dynamic: the violating party forfeits legitimacy", "Drew a transferable principle about trading visible concessions for structural position"],
+    modelAnswer: "The visible terms were the price; the purchase was structural: recognition as an equal treaty party, a truce that converted a military standoff into open competition for hearts and alliances — terrain where his position compounded fastest — and a public commitment that, when Mecca's side breached it, transferred legitimacy and initiative entirely. Within two years the balance had shifted so far that Mecca fell with almost no resistance. The principle: visible concessions can be cheap when they buy time, legitimacy, and the ability to compete on your strongest axis.",
+    expertNote: "Evaluate agreements by the position they create, not the line items they contain — weaker parties especially should trade optics for structure." },
+
+  { id: "case-7", type: "case", difficulty: 3, xpBase: 35, frameworks: ["scientific-thinking", "cognitive-bias-detection", "systems-thinking"],
+    title: "The Night Before Challenger",
+    prompt: "The night before the 1986 Challenger launch, engineers argued the O-ring seals might fail in the forecast cold. Management asked them to 'prove it was unsafe' — reversing the usual burden of proof — and the launch proceeded. Analyze the two or three distinct failures of reasoning in that room.",
+    hints: ["Start with the burden of proof: normally you prove a system safe to fly; that night, engineers had to prove it unsafe. What does that reversal do under incomplete data?", "'Normalization of deviance': previous flights had shown O-ring erosion and survived, so the anomaly was recategorized from 'warning' to 'normal.' Each safe return was treated as evidence of safety rather than survivorship.", "The data presentation mattered too: charts mixed flights with and without incidents, obscuring that every cold-temperature launch had shown damage."],
+    rubric: ["Identified the burden-of-proof reversal and why it's dangerous under uncertainty", "Explained normalization of deviance (past survival read as safety evidence)", "Noted the data-presentation failure obscuring the temperature signal", "Connected the failures into a systemic account, not one villain"],
+    modelAnswer: "Three interlocking failures: (1) the burden of proof flipped — under incomplete data, 'prove it's unsafe' guarantees launch, because absence of proof is inevitable; (2) normalization of deviance — prior O-ring erosion on missions that survived was reclassified as acceptable, mistaking survivorship for safety; (3) the evidence was presented in a form that buried the pattern — plotting all flights rather than damage-versus-temperature hid a signal that is unmistakable when plotted correctly. No one had to be malicious; the system's framing did the work.",
+    expertNote: "Ask who holds the burden of proof in your decisions — whoever must prove the negative under time pressure has already lost the argument." },
+
+  { id: "case-8", type: "case", difficulty: 3, xpBase: 35, frameworks: ["scientific-thinking", "design-thinking", "pattern-recognition"],
+    title: "New Coke's Winning Taste Tests",
+    prompt: "In 1985 Coca-Cola reformulated Coke after 190,000+ taste tests showed people preferred the new, sweeter formula. The launch provoked public revolt, and the old formula returned within three months. The tests weren't fabricated — so what did they actually measure, and what did they miss?",
+    hints: ["A sip test measures a sip: sweetness wins small samples but can lose a whole can, and the tests never asked people to live with the change.", "The tests measured taste preference; the purchase decision also runs on identity and attachment — 'they changed MY Coke' isn't a flavor judgment at all.", "Methodologically: the test never presented the real decision — 'this replaces the old one permanently' — so it validated a product no one was actually offered."],
+    rubric: ["Distinguished what the test measured (sip preference) from the real variable (living with a replacement)", "Identified the identity/attachment dimension the tests couldn't see", "Noted that the actual proposition — permanent replacement — was never tested", "Drew the general lesson about measurement validity"],
+    modelAnswer: "The tests answered 'which sip tastes better?' with genuine rigor — but the launch asked 'will you accept your lifelong brand being replaced?' Sweetness wins sips and loses cans; more importantly, Coke drinkers' attachment was to identity, not formula, and no sip test can detect an emotion that only fires when something is taken away. The proposition that shipped — permanent replacement — was never the proposition tested. Rigorous measurement of the wrong variable is more dangerous than no measurement, because it arrives wearing the authority of data.",
+    expertNote: "Before trusting any study, ask: is the thing measured actually the thing decided? Validity beats sample size — 190,000 answers to the wrong question is still the wrong question." }
+);
+
+MTC_EXERCISES.push(
+  // REFLECTION
+  { id: "reflection-5", type: "reflection", difficulty: 1, xpBase: 15, frameworks: ["meta-thinking", "cognitive-bias-detection"],
+    title: "Advice You Give But Don't Take",
+    prompt: "Name one piece of advice you regularly give others but don't follow yourself. Why does the gap exist — is the advice wrong, or is your reasoning different when it's your own case?",
+    hints: ["Research calls this Solomon's paradox: people reason more wisely about others' problems than their own.", "For others you see the structure; for yourself you feel the exceptions ('my situation is different because...'). Write down your exception and test if you'd accept it from someone else.", "If you wouldn't accept your own excuse from a friend, the gap is motivated reasoning, not situational difference."],
+    rubric: ["Named a specific, real piece of advice with a real gap", "Articulated the exception you grant yourself", "Tested the exception: would you accept it from someone else?", "Concluded honestly whether the advice or the excuse is wrong"],
+    modelAnswer: "Scored on honesty and specificity. The strong move is stating your self-exception explicitly ('I don't need to write decisions down because I remember mine') and noticing you would never accept that sentence from the person you advise.",
+    expertNote: "Distance improves reasoning — which is why writing about your own problem in the third person, or asking 'what would I tell a friend?', measurably improves the decision." },
+
+  { id: "reflection-6", type: "reflection", difficulty: 2, xpBase: 20, frameworks: ["critical-thinking", "meta-thinking"],
+    title: "Trace One Opinion to Its Sources",
+    prompt: "Pick one opinion you hold with real confidence about a current topic. Trace where it actually came from: list the specific sources, and mark how many are independent of each other rather than echoes of one origin.",
+    hints: ["Ten articles citing one study is one source wearing ten costumes.", "Trace upstream: who did the outlets get it from? Often a single report, press release, or viral thread is the sole ancestor.", "Calibrate confidence to independent sources: if the count is one, your confidence should reflect one source's reliability, not the volume of repetition."],
+    rubric: ["Traced an actual opinion to named sources, not vague 'the news'", "Distinguished independent sources from echoes of one origin", "Counted honestly — including if the answer was one", "Adjusted stated confidence to match the independent-source count"],
+    modelAnswer: "No universal answer — scored on the tracing. A common honest result: five remembered 'sources' collapse into one primary study or event, filtered through outlets that amplified each other. That doesn't make the opinion wrong; it means your confidence was priced off repetition, not evidence.",
+    expertNote: "Intelligence analysts formally track source independence for exactly this reason — 'multiple reports' from one origin is single-source reporting, and it's the standard mechanism of confident public error." },
+
+  { id: "reflection-7", type: "reflection", difficulty: 1, xpBase: 15, frameworks: ["decision-theory", "meta-thinking"],
+    title: "The Decision You Didn't Make",
+    prompt: "Recall a significant choice in your life that happened by default — you never actually decided; events, other people, or inertia decided. Was letting it happen the right call in hindsight, and did you know at the time that you were choosing by not choosing?",
+    hints: ["Defaults are decisions with the accountability removed — staying in a job, a city, a habit is chosen daily by not leaving.", "Distinguish deliberate delegation ('I trust this to unfold') from avoidance ('deciding felt costly, so I didn't').", "The test isn't whether it turned out fine — it's whether you'd endorse the process that produced it."],
+    rubric: ["Identified a real default-decision, not a trivial one", "Classified it honestly: delegation vs avoidance", "Separated the outcome from the process", "Stated what an active decision would have required at the time"],
+    modelAnswer: "Scored on honesty. Strong answers admit the moment of avoidance — 'renewing felt easier than evaluating' — and judge the process, not the luck of the result.",
+    expertNote: "Inaction is the most common important decision, and the least examined — auditing your defaults once a year finds choices that no one, including you, ever actually made." },
+
+  { id: "reflection-8", type: "reflection", difficulty: 2, xpBase: 20, frameworks: ["counterfactual-thinking", "meta-thinking"],
+    title: "What Would Tell You You're on the Wrong Path?",
+    prompt: "Consider your current main path — career, project, or study. Specify in advance: what observable evidence, appearing in the next 12 months, would tell you it's the wrong path? When did you last actually check for it?",
+    hints: ["If nothing could count as evidence against the path, you're navigating by commitment, not by feedback.", "Good signals are observable and dated: 'no growth in X by June', 'still dreading Mondays after the role change', 'the market shrank again'.", "Then the harder half: is there a scheduled moment where you'd actually look? Unscheduled checks silently never happen."],
+    rubric: ["Specified concrete, observable disconfirming evidence", "Attached a timeframe to the evidence", "Honestly answered when the last real check happened", "Committed to a checking mechanism, not just an intention"],
+    modelAnswer: "Scored on specificity. The strong pattern is a tripwire: 'If [measurable signal] hasn't happened by [date], I re-decide.' Vague vigilance doesn't work because motivated reasoning filters what you notice; pre-commitment beats willpower.",
+    expertNote: "This is a personal pre-registration — deciding in advance what would change your mind, before the evidence arrives and your defenses are up." },
+
+  // CREATIVITY
+  { id: "creativity-5", type: "creativity", difficulty: 1, xpBase: 15, frameworks: ["divergent-thinking", "entrepreneurial-thinking"],
+    title: "Zero-Budget Launch",
+    prompt: "You must get a new product's first 100 customers with literally zero marketing spend. Generate at least 6 genuinely different approaches — different mechanisms, not variations of 'post on social media.'",
+    hints: ["Vary the mechanism: borrowing someone else's audience, making one customer's result visible, manual outreach, communities, partnerships, built-in virality.", "Constraints are generative: 'no budget' rules out the lazy default and forces channels most competitors never work hard at.", "Judge afterwards, not during — a weird idea (personally onboarding each user, doing the service manually first) may be the best one at n=100."],
+    rubric: ["Generated 6+ approaches with genuinely different mechanisms", "No idea was a paid channel in disguise", "At least one idea exploits doing unscalable things at small scale", "Deferred judging until after generating"],
+    modelAnswer: "Strong sets span mechanisms: direct outreach to 100 named people; doing the work manually for the first users and converting the results into public case studies; a partnership that borrows an existing audience; building in public; answering questions where the target users already gather; making the product's output shareable so each user recruits the next.",
+    expertNote: "At 100 customers the scalable channels don't matter yet — the classic advice holds: do things that don't scale, because unscalable effort is a moat precisely while you're small." },
+
+  { id: "creativity-6", type: "creativity", difficulty: 2, xpBase: 20, frameworks: ["lateral-thinking", "divergent-thinking"],
+    title: "Design the Worst Onboarding",
+    prompt: "Design the worst possible first-time experience for a new app — at least 6 specific choices that would maximize abandonment. Then invert each into a design principle.",
+    hints: ["Go concrete: what exactly happens in the first 60 seconds of the worst version?", "Classics: demand an account before showing any value, a 12-field form, permissions requests with no context, a tutorial that can't be skipped, jargon, and an empty screen at the end.", "The inversion is the payoff: each sin, flipped, is a principle — 'value before signup', 'ask for permissions at the moment they're needed', 'land the user in a ready-made example, never an empty state'."],
+    rubric: ["Listed 6+ concrete abandonment-maximizing choices", "The choices are specific behaviors, not vague badness", "Inverted each into a stated principle", "At least one inversion is non-obvious (e.g. empty-state design)"],
+    modelAnswer: "Worst version: force account creation first, 12-field form, three permission popups on launch, unskippable 9-step tutorial, jargon-heavy labels, end on a blank screen with no next action. Inverted: show value before asking for anything; collect only what the next step needs; request permissions in context; let users skip everything; speak plainly; never land anyone on an empty state.",
+    expertNote: "Inversion works because failure modes are more enumerable than success recipes — you can't list every way to delight a user, but you can list the ways to lose them, and avoiding those is most of the job." },
+
+  { id: "creativity-7", type: "creativity", difficulty: 2, xpBase: 20, frameworks: ["first-principles-thinking", "divergent-thinking"],
+    title: "The Product, Time-Shifted",
+    prompt: "Take a product you use daily. Design its equivalent for the year 1900, then for 2100. What survives all three eras is the underlying need — name it, and note which parts of today's product are just current-technology accidents.",
+    hints: ["Separate the job from the machinery: a navigation app's job — 'get me there without knowing the way' — was done in 1900 by printed guides, porters, and asking locals.", "For 2100, resist just adding tech: ask what constraint that shapes today's version might be gone entirely (screens? ownership? attention?).", "The parts that change across all three versions are implementation details; whatever must exist in all three is the actual product."],
+    rubric: ["Produced concrete 1900 and 2100 versions, not vague gestures", "Named the invariant underlying need across all three", "Identified specific current features as technology accidents", "The 2100 version removes a constraint rather than just adding gadgets"],
+    modelAnswer: "Example — music streaming. 1900: sheet music subscriptions, player pianos, the family performing at home. 2100: perhaps ambient, context-generated music with no 'catalog' at all. The invariant: on-demand emotional regulation and shared atmosphere through music. Today's playlists, catalogs, and shuffle are artifacts of recording-era licensing and storage — the need never mentions any of them.",
+    expertNote: "Time-shifting is first-principles thinking disguised as a game: any feature that can't survive translation across eras was never the product — it was scaffolding." },
+
+  { id: "creativity-8", type: "creativity", difficulty: 2, xpBase: 20, frameworks: ["pattern-recognition", "lateral-thinking"],
+    title: "Steal From Another Industry",
+    prompt: "Pick a practice that one industry has refined for decades — a chef's mise en place, aviation checklists, hospital triage, theater rehearsals, restaurant service briefings. Transplant it into your own work with 3 concrete adaptations.",
+    hints: ["Identify what problem the practice actually solves in its home industry (mise en place solves: no mid-task interruptions to fetch things).", "Match on problem structure, not surface: triage fits any situation with more incoming demands than capacity and unequal stakes.", "Make the adaptations concrete enough to start tomorrow: what exactly is your 'station', your 'checklist', your 'triage category'?"],
+    rubric: ["Named the underlying problem the practice solves at home", "Matched it to a structurally similar problem in your work", "Gave 3 adaptations concrete enough to start immediately", "Avoided surface mimicry (renaming meetings 'briefings' changes nothing)"],
+    modelAnswer: "Example — mise en place for knowledge work: (1) before starting any deep-work block, stage everything the task needs (docs open, questions answered, materials gathered) so the block is never interrupted by fetching; (2) a 'station check' each morning: tomorrow's meetings each get their materials prepared today; (3) a hard rule that preparation and execution are separate activities scheduled separately, as kitchens do.",
+    expertNote: "Mature industries have paid decades of tuition on their core problem — cross-industry theft is the highest-return creative act because the R&D is already done and your competitors aren't looking there." },
+
+  // LOGIC PUZZLES
+  { id: "logic-5", type: "logic_puzzle", difficulty: 2, xpBase: 25, frameworks: ["deductive-reasoning"],
+    title: "Two Guards, Two Doors",
+    prompt: "Two doors: one to freedom, one to a trap. Two guards: one always lies, one always tells the truth — you don't know which is which. You may ask ONE guard ONE question. What question guarantees you find the freedom door, and why does it work?",
+    hints: ["A direct question fails because you don't know if the answer is inverted. You need a question that forces both guard types to give the same answer.", "Route the question through both guards: ask one what the OTHER would say.", "'If I asked the other guard which door leads to freedom, what would they point to?' — then take the opposite door. Truth-teller reports the liar's wrong answer; liar lies about the truth-teller's right answer. Both point at the trap."],
+    rubric: ["Constructed a question routed through both guards (or an equivalent self-referential form)", "Explained why both guard types give the same (inverted) answer", "Stated the decision rule: take the opposite door", "Traced both cases (asked the liar / asked the truth-teller) explicitly"],
+    modelAnswer: "Ask either guard: 'If I asked the other guard which door leads to freedom, which would they indicate?' — then walk through the other door. If you asked the truth-teller, they truthfully report the liar's false pointer (trap). If you asked the liar, they lie about the truth-teller's true pointer (trap again). The composition of one lie and one truth is always exactly one inversion, so the answer is reliably wrong — which makes it reliably useful.",
+    expertNote: "The general trick: when a channel has unknown polarity, build a question where every path passes through the distortion an odd number of times — the output becomes predictable even though the source isn't." },
+
+  { id: "logic-6", type: "logic_puzzle", difficulty: 3, xpBase: 30, frameworks: ["bayesian-thinking", "probabilistic-thinking"],
+    title: "The Night Taxi",
+    prompt: "In a city, 85% of taxis are Green and 15% are Blue. A taxi was involved in a night hit-and-run. A witness says it was Blue, and testing shows the witness correctly identifies taxi colors at night 80% of the time. What's the probability the taxi was actually Blue? Work it through before checking.",
+    hints: ["Don't jump to 80% — that ignores how rare Blue taxis are. Start from the base rate: 15 of every 100 taxis are Blue.", "Count both ways the witness says 'Blue': correctly seeing a Blue taxi (15 × 0.8 = 12) and mistaking a Green one (85 × 0.2 = 17).", "P(Blue | says Blue) = 12 / (12 + 17) ≈ 41%. The taxi is more likely Green even though the witness is 80% reliable."],
+    rubric: ["Started from the base rate, not the witness accuracy", "Computed both paths to a 'Blue' report (true and false positives)", "Reached ≈41% (12 / 29)", "Articulated why the answer feels wrong (accuracy dominates intuition; base rate dominates reality)"],
+    modelAnswer: "Out of 100 taxis: the witness correctly calls 12 of the 15 Blues 'Blue', and wrongly calls 17 of the 85 Greens 'Blue.' Given a 'Blue' report, the probability it's true is 12/(12+17) ≈ 41%. The witness's 80% accuracy is real, but Green taxis are so common that their 20% error rate produces more false 'Blue' reports than the Blues produce true ones.",
+    expertNote: "This is Kahneman and Tversky's classic demonstration that evidence quality and prior rarity must be combined — a reliable witness to a rare event is routinely, mathematically, probably wrong." },
+
+  { id: "logic-7", type: "logic_puzzle", difficulty: 2, xpBase: 20, frameworks: ["analytical-thinking", "deductive-reasoning"],
+    title: "The Missing Dollar",
+    prompt: "Three guests pay $30 for a room ($10 each). The manager realizes it should be $25 and sends back $5 with the bellboy, who pockets $2 and returns $1 to each guest. Now the guests paid $9 each = $27, plus the bellboy's $2 = $29. Where is the missing dollar?",
+    hints: ["Before hunting the dollar, check whether the puzzle's final addition is a legitimate operation at all.", "The $27 the guests paid already CONTAINS the bellboy's $2 (manager holds $25 + bellboy $2 = $27). Adding the $2 again double-counts it.", "The honest ledger: guests out $27; hotel has $25, bellboy $2. And $27 + their $3 refund = the original $30. Nothing is missing."],
+    rubric: ["Recognized the final addition as the flaw, not the arithmetic before it", "Explained the double-count: the $2 is inside the $27", "Produced the correct ledger showing all $30 accounted for", "Named the general lesson: a confidently framed wrong operation smuggles in the error"],
+    modelAnswer: "There is no missing dollar — the puzzle's last step adds two numbers that don't belong on the same side of the ledger. The guests are out $27, which splits into $25 (hotel) + $2 (bellboy); their $3 in refunds completes the original $30. Adding $27 + $2 double-counts the bellboy's money and then treats the meaningless $29 as if it should equal $30.",
+    expertNote: "The puzzle works because it performs the invalid step FOR you in a confident voice — the everyday version is any analysis that hands you a pre-framed comparison and asks only for your conclusion." },
+
+  { id: "logic-8", type: "logic_puzzle", difficulty: 2, xpBase: 20, frameworks: ["deductive-reasoning", "cognitive-bias-detection"],
+    title: "The Bar Check",
+    prompt: "Four people at a bar: one is drinking beer, one drinking cola, one is 17, one is 23. Rule: 'If someone is drinking alcohol, they must be over 18.' Whom must you check, and no one else? Then: why do most people solve this instantly, yet fail the logically identical abstract card version?",
+    hints: ["Check whoever could VIOLATE the rule: the beer drinker (how old?) and the 17-year-old (drinking what?).", "The cola drinker and the 23-year-old can't violate an alcohol→adult rule no matter what else is true of them.", "This is the Wason task in social clothing — humans have sharp cheater-detection intuitions that don't transfer to abstract 'if even then red' framings."],
+    rubric: ["Selected exactly the beer drinker and the 17-year-old", "Explained why the other two are irrelevant", "Connected it to the abstract card task's identical structure", "Explained the gap: social rule-violation framing recruits intuitions abstraction doesn't"],
+    modelAnswer: "Check the beer drinker's age and the 17-year-old's drink — only they can violate the rule. The 23-year-old may drink anything; the cola drinker may be any age. The structure is identical to the abstract card task most people fail, and the difference is framing: presented as catching rule-breakers, the mind effortlessly looks for violations; presented abstractly, it slides into seeking confirmations.",
+    expertNote: "A practical trick falls out of this: when a logical problem confuses you, recast it as 'who could be cheating?' — the social framing borrows machinery your abstract reasoning lacks." }
+);
+
+MTC_EXERCISES.push(
+  // DECISION
+  { id: "decision-5", type: "decision", difficulty: 2, xpBase: 20, frameworks: ["decision-theory", "cognitive-bias-detection"],
+    title: "The Other Buyer",
+    prompt: "You've found a home you love. Your agent — who earns more if you pay more — tells you another buyer is preparing an offer. You can't verify this. How do you decide what to bid without the claimed rival deciding for you?",
+    hints: ["Set your walk-away number BEFORE engaging with the pressure, from comparables and your finances — not from the auction dynamics.", "The claim's key property: you can't verify it, and the person relaying it profits if it moves you. That doesn't make it false — it makes it non-evidence.", "Decide as if both worlds are possible: a bid you'd regret in the no-rival world is too high; losing the house at your true maximum is the acceptable outcome, not a failure."],
+    rubric: ["Committed to a pre-analysis maximum derived from comparables and budget", "Treated the unverifiable claim as non-evidence rather than as false", "Noticed the messenger's incentive alignment", "Accepted losing at the true maximum as a correct outcome"],
+    modelAnswer: "Fix your maximum before the emotional auction starts, from comparables and what you can carry — then the rival claim, true or not, changes nothing: you bid up to your number and stop. The claim is unverifiable and delivered by someone who profits from your urgency, so it can't function as evidence. If someone genuinely outbids your true maximum, the process worked: the house was worth more to them than to you.",
+    expertNote: "Auction pressure converts 'what is this worth to me?' into 'what does it take to win?' — the entire defense is deciding the first question while you can still think, and treating the second as noise." },
+
+  { id: "decision-6", type: "decision", difficulty: 2, xpBase: 25, frameworks: ["decision-theory", "strategic-thinking"],
+    title: "Build or Buy",
+    prompt: "Your startup needs internal analytics. Build in-house: ~3 engineer-months, full control. Buy: $30k/year, live next week, less flexible. Structure the decision properly — including the costs that don't appear in either price tag.",
+    hints: ["The build option's real price is opportunity cost: what would those 3 engineer-months produce if aimed at the product instead?", "Include the tail: built software needs maintenance forever (often 20%+ of build cost yearly); bought software carries vendor risk and integration limits.", "The strategic question that usually decides it: is analytics part of your differentiation, or undifferentiated plumbing? Build your moat; buy your plumbing."],
+    rubric: ["Priced the build option in opportunity cost, not just salary time", "Included ongoing maintenance and vendor-risk tails on each side", "Applied the core-vs-plumbing (differentiation) test", "Reached a conditional recommendation, stating what would flip it"],
+    modelAnswer: "The visible comparison ($30k vs 3 months) omits the decisive terms. Build really costs 3 months of forgone product progress plus permanent maintenance; buy costs $30k plus lock-in and edge-case inflexibility. The tiebreaker is strategic: if analytics is undifferentiated plumbing for you, buy it and spend your scarcest resource — engineering attention — on what customers actually choose you for. Flip to build only if analytics IS the product, or the vendor's ceiling provably blocks a core need.",
+    expertNote: "In build-vs-buy, engineer time is almost never the scarce resource being spent — focus is. The common failure is building plumbing because building is fun and the invoice for lost focus never arrives." },
+
+  { id: "decision-7", type: "decision", difficulty: 2, xpBase: 20, frameworks: ["red-team-thinking", "scenario-planning"],
+    title: "Premortem on the Perfect Hire",
+    prompt: "Your team is about to make a senior hire everyone is excited about. Before the offer goes out, run a premortem: it's 12 months later and the hire has failed badly. Write the three most plausible reasons why — and what check each implies you should run now.",
+    hints: ["The premortem's power: 'imagine it HAS failed' licenses the doubts that excitement was suppressing.", "Senior-hire failure modes cluster: skills validated but context transfer fails (big-company habits at a startup); the role was never actually agreed on; chemistry with a key person; the excitement was halo from one impressive trait.", "Each imagined failure implies a present-tense check: reference questions about context, a written 90-day expectations doc both sides sign, a working session before the offer."],
+    rubric: ["Generated 3 distinct, plausible failure narratives", "Failure modes go beyond 'turned out bad' to specific mechanisms", "Derived a concrete pre-offer check from each", "Noted the halo risk in 'everyone is excited'"],
+    modelAnswer: "Example: (1) Their success was powered by infrastructure their old company provided — check by probing references on what they built alone vs inherited. (2) Each interviewer imagined a different job for them — check by writing the 90-day outcomes doc now and getting both sides to sign it. (3) Unanimous excitement traces to one dazzling trait (pedigree, charisma) haloing everything else — check by re-scoring the scorecard dimensions independently before the offer.",
+    expertNote: "Klein's premortem works because it flips the social gradient: in a normal meeting doubt is disloyalty, in a premortem imagination of failure is the assignment — same brains, opposite permission." },
+
+  { id: "decision-8", type: "decision", difficulty: 3, xpBase: 30, frameworks: ["decision-theory", "second-order-thinking"],
+    title: "One-Way and Two-Way Doors",
+    prompt: "You're choosing between two offers: a promotion at home, or a bigger role abroad requiring relocation. Classify the components of each choice as reversible or irreversible, and explain how reversibility should change the confidence you need before deciding.",
+    hints: ["Decompose: the job itself is usually reversible (jobs change); selling a home, a partner's career break, kids changing schools, pension/visa clocks are harder to unwind.", "The rule: two-way doors deserve fast decisions at ~70% confidence — you can walk back; one-way doors deserve slow decisions and higher bars.", "Second-order: the abroad option also OPENS doors (networks, optionality) that not-going closes silently — staying is not the zero-risk baseline it feels like."],
+    rubric: ["Decomposed both options into reversible and irreversible components", "Applied differential confidence: fast on two-way doors, slow on one-way", "Identified the hidden irreversibility of staying (options that expire)", "Avoided treating the status quo as risk-free"],
+    modelAnswer: "Most of the abroad decision is a two-way door — roles, cities, even countries can be walked back — but embedded in it are one-way components (a partner's career interruption, kids' schooling windows, selling property) that deserve the real scrutiny. Meanwhile staying carries its own quiet irreversibility: the window for the international role may not reopen. Decide the reversible bulk at 70% confidence and speed; negotiate or de-risk only the genuinely one-way parts (rent don't sell, sabbatical not resignation for the partner).",
+    expertNote: "Bezos's door heuristic matters most in its second application: people over-deliberate reversible choices and — because staying feels safe — never notice the one-way doors that close on their own schedule." },
+
+  // BIAS
+  { id: "bias-5", type: "bias", difficulty: 1, xpBase: 15, frameworks: ["cognitive-bias-detection"],
+    title: "More or Less Than Two Weeks?",
+    prompt: "A manager asks an engineer: 'Will this take more or less than two weeks?' Name the bias this phrasing plants, explain how it distorts the estimate, and propose a better way to ask.",
+    hints: ["The number in the question doesn't vanish — it becomes the reference point the answer adjusts from.", "Anchoring: estimates gravitate toward two weeks whether or not it has any relation to the task; adjustment away from an anchor is systematically insufficient.", "Better elicitation gets an unanchored view first: 'Walk me through the pieces and give me your range' — or ask for 10th and 90th percentile dates rather than one number."],
+    rubric: ["Named anchoring specifically", "Explained insufficient adjustment from the planted reference point", "Proposed an unanchored elicitation (open decomposition or percentile range)", "Noted the manager anchors the estimate even with good intentions"],
+    modelAnswer: "The question anchors the estimate at two weeks: the engineer now adjusts from the manager's number instead of building one from the task, and adjustment away from anchors is reliably too small. Better: 'Break it into parts and give me a range you'd bet on' — asked before any number is mentioned. If you want calibration, ask for the date they're 90% sure it's done by, not the date it 'should' be done.",
+    expertNote: "Anchors work even when everyone knows they're arbitrary — the only reliable defense in estimation is to keep the first number out of the room until the estimator produces one." },
+
+  { id: "bias-6", type: "bias", difficulty: 2, xpBase: 20, frameworks: ["cognitive-bias-detection", "red-team-thinking"],
+    title: "The Room That Agreed Too Fast",
+    prompt: "In a planning meeting, the most senior person speaks first and endorses a risky plan. Within ten minutes everyone has agreed and the meeting ends early. Name the dynamics at work and propose one structural change that would surface real dissent.",
+    hints: ["Two forces compound: the senior opinion anchors the discussion, and visible early consensus makes dissent socially expensive for each next speaker.", "Fast unanimous agreement on a RISKY plan is a signal of process failure, not plan quality — genuine evaluation of risk produces friction.", "Structural fixes beat exhortation: collect written positions before anyone speaks, have the senior person speak last, or assign a rotating devil's advocate with real license."],
+    rubric: ["Named both dynamics: authority anchoring and conformity cascade", "Identified fast unanimity on a risky call as a warning sign in itself", "Proposed a structural fix (silent written first-positions, boss speaks last, assigned dissenter)", "Explained why 'please speak up' fails without structure"],
+    modelAnswer: "The senior endorsement anchors the room, then each agreement raises the social price of the next dissent — a conformity cascade that can produce unanimity nobody privately holds. Fix it structurally: everyone writes their position and top risk BEFORE discussion opens, the senior person speaks last, and someone is formally assigned to argue the against-case. Asking people to 'feel free to disagree' changes nothing, because the cost of dissent is structural, not emotional.",
+    expertNote: "Groupthink is an information-destruction machine: the room ends up knowing less than the sum of what its members walked in knowing. Structure is the only fix because the silencing mechanism is itself invisible to the participants." },
+
+  { id: "bias-7", type: "bias", difficulty: 2, xpBase: 20, frameworks: ["cognitive-bias-detection"],
+    title: "The Halo on the Review",
+    prompt: "An employee closed one spectacular deal this year. In their performance review, the manager rates them highly on communication, teamwork, and reliability — dimensions unrelated to the deal, with no specific evidence. Name the bias and design a review process that resists it.",
+    hints: ["One vivid positive trait is bleeding into unrelated ratings — the manager is rating a glow, not the dimensions.", "The halo effect: global impressions contaminate specific judgments, in both directions (one visible failure works the same way negatively).", "The resistant process rates each dimension independently, evidence-first: write the specific observed behaviors per dimension BEFORE assigning any score, and rate one dimension across all employees at a time rather than one employee across all dimensions."],
+    rubric: ["Named the halo effect", "Recognized it operates in both directions (horns effect too)", "Proposed evidence-before-scores as the core fix", "Included the dimension-at-a-time (not person-at-a-time) rating structure"],
+    modelAnswer: "This is the halo effect: one salient success creates a global glow that fills in every unrated dimension. The resistant design: require written behavioral evidence per dimension before any number is entered; rate dimension-by-dimension across all employees rather than person-by-person, so each judgment competes against comparable evidence; and flag any review where all dimensions received the same score — a uniform profile is the halo's fingerprint.",
+    expertNote: "Thorndike documented this in 1920 in military ratings — a century later it still drives most unstructured evaluation, hiring and promotion included. Uniformly high or low ratings across unrelated traits should trigger suspicion, not confidence." },
+
+  { id: "bias-8", type: "bias", difficulty: 2, xpBase: 20, frameworks: ["survivorship-bias", "cognitive-bias-detection"],
+    title: "A Hundred Successful Founders",
+    prompt: "A bestselling book reports: 'I interviewed 100 successful founders — 90% wake before 6am. Early rising is the founders' secret.' Identify every distinct methodological failure packed into this claim.",
+    hints: ["Start with who was interviewed: only successes. What would the failed founders — never interviewed — have reported?", "No control group: what fraction of UNSUCCESSFUL founders, or the general population of ambitious people, wake before 6am? Without that, 90% means nothing.", "Even granting the correlation: direction unknown (does rising early cause success, or do driven people do both?), plus self-report inflation on virtuous habits."],
+    rubric: ["Named survivorship bias (failures were never sampled)", "Named the missing control group and why 90% is uninterpretable without it", "Named the correlation/causation gap and a plausible common cause", "Added self-report bias on socially admired habits"],
+    modelAnswer: "At least four failures: (1) survivorship — failed founders weren't interviewed and may wake just as early; (2) no baseline — if 90% of all driven professionals wake early, the finding is zero information; (3) causal direction — ambition plausibly causes both the waking hour and the success; (4) self-report — people inflate virtuous habits to interviewers. The observation is compatible with early rising helping, hurting, or being pure costume.",
+    expertNote: "The success-literature formula is precisely this stack of errors, sold as research — the tell is that its 'findings' are always flattering habits readers can adopt, never boring structural advantages they can't." },
+
+  // OBSERVATION
+  { id: "observation-5", type: "observation", difficulty: 1, xpBase: 15, frameworks: ["critical-thinking", "pattern-recognition"],
+    title: "The Chart That Shouts",
+    prompt: "A slide shows a bar chart titled 'Profit DOUBLED under new leadership!' The y-axis runs from 48 to 52 ($M). What is the chart actually showing, and what's your checklist for reading any chart before trusting it?",
+    hints: ["Read the axis: from 48 to 52, a bar twice as tall means going from ~49 to ~51 — about a 4% change drawn as a 2x change.", "The truncated axis isn't lying about the numbers — it's lying about the VISUAL, which is what viewers remember.", "A minimal chart checklist: where does the axis start; what are the units; what timeframe was chosen (and what was left out); absolute or per-something; who chose these bounds and why."],
+    rubric: ["Decoded the actual change (~4%) behind the visual doubling", "Explained that the deception is visual while the data is technically true", "Produced a reusable checklist (axis origin, units, timeframe, denominator)", "Asked who selected the frame and what they gain"],
+    modelAnswer: "Profit rose roughly 4% — from about $49M to $51M — but truncating the y-axis at 48 renders that as a doubling of bar height, and bar height is what the audience takes home. Checklist for any chart: (1) does the value axis start at zero, and if not, why; (2) units and scale; (3) why this timeframe — what happens if you widen it; (4) raw or per-capita/per-dollar; (5) who made it and what conclusion pays them.",
+    expertNote: "Truncated axes are the most common honest-numbers-dishonest-picture device in corporate life — the numbers survive an audit while the impression does the persuading." },
+
+  { id: "observation-6", type: "observation", difficulty: 1, xpBase: 15, frameworks: ["critical-thinking", "analytical-thinking"],
+    title: "The Deadlier State",
+    prompt: "'State A recorded 3,900 traffic deaths last year; State B only 410. State B's roads are clearly far safer.' What must you check before accepting this, and what comparisons would actually answer the safety question?",
+    hints: ["Raw counts compare sizes, not risks — how many people (and how many miles driven) does each state have?", "If State A has 12x the population or vehicle-miles, its roads could be SAFER per mile despite 9.5x the deaths.", "The honest metrics: deaths per 100k residents, and better, per vehicle-mile traveled — then check composition (urban vs rural mix, weather) before crediting 'the roads'."],
+    rubric: ["Rejected the raw-count comparison and named the missing denominator", "Chose per-capita and per-vehicle-mile as the meaningful rates", "Showed the conclusion can invert once normalized", "Noted composition (urban/rural, weather) as the next confounder after normalizing"],
+    modelAnswer: "Raw death counts measure state size more than road safety. Normalize twice: per resident, then per vehicle-mile driven (exposure). A large state can have 9.5x the deaths and still be safer per mile. Even after normalizing, composition matters — rural highways, weather, and truck traffic differ — so 'the roads are safer' needs like-for-like comparison, not a headline subtraction.",
+    expertNote: "Any comparison of raw counts between differently-sized groups is a size measurement in costume — 'per what?' is the first question, and the answer usually reverses at least one headline a week." },
+
+  { id: "observation-7", type: "observation", difficulty: 2, xpBase: 20, frameworks: ["critical-thinking", "cognitive-bias-detection"],
+    title: "Said, Claimed, Admitted",
+    prompt: "Two reports of the same interview: 'The CEO explained the layoffs were unavoidable' vs 'The CEO claimed the layoffs were unavoidable' vs 'The CEO admitted the layoffs were unavoidable.' Same quote, three verbs. Unpack what each verb instructs you to believe.",
+    hints: ["The quote is identical — only the reporting verb changed. Yet each version arrives pre-judged.", "'Explained' presupposes the statement is true and informative; 'claimed' flags doubt; 'admitted' presupposes guilt or reluctant confession.", "These verbs are the journalist's verdict smuggled into the grammar — a reader absorbs the credibility framing without noticing a single opinion was expressed."],
+    rubric: ["Decoded the presupposition each verb carries (true / doubtful / guilty)", "Recognized the quote itself is identical across versions", "Identified this as evaluation smuggled into attribution grammar", "Stated the neutral alternative ('said') and when deviation from it is a tell"],
+    modelAnswer: "'Explained' certifies the statement (true, helpful); 'claimed' inserts a raised eyebrow (unverified, dubious); 'admitted' convicts (a reluctant confession of something discreditable). None of these is opinion, technically — the judgment rides inside the attribution verb, below the reader's radar. 'Said' is the neutral baseline; every departure from it is the writer telling you what to conclude, and consistent departures in one direction reveal the outlet's stance more reliably than its editorials.",
+    expertNote: "Attribution verbs are the cheapest bias detector available: scan any article and list them — the pattern of who 'explains' and who 'claims' is the house position in grammatical form." },
+
+  { id: "observation-8", type: "observation", difficulty: 2, xpBase: 20, frameworks: ["analytical-thinking", "systems-thinking"],
+    title: "The Improved Response Time",
+    prompt: "A support team reports 'average first-response time improved 40% this quarter' right after a new bonus was tied to that metric. Before celebrating, what should you inspect — in the data and in the behavior the bonus created?",
+    hints: ["Averages hide shape: did the whole distribution improve, or did many instant auto-acknowledgements mask a worse tail? Check the median and the 90th percentile.", "Metrics with bonuses attached stop being measurements and start being targets — ask what the cheapest way to move THIS number is.", "Cheap moves: auto-replies that count as 'first response', cherry-picking easy tickets first, closing and reopening, or deflecting hard tickets to channels the metric doesn't see. Then check the companion metrics: resolution time and customer satisfaction."],
+    rubric: ["Asked for the distribution (median, tail), not just the mean", "Applied Goodhart's insight: an incentivized metric invites gaming", "Listed at least two concrete gaming mechanisms", "Named companion metrics (resolution, satisfaction) to test whether real service improved"],
+    modelAnswer: "First inspect shape: a 40% better average is compatible with a worse customer experience if instant auto-acknowledgements now count as responses while hard tickets wait longer — compare medians and 90th percentiles, not means. Then inspect incentives: with a bonus attached, the cheapest path to the number is gaming (auto-replies, easy-ticket cherry-picking, close-and-reopen). The verdict metrics are the un-incentivized companions: time-to-resolution and satisfaction. If those didn't move, the 40% is measurement theater.",
+    expertNote: "Goodhart's law in operation: when a measure becomes a target, it ceases to be a good measure — the paired defense is always distributions over averages, and companion metrics the incentive doesn't touch." }
+);
+
+/* ---------- Calibration bank expansion ---------- */
+
+MTC_CALIBRATION_BINARY.push(
+  { id: "cb-37", statement: "The Sun contains more than 99% of the Solar System's mass.", answer: true, note: "About 99.8% — everything else is rounding error." },
+  { id: "cb-38", statement: "There are more possible chess games than atoms in the observable universe.", answer: true, note: "The Shannon number (~10^120) dwarfs the ~10^80 atoms." },
+  { id: "cb-39", statement: "Neptune has the fastest winds in the Solar System.", answer: true, note: "Supersonic winds around 2,000 km/h." },
+  { id: "cb-40", statement: "Mercury is the hottest planet.", answer: false, note: "Venus is hotter — its dense CO2 atmosphere traps heat." },
+  { id: "cb-41", statement: "Mount Rushmore depicts five presidents.", answer: false, note: "Four: Washington, Jefferson, Roosevelt, Lincoln." },
+  { id: "cb-42", statement: "The human heart beats roughly 100,000 times a day.", answer: true, note: "~70 bpm × 1,440 minutes ≈ 100,000." },
+  { id: "cb-43", statement: "Most diamonds formed from compressed coal.", answer: false, note: "Most are far older than land plants; formed from deep-mantle carbon." },
+  { id: "cb-44", statement: "Alaska is both the westernmost and easternmost US state.", answer: true, note: "The Aleutian Islands cross the 180° meridian." },
+  { id: "cb-45", statement: "The Amazon rainforest supplies about 20% of the oxygen humans breathe.", answer: false, note: "A famous myth — its net atmospheric oxygen contribution is near zero; it consumes most of what it produces." },
+  { id: "cb-46", statement: "Water always boils at 100°C, regardless of altitude.", answer: false, note: "Boiling point drops with pressure — ~71°C on Everest." },
+  { id: "cb-47", statement: "The Mongol Empire was the largest contiguous land empire in history.", answer: true, note: "~24 million km² at its peak." },
+  { id: "cb-48", statement: "The Ottoman Empire lasted more than 600 years.", answer: true, note: "Roughly 1299 to 1922." },
+  { id: "cb-49", statement: "Human DNA is about 98-99% identical to chimpanzee DNA.", answer: true, note: "~98.8% in aligned sequences." },
+  { id: "cb-50", statement: "Mount Fuji is classified as an active volcano.", answer: true, note: "Last erupted in 1707; still considered active." },
+  { id: "cb-51", statement: "The Dead Sea shore is the lowest land point on Earth.", answer: true, note: "About 430 meters below sea level." },
+  { id: "cb-52", statement: "Sound can travel through the vacuum of space.", answer: false, note: "Sound needs a medium; space is silent." },
+  { id: "cb-53", statement: "Julius Caesar was born by caesarean section.", answer: false, note: "A myth — his mother lived for decades; ancient caesareans were fatal to the mother." },
+  { id: "cb-54", statement: "Penicillin was discovered by accident.", answer: true, note: "Fleming noticed mold killing bacteria in a contaminated dish, 1928." },
+  { id: "cb-55", statement: "The Great Barrier Reef is visible from space.", answer: true, note: "At ~2,300 km long, it's visible from orbit." },
+  { id: "cb-56", statement: "Spiders are insects.", answer: false, note: "Arachnids: eight legs, two body segments, no antennae." },
+  { id: "cb-57", statement: "The Hundred Years' War lasted exactly 100 years.", answer: false, note: "116 years (1337-1453), fought in phases." },
+  { id: "cb-58", statement: "Camels store water in their humps.", answer: false, note: "Humps store fat; water economy happens in blood and kidneys." },
+  { id: "cb-59", statement: "The Sahara was once green, with lakes and grasslands.", answer: true, note: "The African Humid Period ended ~5,000 years ago." },
+  { id: "cb-60", statement: "The Statue of Liberty was a gift from France.", answer: true, note: "Dedicated 1886; the statue from France, the pedestal funded by Americans." }
+);
+
+MTC_CALIBRATION_INTERVALS.push(
+  { id: "ci-21", prompt: "Year the Berlin Wall fell", unit: "year", answer: 1989 },
+  { id: "ci-22", prompt: "Number of elements in the periodic table", unit: "elements", answer: 118 },
+  { id: "ci-23", prompt: "Conventional average human body temperature", unit: "degrees Celsius", answer: 37 },
+  { id: "ci-24", prompt: "Year the French Revolution began", unit: "year", answer: 1789 },
+  { id: "ci-25", prompt: "Length of a marathon", unit: "kilometers", answer: 42.195 },
+  { id: "ci-26", prompt: "Year the first iPhone was released", unit: "year", answer: 2007 },
+  { id: "ci-27", prompt: "Population of Japan", unit: "millions of people", answer: 124 },
+  { id: "ci-28", prompt: "Number of time zones spanned by Russia", unit: "time zones", answer: 11 },
+  { id: "ci-29", prompt: "Height of the Burj Khalifa", unit: "meters", answer: 828 },
+  { id: "ci-30", prompt: "Year of the Hijra (migration to Medina, start of the Islamic calendar)", unit: "year CE", answer: 622 },
+  { id: "ci-31", prompt: "Earth's average orbital speed around the Sun", unit: "kilometers per second", answer: 30 },
+  { id: "ci-32", prompt: "Straight-line distance from London to New York", unit: "kilometers", answer: 5570 }
+);
+
+/* ---------- Boss battle expansion ---------- */
+
+MTC_BOSS_BATTLES.push(
+  { id: "boss-7", name: "The Ransomware Ultimatum", domain: "Cybersecurity / Crisis decision",
+    frameworks: ["decision-theory", "game-theory", "ethical-reasoning", "systems-thinking"],
+    briefing: "A regional hospital's systems are encrypted by ransomware. The attackers demand $2M within 72 hours. Backups exist but are three weeks old and will take 10+ days to restore; meanwhile surgeries are postponed and patients diverted. Insurance would cover most of the payment. Law enforcement advises against paying but cannot promise recovery. You lead the crisis response.",
+    stages: [
+      { question: "Frame the immediate decision in expected-value terms — but identify which consequences resist being priced at all.", considerations: "Compare payment odds (decryptors often partially work) against 10+ days of degraded care. Patient harm and death are not insurance line items — say explicitly where the numbers stop helping." },
+      { question: "Model the game beyond this incident: what does paying (or refusing) signal to this attacker and to the ecosystem of future attackers watching outcomes?", considerations: "Paying funds and validates the business model and marks payers as soft targets; refusing imposes costs on YOUR current patients for a diffuse future benefit to everyone else's. Who bears each side of that trade?" },
+      { question: "As a systems thinker, what upstream conditions made this decision inevitable, and what would have to change so no future administrator faces it?", considerations: "Three-week-old backups, untested restore times, and insurance that quietly makes paying rational are all choices someone made earlier. Consider whether cyber-insurance itself creates moral hazard." },
+    ],
+    noPerfectAnswerNote: "Refusing to pay is collectively right and may be individually catastrophic for the patients in the building tonight; paying protects them and finances the next hundred attacks — the incentives are genuinely misaligned between this hospital and the world, and no framing dissolves that.",
+    rubric: [
+      "Priced what could be priced and explicitly flagged what couldn't (patient harm)",
+      "Analyzed the signaling game with future attackers, not just this negotiation",
+      "Traced the upstream system failures (backups, restore testing, insurance incentives)",
+      "Explicitly named which thinking frameworks I applied",
+      "Held the individual-vs-collective misalignment honestly instead of declaring an easy answer",
+    ],
+    xpBase: 100 },
+
+  { id: "boss-8", name: "The Moderation Dilemma", domain: "Technology / Ethics / Systems",
+    frameworks: ["systems-thinking", "ethical-reasoning", "second-order-thinking", "probabilistic-thinking"],
+    briefing: "You run trust & safety at a large social platform. During a public-health emergency, a claim contradicting official guidance is going viral — millions of shares daily. The science is genuinely unsettled: the claim is probably wrong but not certainly. Options range from nothing, to warning labels, to algorithmic demotion, to removal and account bans. Regulators, advertisers, and creators are all watching.",
+    stages: [
+      { question: "Map the amplification system first: what feedback loops decide what spreads on your platform, and how does each intervention actually interact with them?", considerations: "Engagement-optimized feeds amplify outrage regardless of truth. Labels can backfire (drawing attention); demotion is invisible and unaccountable; removal creates scarcity and screenshots. Which loop does each option actually touch?" },
+      { question: "Trace two rounds of second-order consequences for the strongest intervention (removal + bans) — assume the claim later turns out partially true.", considerations: "Martyrdom dynamics, migration to platforms with no moderation at all, erosion of trust in the next (correct) intervention, and the precedent handed to governments with worse intentions." },
+      { question: "The science is probabilistic but your policy must be binary-ish. How do you act under 70-30 uncertainty when both error types cause real harm?", considerations: "Suppressing a truth and amplifying a falsehood have different victims and different reversibility. Consider interventions that scale with confidence (friction, context) rather than verdicts that pretend certainty." },
+    ],
+    noPerfectAnswerNote: "Every option moderates something: content, or trust. Acting decisively on unsettled science risks being confidently wrong with institutional force; not acting delegates public health to an outrage-maximizing algorithm — there is no neutral setting, because the feed itself is already an editorial policy.",
+    rubric: [
+      "Mapped the amplification loops before evaluating interventions",
+      "Traced second-order effects of hard removal, including the partially-true scenario",
+      "Proposed confidence-scaled responses rather than certainty theater",
+      "Explicitly named which thinking frameworks I applied",
+      "Acknowledged that 'do nothing' is also an editorial choice with victims",
+    ],
+    xpBase: 100 },
+
+  { id: "boss-9", name: "The Reservoir at 20%", domain: "Economics / Public policy",
+    frameworks: ["decision-theory", "systems-thinking", "ethical-reasoning", "scenario-planning"],
+    briefing: "You advise a city of 2 million whose reservoir is at 20% after a three-year drought. Forecasts are genuinely uncertain: rains may return this winter, or the drought may run three more years. Levers: steep tiered water pricing, mandatory rationing, industrial restrictions (the region's farms and factories employ a third of the city), emergency infrastructure (desalination — expensive, 4 years to build), or bet on the rain.",
+    stages: [
+      { question: "Compare pricing versus rationing as allocation mechanisms: what does each do well, and who bears the cost of each?", considerations: "Prices find high-value uses automatically but weigh on the poor unless rebated (consider a free basic tier). Rationing is visibly fair but freezes allocation regardless of value, and both invite evasion — wells, black markets, exemption lobbying." },
+      { question: "Build three scenarios (rain this winter / two more dry years / permanent regime shift) and identify which actions are robust across all three versus bets on one.", considerations: "Tiered pricing and leak repair pay off in every scenario. Desalination is a hedge whose value depends on the worst case — and it takes 4 years, so it must be started before you know if it's needed. That asymmetry is the heart of the problem." },
+      { question: "The industrial restrictions pit today's jobs against tomorrow's water. How should the decision weigh a certain, concentrated, immediate harm against an uncertain, diffuse, future one?", considerations: "Concentrated visible losers organize; diffuse future beneficiaries don't. Consider compensation mechanisms, and whether discounting the future is legitimate when the future harm may be irreversible (aquifer collapse)." },
+    ],
+    noPerfectAnswerNote: "If you build desalination and the rains return, you wasted billions visibly; if you bet on rain and lose, the city runs dry — the decision must be made 4 years before the information arrives, and whichever error occurs, the counterfactual will look obvious in hindsight to people who never faced the fork.",
+    rubric: [
+      "Compared pricing and rationing on both efficiency and distributional fairness",
+      "Built genuinely distinct scenarios and separated robust moves from bets",
+      "Engaged the concentrated-now vs diffuse-later harm asymmetry explicitly",
+      "Explicitly named which thinking frameworks I applied",
+      "Accepted that the decision precedes the information and defended a choice anyway",
+    ],
+    xpBase: 100 }
+);
