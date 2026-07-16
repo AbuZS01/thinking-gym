@@ -59,7 +59,28 @@ python3 -m http.server 8080
 ```
 
 Or just open `index.html` directly in a browser (everything is plain
-`<script>` tags, no ES modules, so `file://` works too).
+`<script>` tags, no ES modules, so `file://` works too — the service worker
+simply stays inactive on `file://`).
+
+## Installing it on your phone (PWA)
+
+The app is an installable Progressive Web App: once it's served over HTTPS
+(see hosting below), open it in the browser and:
+
+- **iPhone (Safari):** Share button → "Add to Home Screen"
+- **Android (Chrome):** the install prompt, or menu → "Install app"
+
+It gets its own icon, launches full-screen without browser chrome, and works
+fully offline (a service worker caches the whole app; your data was always
+local).
+
+The quickest free hosting: push this repo to GitHub, enable **GitHub Pages**
+on the repository (Settings → Pages → deploy from branch), and it's live over
+HTTPS at `https://<you>.github.io/<repo>/`. Netlify/Vercel free tiers work the
+same way.
+
+When you change any shipped file, bump `CACHE_VERSION` in `sw.js` so installed
+copies pick up the update.
 
 ## Pushing this to your own GitHub repo
 
