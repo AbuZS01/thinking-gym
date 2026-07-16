@@ -23,6 +23,14 @@ browser's `localStorage`, so it's fully private and works offline.
 - **Leveling & Achievements** — an RPG-style level curve (1 → 100, with titles
   from "Beginner Observer" to "Grand Strategist"), XP, streaks, and 20
   achievements.
+- **Calibration training** — auto-graded true/false questions answered with a
+  confidence level (scored with a proper scoring rule, so honest confidence
+  maximizes XP) plus 90%-confidence-interval estimates, with a personal
+  accuracy-vs-confidence curve. No honor system.
+- **Spaced review** — the frameworks and toolbox become an SM-2 style
+  spaced-repetition deck (Again/Hard/Good/Easy), capped at 5 new cards a day.
+- **Weekly Report** — XP, exercises, calibration and review activity this week
+  vs last, plus a suggested focus from your weakness data.
 - **Journal** — every answer you submit is saved and browsable, so you can
   watch how your reasoning changes over time.
 - **Export / Import** — back up all progress (including the journal) to a JSON
@@ -33,10 +41,12 @@ progressive Socratic hints (each hint costs 20% of the exercise's XP), then
 check off a rubric against the model answer and expert note — your XP is
 earned from how many criteria you honestly met.
 
-Two mechanics keep the daily habit sustainable: missing a single day does not
-reset your streak (one grace day is always forgiven), and each daily quest
-marks a ★ core trio — the warm-up plus the two exercises that best target your
-weakest frameworks — so a short session still counts.
+Model answers stay locked until you've written a real attempt — active recall
+before explanation. Two mechanics keep the daily habit sustainable: a visible
+grace shield absorbs one missed day (spent automatically, re-earned by
+finishing the ★ core trio), and each daily quest marks that core trio — the
+warm-up plus the two exercises that best target your weakest frameworks — so a
+short session still counts.
 
 ## Running it
 

@@ -58,6 +58,11 @@ const MTC = (() => {
       flags: {},
       achievements: [],
       bossBattlesCompleted: 0,
+      graceShields: 1, // consumed to survive one missed day; re-earned by finishing the core trio
+      calibration: { answers: [], asked: [] },
+      reviews: {}, // cardId -> {ease, interval, reps, due}
+      reviewCount: 0,
+      newIntro: null, // {date, count} — caps new review cards introduced per day
       weaknessScores: {}, // frameworkId -> {attempts, totalScore}
       history: [], // {date, exerciseId, type, score, xp, hintsUsed}
       dailyQuest: null, // {date, items: [{exerciseId, type}], completed: [exerciseId]}
@@ -82,6 +87,9 @@ const MTC = (() => {
 
   function statsView(state) {
     const { level } = deriveLevel(state.totalXp);
+    const bin = state.calibration.answers.filter((a) => a.kind === "binary");
+    const accuracy = bin.length ? (bin.filter((a) => a.correct).length / bin.length) * 100 : 0;
+    const avgConfidence = bin.length ? bin.reduce((t, a) => t + a.confidence, 0) / bin.length : 0;
     return {
       totalExercises: state.totalExercises,
       typeCounts: state.typeCounts,
@@ -90,6 +98,9 @@ const MTC = (() => {
       streak: state.streak,
       level,
       bossBattlesCompleted: state.bossBattlesCompleted,
+      calibrationAnswers: state.calibration.answers.length,
+      calibrationGap: bin.length ? Math.abs(accuracy - avgConfidence) : 100,
+      reviewCount: state.reviewCount || 0,
     };
   }
 
@@ -99,8 +110,15 @@ const MTC = (() => {
     if (state.lastActiveDate) {
       const prev = new Date(state.lastActiveDate + "T00:00:00Z");
       const diffDays = Math.round((new Date(today + "T00:00:00Z") - prev) / 86400000);
-      // diffDays === 2 means exactly one missed day — forgiven as a grace day
-      state.streak = diffDays <= 2 ? state.streak + 1 : 1;
+      if (diffDays === 1) {
+        state.streak++;
+      } else if (diffDays === 2 && state.graceShields > 0) {
+        // one missed day survived by spending a grace shield
+        state.graceShields--;
+        state.streak++;
+      } else {
+        state.streak = 1;
+      }
     } else {
       state.streak = 1;
     }
@@ -246,6 +264,8 @@ const MTC = (() => {
 
     const quest = getOrCreateDailyQuest(state);
     if (!quest.completed.includes(exerciseId)) quest.completed.push(exerciseId);
+    const coreDone = quest.items.filter((i) => i.core).every((i) => quest.completed.includes(i.exerciseId));
+    if (coreDone) state.graceShields = 1;
 
     const result = applyAttempt(state, ex.frameworks, {
       date: todayStr(),
@@ -306,6 +326,165 @@ const MTC = (() => {
     return state;
   }
 
+  /* ---------- Calibration training ---------- */
+
+  function pickCalibrationQuestions(state) {
+    const pick = (pool, n) => {
+      let fresh = pool.filter((q) => !state.calibration.asked.includes(q.id));
+      if (fresh.length < n) fresh = pool;
+      return [...fresh].sort(() => Math.random() - 0.5).slice(0, n);
+    };
+    return { binary: pick(MTC_CALIBRATION_BINARY, 5), intervals: pick(MTC_CALIBRATION_INTERVALS, 2) };
+  }
+
+  const CALIBRATION_MAX_XP = 5 * 12 + 2 * 10;
+
+  // Proper scoring rule (Brier-based): honest confidence maximizes expected XP.
+  function gradeCalibration(state, responses) {
+    const graded = responses.map((r) => {
+      if (r.kind === "binary") {
+        const q = MTC_CALIBRATION_BINARY.find((x) => x.id === r.id);
+        const correct = q.answer === r.answer;
+        const c = Math.min(0.99, Math.max(0.5, r.confidence / 100));
+        const brier = correct ? (1 - c) ** 2 : c ** 2;
+        const points = Math.max(0, Math.round(12 * (1 - 2 * brier)));
+        return { kind: "binary", id: q.id, statement: q.statement, truth: q.answer, note: q.note,
+                 answer: r.answer, confidence: r.confidence, correct, points };
+      }
+      const q = MTC_CALIBRATION_INTERVALS.find((x) => x.id === r.id);
+      const hit = r.low <= q.answer && q.answer <= r.high;
+      return { kind: "interval", id: q.id, prompt: q.prompt, unit: q.unit, truth: q.answer,
+               low: r.low, high: r.high, hit, points: hit ? 10 : 0 };
+    });
+
+    const today = todayStr();
+    for (const g of graded) {
+      state.calibration.asked.push(g.id);
+      state.calibration.answers.push(g.kind === "binary"
+        ? { id: g.id, kind: "binary", correct: g.correct, confidence: g.confidence, date: today }
+        : { id: g.id, kind: "interval", hit: g.hit, date: today });
+    }
+
+    const xp = graded.reduce((t, g) => t + g.points, 0);
+    const score = Math.round((xp / CALIBRATION_MAX_XP) * 100);
+    const result = applyAttempt(state, ["probabilistic-thinking", "bayesian-thinking"], {
+      date: today, exerciseId: "calibration", type: "calibration", score, xp, hintsUsed: 0, answer: "",
+    });
+    result.graded = graded;
+    return result;
+  }
+
+  function calibrationStats(state) {
+    const answers = state.calibration.answers;
+    const bin = answers.filter((a) => a.kind === "binary");
+    const intervals = answers.filter((a) => a.kind === "interval");
+    const buckets = [[50, 59], [60, 69], [70, 79], [80, 89], [90, 99]].map(([lo, hi]) => {
+      const inB = bin.filter((a) => a.confidence >= lo && a.confidence <= hi);
+      return { label: `${lo}\u2013${hi}%`, n: inB.length,
+               actual: inB.length ? Math.round((inB.filter((a) => a.correct).length / inB.length) * 100) : null };
+    });
+    return {
+      total: answers.length,
+      binaryCount: bin.length,
+      accuracy: bin.length ? Math.round((bin.filter((a) => a.correct).length / bin.length) * 100) : null,
+      avgConfidence: bin.length ? Math.round(bin.reduce((t, a) => t + a.confidence, 0) / bin.length) : null,
+      buckets,
+      intervalCount: intervals.length,
+      intervalHitRate: intervals.length ? Math.round((intervals.filter((a) => a.hit).length / intervals.length) * 100) : null,
+    };
+  }
+
+  /* ---------- Spaced review (SM-2 lite) over frameworks & toolbox ---------- */
+
+  function reviewDeck() {
+    return [
+      ...MTC_FRAMEWORKS.map((f) => ({
+        id: "fw:" + f.id, kind: "Framework", front: f.name,
+        hint: "What problem does it solve? When is it dangerous?",
+        back: f.core + " Expert use: " + f.expertUse,
+      })),
+      ...MTC_TOOLBOX.map((t) => ({
+        id: "tool:" + t.id, kind: "Tool", front: t.name,
+        hint: "What is it? When do you reach for it?",
+        back: t.summary + " When: " + t.when,
+      })),
+    ];
+  }
+
+  function dueReviewCards(state) {
+    const today = todayStr();
+    const deck = reviewDeck();
+    const due = deck.filter((c) => state.reviews[c.id] && state.reviews[c.id].due <= today);
+    const fresh = deck.filter((c) => !state.reviews[c.id]);
+    // top up short sessions with new cards — at most 5 new per day, so the
+    // deck can't be ground through in one sitting
+    const usedToday = state.newIntro && state.newIntro.date === today ? state.newIntro.count : 0;
+    const newCount = Math.min(Math.max(0, 5 - usedToday), Math.max(0, 8 - due.length));
+    return [...due.slice(0, 10), ...fresh.slice(0, newCount)];
+  }
+
+  function nextReviewDue(state) {
+    const dues = Object.values(state.reviews).map((r) => r.due).sort();
+    return dues[0] || null;
+  }
+
+  function gradeReviewCard(state, cardId, grade) {
+    const isNew = !state.reviews[cardId];
+    if (isNew) {
+      const today = todayStr();
+      if (!state.newIntro || state.newIntro.date !== today) state.newIntro = { date: today, count: 0 };
+      state.newIntro.count++;
+    }
+    const rec = state.reviews[cardId] || { ease: 2.5, interval: 0, reps: 0 };
+    if (grade === "again") {
+      rec.reps = 0; rec.interval = 1; rec.ease = Math.max(1.3, rec.ease - 0.2);
+    } else if (grade === "hard") {
+      rec.interval = Math.max(1, Math.round(rec.interval * 1.2)); rec.ease = Math.max(1.3, rec.ease - 0.15); rec.reps++;
+    } else if (grade === "good") {
+      rec.interval = rec.reps === 0 ? 1 : rec.reps === 1 ? 3 : Math.round(rec.interval * rec.ease); rec.reps++;
+    } else {
+      rec.interval = rec.reps === 0 ? 2 : Math.round(Math.max(rec.interval, 1) * rec.ease * 1.3); rec.ease += 0.1; rec.reps++;
+    }
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + rec.interval);
+    rec.due = d.toISOString().slice(0, 10);
+    state.reviews[cardId] = rec;
+    state.reviewCount = (state.reviewCount || 0) + 1;
+    saveState(state);
+    return grade === "again" ? 0 : grade === "hard" ? 1 : 2;
+  }
+
+  function finishReviewSession(state, sessionXp, count) {
+    if (count === 0) return null;
+    return applyAttempt(state, [], {
+      date: todayStr(), exerciseId: "review", type: "review", score: 100, xp: sessionXp, hintsUsed: 0, answer: "",
+    });
+  }
+
+  /* ---------- Weekly report ---------- */
+
+  function weeklyReport(state) {
+    const agg = (week) => {
+      const entries = state.history.filter((h) => isoWeekKey(new Date(h.date + "T00:00:00Z")) === week);
+      const scored = entries.filter((h) => MTC_QUEST_TYPES.includes(h.type) || h.type === "boss");
+      return {
+        xp: entries.reduce((t, h) => t + h.xp, 0),
+        exercises: entries.filter((h) => MTC_QUEST_TYPES.includes(h.type)).length,
+        avgScore: scored.length ? Math.round(scored.reduce((t, h) => t + h.score, 0) / scored.length) : null,
+        calibrationSessions: entries.filter((h) => h.type === "calibration").length,
+        reviewSessions: entries.filter((h) => h.type === "review").length,
+        bosses: entries.filter((h) => h.type === "boss").length,
+      };
+    };
+    const focus = weaknessProfile(state).find((w) => w.attempts > 0) || null;
+    return {
+      week: isoWeekKey(),
+      current: agg(isoWeekKey()),
+      previous: agg(isoWeekKey(new Date(Date.now() - 7 * 86400000))),
+      focus,
+    };
+  }
+
   return {
     todayStr,
     deriveLevel,
@@ -320,6 +499,14 @@ const MTC = (() => {
     lastRecordFor,
     exportStateJSON,
     importState,
+    pickCalibrationQuestions,
+    gradeCalibration,
+    calibrationStats,
+    dueReviewCards,
+    nextReviewDue,
+    gradeReviewCard,
+    finishReviewSession,
+    weeklyReport,
     submitExercise,
     getCurrentBossBattle,
     getBossBattleDef,

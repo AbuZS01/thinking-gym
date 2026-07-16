@@ -4,6 +4,8 @@ let STATE = MTC.loadState();
 let exUI = null; // {exerciseId, hintsRevealed, checked:Set, showAssessment}
 let bossUI = null; // {battleId, hintsShown:Set, checked:Set, showResolution}
 let pendingResult = null;
+let calUI = null; // {queue, idx, responses, results}
+let revUI = null; // {queue, idx, revealed, xp, count}
 let toolboxFilter = "";
 let frameworksFilter = "";
 
@@ -39,18 +41,21 @@ function navBtn(key, label) {
 
 function navHTML() {
   const li = levelInfo();
+  const dueCount = MTC.dueReviewCards(STATE).length;
   return `<div class="topnav">
     <a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> Master Thinking Coach</a>
     <div class="navlinks">
       ${navBtn("dashboard", "Dashboard")}
       ${navBtn("quest", "Daily Quest")}
+      ${navBtn("calibration", "Calibration")}
+      ${navBtn("review", dueCount > 0 ? `Review (${dueCount})` : "Review")}
       ${navBtn("boss", "Boss Battle")}
       ${navBtn("journal", "Journal")}
       ${navBtn("toolbox", "Toolbox")}
       ${navBtn("frameworks", "Frameworks")}
       ${navBtn("achievements", "Achievements")}
     </div>
-    <div class="status-chip">Lv <b>${li.level}</b> &middot; ${esc(li.title)} ${STATE.streak > 0 ? `&middot; &#128293;${STATE.streak}` : ""}</div>
+    <div class="status-chip">Lv <b>${li.level}</b> &middot; ${esc(li.title)} ${STATE.streak > 0 ? `&middot; &#128293;${STATE.streak}` : ""} ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039;` : ""}</div>
   </div>`;
 }
 
@@ -81,6 +86,8 @@ function onboardingHTML() {
 
 function dashboardHTML() {
   const li = levelInfo();
+  const calStats = MTC.calibrationStats(STATE);
+  const dueCount = MTC.dueReviewCards(STATE).length;
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const battleState = MTC.getCurrentBossBattle(STATE);
   const battle = MTC.getBossBattleDef(battleState.battleId);
@@ -95,6 +102,7 @@ function dashboardHTML() {
         <h1>${esc(li.title)}</h1>
         <div class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP to next level</div>
         <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
+        <div class="subtle" style="margin-top:8px">${STATE.graceShields > 0 ? "&#128737;&#65039; Grace day ready &mdash; one missed day won't break your streak" : "No grace day held &mdash; finish the &#9733; core trio to earn one"}</div>
       </div>
     </div>
   </div>
@@ -111,6 +119,18 @@ function dashboardHTML() {
       <h2>${battleState.completed ? "Boss Defeated" : "Boss Battle"}</h2>
       <p class="subtle">${battleState.completed ? "New battle next week." : esc(battle.name)}</p>
       <span class="cta">${battleState.completed ? "Review" : "Enter"} &rarr;</span>
+    </a>
+    <a class="panel card" href="#/calibration">
+      <span class="tag">Auto-graded</span>
+      <h2>Calibration</h2>
+      <p class="subtle">${calStats.total ? `${calStats.total} answered &middot; ${calStats.accuracy}% right at ${calStats.avgConfidence}% confidence` : "How well do you know what you know?"}</p>
+      <span class="cta">Train &rarr;</span>
+    </a>
+    <a class="panel card" href="#/review">
+      <span class="tag">Memory</span>
+      <h2>Review</h2>
+      <p class="subtle">${dueCount > 0 ? `${dueCount} card${dueCount === 1 ? "" : "s"} ready` : "All caught up"}</p>
+      <span class="cta">Review &rarr;</span>
     </a>
     <a class="panel card" href="#/achievements">
       <span class="tag">Progress</span>
@@ -131,6 +151,7 @@ function dashboardHTML() {
     <a class="panel card" href="#/journal"><h2>Journal</h2><p class="subtle">${STATE.history.length} answer${STATE.history.length === 1 ? "" : "s"}</p><span class="cta">Open &rarr;</span></a>
     <a class="panel card" href="#/toolbox"><h2>Toolbox</h2><p class="subtle">${MTC_TOOLBOX.length} thinking tools</p><span class="cta">Open &rarr;</span></a>
     <a class="panel card" href="#/frameworks"><h2>Frameworks</h2><p class="subtle">${MTC_FRAMEWORKS.length} thinking styles</p><span class="cta">Open &rarr;</span></a>
+    <a class="panel card" href="#/report"><h2>Weekly Report</h2><p class="subtle">This week vs last</p><span class="cta">Open &rarr;</span></a>
   </div>`;
 }
 
@@ -140,6 +161,7 @@ const TYPE_LABELS = {
   warmup: "Warm-up", challenge: "Challenge", case: "Real-World Case", reflection: "Reflection",
   creativity: "Creativity", logic_puzzle: "Logic Puzzle", decision: "Decision Scenario",
   bias: "Bias Detection", observation: "Observation", boss: "Boss Battle",
+  calibration: "Calibration", review: "Review",
 };
 
 function questHTML() {
@@ -201,7 +223,11 @@ function exerciseHTML(id) {
 
   let assessmentHTML = "";
   if (!exUI.showAssessment) {
-    assessmentHTML = `<div class="field"><button class="btn" data-show-assessment>Done &mdash; reveal model answer</button></div>`;
+    const ready = exUI.draft.trim().length >= 20;
+    assessmentHTML = `<div class="field">
+      <button class="btn" data-show-assessment ${ready ? "" : "disabled"}>Done &mdash; reveal model answer</button>
+      <p class="subtle" data-gate-note ${ready ? 'style="display:none"' : ""}>Write your attempt above first &mdash; it unlocks the model answer.</p>
+    </div>`;
   } else {
     const total = ex.rubric.length;
     const checkedCount = exUI.checked.size;
@@ -259,7 +285,11 @@ function bossHTML() {
 
   let resolutionHTML = "";
   if (!bossUI.showResolution) {
-    resolutionHTML = `<div class="field"><button class="btn" data-boss-show-resolution>Done &mdash; reveal expert framing</button></div>`;
+    const ready = bossUI.draft.trim().length >= 20;
+    resolutionHTML = `<div class="field">
+      <button class="btn" data-boss-show-resolution ${ready ? "" : "disabled"}>Done &mdash; reveal expert framing</button>
+      <p class="subtle" data-gate-note ${ready ? 'style="display:none"' : ""}>Work through the stages above first &mdash; it unlocks the framing.</p>
+    </div>`;
   } else {
     const total = rubric.length;
     const checkedCount = bossUI.checked.size;
@@ -353,10 +383,136 @@ function achievementsHTML() {
   </div>`;
 }
 
+/* ---------- Calibration ---------- */
+
+function calibrationLandingHTML() {
+  const st = MTC.calibrationStats(STATE);
+  const statsHTML = st.total === 0
+    ? `<p class="subtle">Nothing answered yet. Your accuracy-vs-confidence curve appears here.</p>`
+    : `<p class="subtle">${st.binaryCount} statements &middot; ${st.accuracy}% correct at ${st.avgConfidence}% average confidence${st.intervalCount ? ` &middot; ranges: ${st.intervalHitRate}% hit (target 90%)` : ""}</p>
+       ${st.buckets.filter((b) => b.n > 0).map((b) => `
+         <div class="weak-row"><span class="name">Said ${b.label}</span><div class="weak-meter"><div class="fill" style="width:${b.actual}%"></div></div><span class="subtle">right ${b.actual}% (${b.n})</span></div>`).join("")}`;
+  return `<div class="panel">
+    <h1>Calibration</h1>
+    <p class="subtle">Auto-graded &mdash; no honor system. Honest confidence earns the most XP; overconfidence is penalized.</p>
+  </div>
+  <div class="panel">
+    <h2>Your calibration</h2>
+    ${statsHTML}
+  </div>
+  <div class="panel">
+    <button class="btn" data-cal-start>Start a session &middot; 7 questions</button>
+  </div>`;
+}
+
+function calibrationHTML() {
+  if (!calUI) return calibrationLandingHTML();
+
+  if (calUI.results) {
+    return `<div class="panel"><h1>Session results</h1></div>` + calUI.results.map((g) => {
+      if (g.kind === "binary") {
+        return `<div class="panel">
+          <p>${esc(g.statement)}</p>
+          <p class="subtle">You said <b>${g.answer ? "true" : "false"}</b> at ${g.confidence}% &middot; ${g.correct ? "correct" : `wrong &mdash; it's ${g.truth ? "true" : "false"}`} &middot; +${g.points} XP</p>
+          <div class="model-answer"><div class="lbl">Why</div>${esc(g.note)}</div>
+        </div>`;
+      }
+      return `<div class="panel">
+        <p>${esc(g.prompt)} (${esc(g.unit)})</p>
+        <p class="subtle">Your range: ${g.low}&ndash;${g.high} &middot; actual: <b>${g.truth}</b> &middot; ${g.hit ? "hit" : "miss"} &middot; +${g.points} XP</p>
+      </div>`;
+    }).join("") + `<div class="panel"><button class="btn" data-cal-done>Done</button></div>`;
+  }
+
+  const q = calUI.queue[calUI.idx];
+  const progress = `<p class="subtle">Question ${calUI.idx + 1} of ${calUI.queue.length}</p>`;
+  if (q.kind === "binary") {
+    return `<div class="panel">
+      <button class="crumb" data-cal-quit>&larr; Calibration</button>
+      ${progress}
+      <h1>True or false?</h1>
+      <p>${esc(q.statement)}</p>
+      <label class="rubric-item"><input type="radio" name="cal-answer" value="true" /> <span>True</span></label>
+      <label class="rubric-item"><input type="radio" name="cal-answer" value="false" /> <span>False</span></label>
+      <div class="field">
+        <label class="subtle" for="cal-conf">How confident? <b id="cal-conf-val">70</b>%</label>
+        <input type="range" id="cal-conf" min="50" max="99" value="70" />
+      </div>
+      <div class="field"><button class="btn" data-cal-next disabled>Next</button></div>
+    </div>`;
+  }
+  return `<div class="panel">
+    <button class="crumb" data-cal-quit>&larr; Calibration</button>
+    ${progress}
+    <h1>Estimate a range</h1>
+    <p>${esc(q.prompt)}, in <b>${esc(q.unit)}</b>. Give a range you're 90% sure contains the answer &mdash; too narrow and you'll miss, too wide and you're not saying much.</p>
+    <div class="field"><input type="number" id="cal-low" placeholder="Low" step="any" /></div>
+    <div class="field"><input type="number" id="cal-high" placeholder="High" step="any" /></div>
+    <div class="field"><button class="btn" data-cal-next disabled>Next</button></div>
+  </div>`;
+}
+
+/* ---------- Spaced review ---------- */
+
+function reviewHTML() {
+  if (!revUI) {
+    const due = MTC.dueReviewCards(STATE);
+    const next = MTC.nextReviewDue(STATE);
+    return `<div class="panel">
+      <h1>Review</h1>
+      <p class="subtle">Spaced repetition for the frameworks and tools. Cards you find hard come back sooner.</p>
+    </div>
+    <div class="panel">
+      ${due.length === 0
+        ? `<p class="subtle">All caught up.${next ? ` Next review due ${esc(next)}.` : ""}</p>`
+        : `<p class="subtle">${due.length} card${due.length === 1 ? "" : "s"} ready.</p>
+           <div class="field"><button class="btn" data-rev-start>Start reviewing</button></div>`}
+    </div>`;
+  }
+  const card = revUI.queue[revUI.idx];
+  return `<div class="panel">
+    <button class="crumb" data-rev-quit>&larr; Review</button>
+    <p class="subtle">Card ${revUI.idx + 1} of ${revUI.queue.length}</p>
+    <div><span class="pill">${esc(card.kind)}</span></div>
+    <h1>${esc(card.front)}</h1>
+    <p style="font-style:italic; color:var(--text-dim)">${esc(card.hint)}</p>
+    ${revUI.revealed
+      ? `<div class="model-answer"><div class="lbl">Answer</div>${esc(card.back)}</div>
+         <div class="field rev-grades">
+           <button class="btn secondary" data-rev-grade="again">Again</button>
+           <button class="btn secondary" data-rev-grade="hard">Hard</button>
+           <button class="btn" data-rev-grade="good">Good</button>
+           <button class="btn" data-rev-grade="easy">Easy</button>
+         </div>`
+      : `<div class="field"><button class="btn" data-rev-reveal>Show answer</button></div>`}
+  </div>`;
+}
+
+/* ---------- Weekly report ---------- */
+
+function reportHTML() {
+  const r = MTC.weeklyReport(STATE);
+  const row = (label, cur, prev) => `<div class="weak-row"><span class="name">${label}</span><span><b>${cur}</b></span><span class="subtle">last week: ${prev}</span></div>`;
+  return `<div class="panel">
+    <a class="crumb" href="#/dashboard">&larr; Dashboard</a>
+    <h1>Weekly Report</h1>
+    <p class="subtle">Week ${esc(r.week)}</p>
+  </div>
+  <div class="panel">
+    ${row("XP earned", r.current.xp, r.previous.xp)}
+    ${row("Exercises", r.current.exercises, r.previous.exercises)}
+    ${row("Avg self-score", r.current.avgScore === null ? "&mdash;" : r.current.avgScore + "%", r.previous.avgScore === null ? "&mdash;" : r.previous.avgScore + "%")}
+    ${row("Calibration sessions", r.current.calibrationSessions, r.previous.calibrationSessions)}
+    ${row("Review sessions", r.current.reviewSessions, r.previous.reviewSessions)}
+    ${row("Boss battles", r.current.bosses, r.previous.bosses)}
+  </div>
+  ${r.focus ? `<div class="panel"><h2>Suggested focus</h2><p><i>${esc(r.focus.name)}</i> is your weakest framework &mdash; ${Math.round(r.focus.avg)}% average over ${r.focus.attempts} attempt${r.focus.attempts === 1 ? "" : "s"}. Daily quests will favor it until it improves.</p></div>` : ""}`;
+}
+
 /* ---------- Journal ---------- */
 
 function journalHTML() {
-  const entries = STATE.history.slice(-100).reverse();
+  const entries = STATE.history.filter((h) => h.type !== "review" && h.type !== "calibration").slice(-100).reverse();
   const header = `<div class="panel">
     <h1>Journal</h1>
     <p class="subtle">Your answers, newest first.</p>
@@ -405,6 +561,9 @@ function render() {
   else if (r === "quest") body = questHTML();
   else if (r.startsWith("exercise/")) body = exerciseHTML(r.split("/")[1]);
   else if (r === "boss") body = bossHTML();
+  else if (r === "calibration") body = calibrationHTML();
+  else if (r === "review") body = reviewHTML();
+  else if (r === "report") body = reportHTML();
   else if (r === "journal") body = journalHTML();
   else if (r === "toolbox") body = toolboxHTML();
   else if (r === "frameworks") body = frameworksListHTML();
@@ -467,6 +626,75 @@ document.addEventListener("click", (e) => {
     return;
   }
 
+  if (e.target.closest("[data-cal-start]")) {
+    const qs = MTC.pickCalibrationQuestions(STATE);
+    calUI = {
+      queue: [...qs.binary.map((q) => ({ ...q, kind: "binary" })), ...qs.intervals.map((q) => ({ ...q, kind: "interval" }))],
+      idx: 0, responses: [], results: null,
+    };
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-cal-next]")) {
+    const q = calUI.queue[calUI.idx];
+    if (q.kind === "binary") {
+      const picked = document.querySelector('input[name="cal-answer"]:checked');
+      if (!picked) return;
+      calUI.responses.push({ id: q.id, kind: "binary", answer: picked.value === "true", confidence: Number(document.getElementById("cal-conf").value) });
+    } else {
+      calUI.responses.push({ id: q.id, kind: "interval", low: parseFloat(document.getElementById("cal-low").value), high: parseFloat(document.getElementById("cal-high").value) });
+    }
+    calUI.idx++;
+    if (calUI.idx >= calUI.queue.length) {
+      const result = MTC.gradeCalibration(STATE, calUI.responses);
+      calUI.results = result.graded;
+      pendingResult = result;
+    }
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-cal-done]") || e.target.closest("[data-cal-quit]")) {
+    calUI = null;
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-rev-start]")) {
+    revUI = { queue: MTC.dueReviewCards(STATE), idx: 0, revealed: false, xp: 0, count: 0 };
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-rev-reveal]")) {
+    revUI.revealed = true;
+    render();
+    return;
+  }
+
+  const gradeEl = e.target.closest("[data-rev-grade]");
+  if (gradeEl) {
+    const card = revUI.queue[revUI.idx];
+    revUI.xp += MTC.gradeReviewCard(STATE, card.id, gradeEl.dataset.revGrade);
+    revUI.count++;
+    revUI.idx++;
+    revUI.revealed = false;
+    if (revUI.idx >= revUI.queue.length) {
+      pendingResult = MTC.finishReviewSession(STATE, revUI.xp, revUI.count);
+      revUI = null;
+    }
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-rev-quit]")) {
+    if (revUI && revUI.count > 0) pendingResult = MTC.finishReviewSession(STATE, revUI.xp, revUI.count);
+    revUI = null;
+    render();
+    return;
+  }
+
   if (e.target.closest("[data-export-progress]")) {
     const blob = new Blob([MTC.exportStateJSON()], { type: "application/json" });
     const a = document.createElement("a");
@@ -493,6 +721,11 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("change", (e) => {
+  if (e.target.matches('input[name="cal-answer"]')) {
+    const btn = document.querySelector("[data-cal-next]");
+    if (btn) btn.disabled = false;
+    return;
+  }
   if (e.target.id === "import-file") {
     const file = e.target.files[0];
     e.target.value = "";
@@ -523,9 +756,37 @@ document.addEventListener("change", (e) => {
   }
 });
 
+function toggleGate(btnSelector, value) {
+  const ready = value.trim().length >= 20;
+  const btn = document.querySelector(btnSelector);
+  if (btn) btn.disabled = !ready;
+  const note = document.querySelector("[data-gate-note]");
+  if (note) note.style.display = ready ? "none" : "";
+}
+
 document.addEventListener("input", (e) => {
-  if (e.target.id === "ex-draft") { if (exUI) exUI.draft = e.target.value; return; }
-  if (e.target.id === "boss-draft") { if (bossUI) bossUI.draft = e.target.value; return; }
+  if (e.target.id === "ex-draft") {
+    if (exUI) exUI.draft = e.target.value;
+    toggleGate("[data-show-assessment]", e.target.value);
+    return;
+  }
+  if (e.target.id === "boss-draft") {
+    if (bossUI) bossUI.draft = e.target.value;
+    toggleGate("[data-boss-show-resolution]", e.target.value);
+    return;
+  }
+  if (e.target.id === "cal-conf") {
+    const val = document.getElementById("cal-conf-val");
+    if (val) val.textContent = e.target.value;
+    return;
+  }
+  if (e.target.id === "cal-low" || e.target.id === "cal-high") {
+    const low = parseFloat(document.getElementById("cal-low").value);
+    const high = parseFloat(document.getElementById("cal-high").value);
+    const btn = document.querySelector("[data-cal-next]");
+    if (btn) btn.disabled = !(isFinite(low) && isFinite(high) && low <= high);
+    return;
+  }
   if (e.target.id === "toolbox-search") {
     toolboxFilter = e.target.value;
     document.getElementById("toolbox-results").innerHTML = toolboxResultsHTML();
