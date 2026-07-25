@@ -1363,3 +1363,14 @@ MTC_EXERCISES.push(
     modelAnswer: "Most people find the spoken version came easier and sounded more natural — decades of conversation built that fluency. The practical takeaway: when typing stalls, switch channels; dictation or a voice note produces a draft your hands can then edit.",
     expertNote: "This is Rubber Ducking pointed at fluency instead of debugging: verbalizing recruits a stronger retrieval pathway, and the transcript smuggles that strength onto the page." }
 );
+
+/* ---------- Skill tracks: independent progress lanes over the frameworks ---------- */
+
+const MTC_SKILL_TRACKS = [
+  { id: "probabilistic", name: "Probabilistic", frameworks: ["probabilistic-thinking", "bayesian-thinking", "decision-theory", "risk-assessment"] },
+  { id: "systems", name: "Systems", frameworks: ["systems-thinking", "second-order-thinking", "root-cause-analysis", "scenario-planning"] },
+  { id: "causal", name: "Causal & Scientific", frameworks: ["scientific-thinking", "counterfactual-thinking", "abductive-reasoning", "deductive-reasoning", "inductive-reasoning", "analytical-thinking", "pattern-recognition"] },
+  { id: "adversarial", name: "Adversarial & Strategic", frameworks: ["red-team-thinking", "game-theory", "strategic-thinking", "intelligence-analysis", "entrepreneurial-thinking"] },
+  { id: "metacognition", name: "Metacognition", frameworks: ["meta-thinking", "cognitive-bias-detection", "critical-thinking", "survivorship-bias", "ethical-reasoning", "circle-of-competence"] },
+  { id: "creative", name: "Creative", frameworks: ["divergent-thinking", "convergent-thinking", "lateral-thinking", "design-thinking", "first-principles-thinking"] },
+];
