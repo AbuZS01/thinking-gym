@@ -499,6 +499,38 @@ const MTC = (() => {
     return null;
   }
 
+  /* ---------- Workbench: apply a tool to your own problem ---------- */
+
+  function submitWorkbench(state, toolId, text) {
+    const tool = MTC_TOOLBOX.find((t) => t.id === toolId);
+    if (!tool) throw new Error("Unknown tool: " + toolId);
+    return applyAttempt(state, [], {
+      date: todayStr(),
+      exerciseId: "tool:" + toolId,
+      type: "workbench",
+      score: 100,
+      xp: 10,
+      hintsUsed: 0,
+      answer: trimAnswer(text),
+    });
+  }
+
+  // Weekly confidence-vs-accuracy gap from binary calibration answers.
+  function calibrationTrend(state) {
+    const byWeek = {};
+    for (const a of state.calibration.answers) {
+      if (a.kind !== "binary") continue;
+      const wk = isoWeekKey(new Date(a.date + "T00:00:00Z"));
+      (byWeek[wk] = byWeek[wk] || []).push(a);
+    }
+    return Object.keys(byWeek).sort().slice(-8).map((wk) => {
+      const arr = byWeek[wk];
+      const acc = (arr.filter((a) => a.correct).length / arr.length) * 100;
+      const conf = arr.reduce((t, a) => t + a.confidence, 0) / arr.length;
+      return { week: wk, gap: Math.round(Math.abs(acc - conf)), n: arr.length };
+    });
+  }
+
   /* ---------- Weekly report ---------- */
 
   function weeklyReport(state) {
@@ -538,6 +570,8 @@ const MTC = (() => {
     exportStateJSON,
     importState,
     skillTracks,
+    submitWorkbench,
+    calibrationTrend,
     exerciseConfidenceGap,
     lastSimilarAnswer,
     pickCalibrationQuestions,
