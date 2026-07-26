@@ -33,7 +33,7 @@ const BOSS_FINAL_STAGE = {
   question: "Commit to a decision. Pre-mortem its two most likely failure modes, and name the leading indicators that would tell you within weeks that you chose wrong.",
   considerations: "A decision without a monitoring plan is a bet you'll never learn from. Good leading indicators are observable soon, not at the post-mortem. If you can't name a failure mode, you haven't red-teamed your own choice yet.",
 };
-const BOSS_MONITOR_RUBRIC = "Committed to a decision, pre-mortemed its two most likely failure modes, and named leading indicators to monitor";
+const BOSS_MONITOR_RUBRIC = "I committed to ONE decision, wrote the two most likely ways it fails, and named early signs that would tell me I chose wrong";
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -270,7 +270,7 @@ function exerciseHTML(id) {
     assessmentHTML = `
       <div class="panel">
         <h2>Self-Assessment</h2>
-        <p class="subtle">Check what you actually did &mdash; it sets your XP.</p>
+        <p class="subtle">Tick only what you truly did &mdash; if unsure, leave it unchecked. Strict grading is the training.</p>
         ${ex.rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-rubric-idx="${i}" ${exUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
         <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
@@ -345,6 +345,7 @@ function bossHTML() {
     const scorePreview = MTC.rubricScore(checkedCount, total);
     resolutionHTML = `<div class="panel">
       <h2>Self-Assessment</h2>
+      <p class="subtle">Tick only what you truly did &mdash; if unsure, leave it unchecked.</p>
       ${rubric.map((r, i) => `<label class="rubric-item"><input type="checkbox" data-boss-rubric-idx="${i}" ${bossUI.checked.has(i) ? "checked" : ""}/> <span>${esc(r)}</span></label>`).join("")}
       <div class="model-answer"><div class="lbl">Expert Framing (no perfect answer)</div>${esc(battle.noPerfectAnswerNote)}</div>
       <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${MTC.estimateXp(battle.xpBase, scorePreview, 0)}</b></p>
