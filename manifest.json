@@ -1,7 +1,7 @@
 {
-  "name": "Master Thinking Coach",
-  "short_name": "Thinking Coach",
-  "description": "Daily exercises that train sharper reasoning — calibration, mental models, and decision-making.",
+  "name": "The Thinking Gym",
+  "short_name": "Thinking Gym",
+  "description": "Train your brain to connect unrelated ideas — playable thinking challenges, scored against real answer keys.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

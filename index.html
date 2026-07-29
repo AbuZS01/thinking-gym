@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Master Thinking Coach</title>
-  <meta name="description" content="A gamified training program for critical thinking, reasoning, and mental models." />
+  <title>The Thinking Gym</title>
+  <meta name="description" content="Train your brain to connect unrelated ideas. Ten minutes a day of playable thinking challenges, scored against real answer keys." />
   <meta name="theme-color" content="#FAF9F5" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Thinking Coach" />
+  <meta name="apple-mobile-web-app-title" content="Thinking Gym" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#9670;</text></svg>" />
@@ -19,8 +19,10 @@
   <div id="app"></div>
 
   <script src="content.js"></script>
+  <script src="gym-content.js"></script>
   <script src="engine.js"></script>
   <script src="app.js"></script>
+  <script src="gym.js"></script>
   <script>
     // Service workers need http(s); the app still runs fine from file:// without one.
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

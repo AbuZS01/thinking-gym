@@ -306,6 +306,16 @@ const MTC_FRAMEWORKS = [
     expertUse: "Distinguishes 'nobody's doing this because it's hard/unproven' from 'nobody's doing this because it's bad' by testing cheaply.",
   },
   {
+    id: "risk-assessment", name: "Risk Assessment",
+    core: "Judging how likely a harm is, how bad it would be, and whether it can be recovered from.",
+    problem: "Separates risks worth accepting from risks that end the game, instead of treating all bad outcomes as one blur.",
+    whyWrong: "People rank risks by how vividly they can picture them, not by probability times consequence — so rare dramatic risks get over-managed while common dull ones do the damage.",
+    avoid: "Collapsing likelihood and severity into a single 'risky' feeling; they are different axes and demand different responses.",
+    danger: "Precise-looking risk numbers can license terrible bets, because the number never captures the one outcome you cannot come back from.",
+    example: "Ship designers who calculated the odds of any four Titanic compartments flooding, and never asked what happens if five do.",
+    expertUse: "Scores likelihood and impact separately, then asks a third question the matrix does not: is this recoverable? Anything unrecoverable gets removed rather than priced.",
+  },
+  {
     id: "meta-thinking", name: "Meta Thinking",
     core: "Thinking about your own thinking process — which tool to use, and why.",
     problem: "Prevents applying the wrong framework to a problem (e.g. deductive certainty to an uncertain situation).",
@@ -1297,7 +1307,15 @@ MTC_ACHIEVEMENTS.push(
   { id: "wordsmith", name: "Wordsmith", desc: "Complete 5 fluency exercises.", xp: 50,
     rule: (s) => (s.typeCounts.fluency || 0) >= 5 },
   { id: "field-worker", name: "Field Worker", desc: "Apply a thinking tool to 5 of your own real problems in the Workbench.", xp: 60,
-    rule: (s) => (s.typeCounts.workbench || 0) >= 5 }
+    rule: (s) => (s.typeCounts.workbench || 0) >= 5 },
+  { id: "gym-opened", name: "First Rep", desc: "Play your first Gym challenge.", xp: 15,
+    rule: (s) => s.gymPlays >= 1 },
+  { id: "all-rounder", name: "All-Rounder", desc: "Play all four Gym formats.", xp: 60,
+    rule: (s) => s.gymFormats >= 4 },
+  { id: "flawless", name: "Flawless", desc: "Score 100% on a Gym challenge.", xp: 70,
+    rule: (s) => s.gymPerfect >= 1 },
+  { id: "gym-regular", name: "Gym Regular", desc: "Play 25 Gym challenges.", xp: 80,
+    rule: (s) => s.gymPlays >= 25 }
 );
 
 MTC_EXERCISES.push(

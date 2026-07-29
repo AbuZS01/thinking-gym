@@ -1,27 +1,52 @@
-# Master Thinking Coach
+# The Thinking Gym
 
-A gamified, long-term training program for critical thinking, reasoning, mental
-models, and decision-making — built as a self-contained static web app (no
-backend, no build step, no external services). Progress is stored in your
-browser's `localStorage`, so it's fully private and works offline.
+**Train your brain to connect unrelated ideas.** Duolingo, but for thinking:
+*"A coffee shop has a cybersecurity problem — solve it using biology."*
 
-## What's in it
+A self-contained static web app — no backend, no build step, no external
+services, and **no AI anywhere in the user journey**. Every challenge is scored
+against a hand-written answer key, so feedback is instant, free, identical for
+everyone, and never says "grade yourself". Progress lives in your browser's
+`localStorage`: fully private, works offline.
 
-- **Daily Quest** — 10 exercises a day (warm-up, challenge, real-world case,
-  reflection, creativity, logic puzzle, decision scenario, bias detection,
-  observation, fluency), pulled from a bank of 80 hand-written exercises and weighted
-  toward whichever thinking frameworks you're weakest in.
+## The Gym
+
+Three challenges a day, about ten minutes, played by tapping rather than typing.
+Four formats, each objectively scored:
+
+- **Map It** — slots hold a mechanism from one domain (an immune system, an ant
+  colony, Pixar's process); you tap the action from a completely different
+  domain that does the same job. Two cards belong nowhere. Ends by asking where
+  the analogy misleads.
+- **Spot the Flaw** — tap the sentence where an argument breaks, then name the
+  error.
+- **Order the Chain** — put the consequences of a decision in the order they
+  unfold; one card doesn't belong in the chain at all.
+- **Sort the Signal** — file each piece of evidence as supporting, undermining,
+  or neither.
+
+Every challenge ends with a debrief: the principle you just used, and where it
+misleads you. Challenges are graded 0–100%, replay themselves on a spaced
+schedule based on how well you did, and feed six skill tracks (Probabilistic,
+Systems, Causal & Scientific, Adversarial & Strategic, Metacognition, Creative).
+
+## Deep Work and the rest
+
+- **Deep Work** — the long-form written bank: 10 exercises a day (warm-up,
+  challenge, real-world case, reflection, creativity, logic puzzle, decision
+  scenario, bias detection, observation, fluency) drawn from 80 hand-written
+  exercises, weighted toward whichever thinking frameworks you're weakest in.
 - **Weekly Boss Battle** — a multi-stage, no-perfect-answer scenario (business,
   history, cybersecurity, AI, ethics, economics) that rotates weekly across 9
   battles.
-- **Framework Encyclopedia** — 29 thinking styles (critical thinking, first
+- **Framework Encyclopedia** — 30 thinking styles (critical thinking, first
   principles, Bayesian thinking, game theory, red-team thinking, etc.), each
   covering what problem it solves, why smart people get it wrong, when it's
   dangerous, a famous example, and how an expert applies it.
 - **Thinking Toolbox** — 26 quick-reference tools (OODA loop, Five Whys, MECE,
   premortem, base rates, Occam's razor, and more).
 - **Leveling & Achievements** — an RPG-style level curve (1 → 100, with titles
-  from "Beginner Observer" to "Grand Strategist"), XP, streaks, and 24
+  from "Beginner Observer" to "Grand Strategist"), XP, streaks, and 29
   achievements.
 - **Calibration training** — auto-graded true/false questions answered with a
   confidence level (scored with a proper scoring rule, so honest confidence
@@ -36,10 +61,11 @@ browser's `localStorage`, so it's fully private and works offline.
 - **Export / Import** — back up all progress (including the journal) to a JSON
   file from the footer, and restore it on any device.
 
-Every exercise uses a self-assessment model: you attempt it, optionally reveal
-progressive Socratic hints (each hint costs 20% of the exercise's XP), then
-check off a rubric against the model answer and expert note — your XP is
-earned from how many criteria you honestly met.
+Gym challenges are graded objectively. Deep Work exercises are self-assessed:
+you attempt one, optionally reveal progressive Socratic hints (each costs 20% of
+that exercise's XP), then check off plain-language criteria against the model
+answer — a written answer can only ever be graded by its writer, which is
+exactly why the Gym exists alongside it.
 
 Model answers stay locked until you've written a real attempt — active recall
 before explanation. Two mechanics keep the daily habit sustainable: a visible
@@ -94,9 +120,13 @@ git push -u origin master
 
 ## Project structure
 
-- `content.js` — the content bank: frameworks, toolbox, exercises, boss
-  battles, achievements, level titles. Plain data — edit this to add more
-  content.
+- `gym-content.js` — the Gym: challenges and their answer keys, one object per
+  challenge. Plain data — add challenges here and they appear in rotation.
+- `gym.js` — the play layer: four tap-only board formats, scoring, result
+  screen. No drag-and-drop (unreliable on touch, invisible to keyboards) — every
+  control is a button, so the whole game is playable by tab and Enter.
+- `content.js` — the written bank: frameworks, toolbox, exercises, boss
+  battles, achievements, level titles, skill tracks.
 - `engine.js` — game logic: XP/leveling curve, streaks, daily quest
   generation (with weakness-weighted selection), achievement rules, boss
   battle rotation. Pure functions over a plain state object.

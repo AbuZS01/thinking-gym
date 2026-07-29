@@ -63,6 +63,7 @@ const MTC = (() => {
       reviews: {}, // cardId -> {ease, interval, reps, due}
       reviewCount: 0,
       trackXp: {}, // skillTrackId -> lifetime XP earned on that track
+      gym: {}, // challengeId -> {plays, bestScore, lastScore, lastPlayed}
       newIntro: null, // {date, count} — caps new review cards introduced per day
       weaknessScores: {}, // frameworkId -> {attempts, totalScore}
       history: [], // {date, exerciseId, type, score, xp, hintsUsed}
@@ -102,6 +103,13 @@ const MTC = (() => {
       calibrationAnswers: state.calibration.answers.length,
       calibrationGap: bin.length ? Math.abs(accuracy - avgConfidence) : 100,
       reviewCount: state.reviewCount || 0,
+      gymPlays: Object.values(state.gym).reduce((t, g) => t + g.plays, 0),
+      gymChallenges: Object.keys(state.gym).length,
+      gymFormats: new Set(Object.keys(state.gym).map((id) => {
+        const c = getGymChallenge(id);
+        return c ? c.format : null;
+      }).filter(Boolean)).size,
+      gymPerfect: Object.values(state.gym).filter((g) => g.bestScore === 100).length,
     };
   }
 
@@ -144,7 +152,8 @@ const MTC = (() => {
     const rows = Object.keys(state.weaknessScores).map((fw) => {
       const { attempts, totalScore } = state.weaknessScores[fw];
       const avg = attempts ? totalScore / attempts : 0;
-      const meta = MTC_FRAMEWORKS.find((f) => f.id === fw);
+      // content tags both frameworks and toolbox tools, so look in both
+      const meta = MTC_FRAMEWORKS.find((f) => f.id === fw) || MTC_TOOLBOX.find((t) => t.id === fw);
       return { id: fw, name: meta ? meta.name : fw, avg, attempts };
     });
     rows.sort((a, b) => a.avg - b.avg);
@@ -531,6 +540,99 @@ const MTC = (() => {
     });
   }
 
+  /* ---------- The Thinking Gym ---------- */
+
+  function getGymChallenge(id) {
+    return MTC_GYM_CHALLENGES.find((c) => c.id === id);
+  }
+
+  function gymChallengesForTrack(trackId) {
+    return MTC_GYM_CHALLENGES.filter((c) => c.track === trackId);
+  }
+
+  // Today's session: prefer never-played, then whatever is due for a replay,
+  // then the lowest best-score. Deterministic given state, so a refresh mid
+  // session doesn't reshuffle the queue.
+  function gymSession(state, size = 3) {
+    const today = todayStr();
+    const scored = MTC_GYM_CHALLENGES.map((c) => {
+      const g = state.gym[c.id];
+      if (!g) return { c, rank: 0, tie: c.id };
+      const due = g.due && g.due <= today;
+      return { c, rank: due ? 1 : 2, tie: (g.bestScore || 0) + "" + c.id };
+    });
+    scored.sort((a, b) => a.rank - b.rank || (a.tie < b.tie ? -1 : 1));
+    return scored.slice(0, size).map((s) => s.c);
+  }
+
+  function gymTrackProgress(state) {
+    return MTC_SKILL_TRACKS.map((t) => {
+      const all = gymChallengesForTrack(t.id);
+      const played = all.filter((c) => state.gym[c.id]);
+      const mastered = all.filter((c) => (state.gym[c.id] || {}).bestScore >= 80);
+      const avg = played.length
+        ? Math.round(played.reduce((s, c) => s + state.gym[c.id].bestScore, 0) / played.length)
+        : null;
+      return {
+        id: t.id, name: t.name,
+        total: all.length, played: played.length, mastered: mastered.length,
+        avgBest: avg,
+        pct: all.length ? Math.round((mastered.length / all.length) * 100) : 0,
+      };
+    });
+  }
+
+  // A gym score maps onto the SM-2 grades the review scheduler already speaks,
+  // so replays are scheduled by the same code that schedules review cards.
+  function gradeForScore(score) {
+    if (score < 40) return "again";
+    if (score < 70) return "hard";
+    if (score < 90) return "good";
+    return "easy";
+  }
+
+  function submitGymChallenge(state, challengeId, score, note) {
+    const ch = getGymChallenge(challengeId);
+    if (!ch) throw new Error("Unknown challenge: " + challengeId);
+    const clamped = Math.max(0, Math.min(100, Math.round(score)));
+    const xp = Math.round(ch.xpBase * (clamped / 100)) + (note && note.trim() ? 5 : 0);
+
+    const prev = state.gym[challengeId] || { plays: 0, bestScore: 0 };
+    state.gym[challengeId] = {
+      plays: prev.plays + 1,
+      bestScore: Math.max(prev.bestScore, clamped),
+      lastScore: clamped,
+      lastPlayed: todayStr(),
+      due: nextGymDue(prev, clamped),
+    };
+
+    const result = applyAttempt(state, ch.frameworks, {
+      date: todayStr(),
+      exerciseId: challengeId,
+      type: "gym",
+      score: clamped,
+      xp,
+      hintsUsed: 0,
+      answer: trimAnswer(note),
+    });
+    result.nextDue = state.gym[challengeId].due;
+    return result;
+  }
+
+  function nextGymDue(prev, score) {
+    const grade = gradeForScore(score);
+    const base = grade === "again" ? 1 : grade === "hard" ? 3 : grade === "good" ? 7 : 16;
+    const days = Math.min(120, Math.round(base * (1 + (prev.plays || 0) * 0.6)));
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function dueGymReplays(state) {
+    const today = todayStr();
+    return MTC_GYM_CHALLENGES.filter((c) => state.gym[c.id] && state.gym[c.id].due <= today);
+  }
+
   /* ---------- Weekly report ---------- */
 
   function weeklyReport(state) {
@@ -570,6 +672,12 @@ const MTC = (() => {
     exportStateJSON,
     importState,
     skillTracks,
+    getGymChallenge,
+    gymChallengesForTrack,
+    gymSession,
+    gymTrackProgress,
+    submitGymChallenge,
+    dueGymReplays,
     submitWorkbench,
     calibrationTrend,
     exerciseConfidenceGap,

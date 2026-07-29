@@ -90,10 +90,11 @@ function navHTML() {
   const li = levelInfo();
   const dueCount = MTC.dueReviewCards(STATE).length;
   return `<div class="topnav">
-    <a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> Master Thinking Coach</a>
+    <a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> The Thinking Gym</a>
     <div class="navlinks">
       ${navBtn("dashboard", "Dashboard")}
-      ${navBtn("quest", "Daily Quest")}
+      ${navBtn("gym", "The Gym")}
+      ${navBtn("quest", "Deep Work")}
       ${navBtn("calibration", "Calibration")}
       ${navBtn("review", dueCount > 0 ? `Review (${dueCount})` : "Review")}
       ${navBtn("boss", "Boss Battle")}
@@ -120,8 +121,8 @@ function footerHTML() {
 
 function onboardingHTML() {
   return `<div class="onboarding">
-    <h1>Master Thinking Coach</h1>
-    <p>Daily exercises that train sharper reasoning. Your progress stays on this device.</p>
+    <h1>The Thinking Gym</h1>
+    <p>Train your brain to connect unrelated ideas. Ten minutes a day, played not read. Your progress stays on this device.</p>
     <form data-onboard-form>
       <input type="text" name="playerName" placeholder="Your name" maxlength="40" autofocus />
       <div class="field"><button class="btn" type="submit">Start</button></div>
@@ -133,6 +134,7 @@ function onboardingHTML() {
 
 function dashboardHTML() {
   const li = levelInfo();
+  const gymSession = MTC.gymSession(STATE);
   const calStats = MTC.calibrationStats(STATE);
   const dueCount = MTC.dueReviewCards(STATE).length;
   const quest = MTC.getOrCreateDailyQuest(STATE);
@@ -155,11 +157,17 @@ function dashboardHTML() {
   </div>
 
   <div class="grid">
+    <a class="panel card wide" href="#/gym">
+      <span class="tag">Today's session</span>
+      <h2>The Gym</h2>
+      <p class="subtle">${gymSession.map((c) => esc(c.title)).join(" &middot; ")}</p>
+      <span class="cta">Train &rarr;</span>
+    </a>
     <a class="panel card" href="#/quest">
-      <span class="tag">Today</span>
-      <h2>Daily Quest</h2>
-      <p class="subtle">${quest.completed.length} / ${quest.items.length} done</p>
-      <span class="cta">Continue &rarr;</span>
+      <span class="tag">Long form</span>
+      <h2>Deep Work</h2>
+      <p class="subtle">${quest.completed.length} / ${quest.items.length} written exercises</p>
+      <span class="cta">Open &rarr;</span>
     </a>
     <a class="panel card" href="#/boss">
       <span class="tag">This week</span>
@@ -196,7 +204,7 @@ function dashboardHTML() {
 
   <div class="panel">
     <h2>Skill Tracks</h2>
-    ${MTC.skillTracks(STATE).map((t) => `<div class="weak-row"><span class="name">${esc(t.name)}</span><div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div><span class="subtle" style="width:52px">Lv ${t.level}</span></div>`).join("")}
+    ${MTC.gymTrackProgress(STATE).map((t) => `<div class="weak-row"><span class="name">${esc(t.name)}</span><div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div><span class="subtle" style="width:74px">${t.mastered}/${t.total} clean</span></div>`).join("")}
   </div>
 
   <div class="grid tight">
@@ -213,7 +221,7 @@ const TYPE_LABELS = {
   warmup: "Warm-up", challenge: "Challenge", case: "Real-World Case", reflection: "Reflection",
   creativity: "Creativity", logic_puzzle: "Logic Puzzle", decision: "Decision Scenario",
   bias: "Bias Detection", observation: "Observation", fluency: "Fluency", boss: "Boss Battle",
-  calibration: "Calibration", review: "Review", workbench: "Workbench",
+  calibration: "Calibration", review: "Review", workbench: "Workbench", gym: "Gym",
 };
 
 function questHTML() {
@@ -649,6 +657,62 @@ function workbenchHTML(toolId) {
   </div>`;
 }
 
+/* ---------- The Gym ---------- */
+
+function gymHomeHTML() {
+  const session = MTC.gymSession(STATE);
+  const tracks = MTC.gymTrackProgress(STATE);
+  const replays = MTC.dueGymReplays(STATE).length;
+  return `<div class="panel">
+    <h1>The Gym</h1>
+    <p class="subtle">Three challenges, about ten minutes. Everything here is scored against a real answer key &mdash; no self-marking.</p>
+  </div>
+  <div class="grid">
+    ${session.map((c) => {
+      const g = STATE.gym[c.id];
+      const fmt = MTC_GYM_FORMATS[c.format];
+      return `<a class="panel card" href="#/gym/play/${c.id}">
+        <span class="tag">${esc(fmt.name)}</span>${g ? `<span class="tag core">Replay</span>` : ""}
+        <h2>${esc(c.title)}</h2>
+        <p class="subtle">${esc(fmt.tagline)}${g ? ` &middot; best ${g.bestScore}%` : ""}</p>
+        <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
+      </a>`;
+    }).join("")}
+  </div>
+  ${replays ? `<div class="panel"><p class="subtle">${replays} challenge${replays === 1 ? " is" : "s are"} due for a replay &mdash; they're already in today's session queue.</p></div>` : ""}
+  <div class="panel">
+    <h2>Tracks</h2>
+    ${tracks.map((t) => `<a class="weak-row track-row" href="#/gym/track/${t.id}">
+      <span class="name">${esc(t.name)}</span>
+      <div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div>
+      <span class="subtle" style="width:74px">${t.mastered}/${t.total} clean</span>
+    </a>`).join("")}
+  </div>`;
+}
+
+function gymTrackHTML(trackId) {
+  const track = MTC_SKILL_TRACKS.find((t) => t.id === trackId);
+  if (!track) return `<div class="panel">Track not found. <a class="btn" href="#/gym">The Gym</a></div>`;
+  const challenges = MTC.gymChallengesForTrack(trackId);
+  return `<div class="panel">
+    <a class="crumb" href="#/gym">&larr; The Gym</a>
+    <h1>${esc(track.name)}</h1>
+    <p class="subtle">${challenges.length} challenge${challenges.length === 1 ? "" : "s"}. A track is clean when every challenge is at 80% or better.</p>
+  </div>
+  <div class="grid">
+    ${challenges.map((c) => {
+      const g = STATE.gym[c.id];
+      const fmt = MTC_GYM_FORMATS[c.format];
+      return `<a class="panel card ${g && g.bestScore >= 80 ? "done" : ""}" href="#/gym/play/${c.id}">
+        <span class="tag">${esc(fmt.name)}</span>
+        <h2>${esc(c.title)}</h2>
+        <p class="subtle">${g ? `Best ${g.bestScore}% over ${g.plays} play${g.plays === 1 ? "" : "s"}` : "Not played yet"}</p>
+        <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
+      </a>`;
+    }).join("")}
+  </div>`;
+}
+
 /* ---------- Journal ---------- */
 
 function journalResultsHTML() {
@@ -683,6 +747,10 @@ function journalEntryTitle(h) {
   if (h.type === "workbench") {
     const t = MTC_TOOLBOX.find((x) => "tool:" + x.id === h.exerciseId);
     return t ? t.name + " (your problem)" : h.exerciseId;
+  }
+  if (h.type === "gym") {
+    const c = MTC.getGymChallenge(h.exerciseId);
+    return c ? c.title : h.exerciseId;
   }
   const ex = MTC.getExercise(h.exerciseId);
   return ex ? ex.title : h.exerciseId;
@@ -736,6 +804,9 @@ function render() {
   if (r === "dashboard") body = dashboardHTML();
   else if (r === "quest") body = questHTML();
   else if (r.startsWith("exercise/")) body = exerciseHTML(r.split("/")[1]);
+  else if (r === "gym") body = gymHomeHTML();
+  else if (r.startsWith("gym/track/")) body = gymTrackHTML(r.split("/")[2]);
+  else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();
   else if (r === "review") body = reviewHTML();
@@ -755,6 +826,8 @@ function render() {
 /* ---------- Events ---------- */
 
 document.addEventListener("click", (e) => {
+  if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); return; }
+
   if (e.target.closest("[data-hint]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
     exUI.hintsRevealed = Math.min(ex.hints.length, exUI.hintsRevealed + 1);
@@ -977,6 +1050,7 @@ document.addEventListener("change", (e) => {
         STATE = MTC.importState(text);
         exUI = null;
         bossUI = null;
+        GYM.reset();
         pendingResult = null;
         render();
       } catch (err) {
@@ -1006,6 +1080,7 @@ function toggleGate(btnSelector, value) {
 }
 
 document.addEventListener("input", (e) => {
+  if (GYM.handleInput(e)) return;
   if (e.target.id === "ex-draft") {
     if (exUI) exUI.draft = e.target.value;
     toggleGate("[data-show-assessment]", e.target.value);

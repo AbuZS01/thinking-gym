@@ -273,6 +273,85 @@ input[type=range] { width: 100%; max-width: 420px; accent-color: var(--accent); 
 
 .trend { width: 100%; max-width: 460px; height: 84px; display: block; margin: 6px 0; }
 
+/* ---------- The Gym ---------- */
+
+.card.wide { grid-column: 1 / -1; }
+
+.track-row { text-decoration: none; color: inherit; padding: 4px 0; }
+.track-row:hover .name { color: var(--accent); }
+
+.slot-row { margin-bottom: 10px; }
+.slot {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--hairline); border-left: 3px solid var(--hairline);
+  padding: 12px 14px; font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink);
+}
+.slot:hover { border-color: var(--ink); }
+.slot.selected { border-left-color: var(--accent); background: var(--bg); }
+.slot.filled { border-left-color: var(--good); }
+.slot .slot-prompt { display: block; }
+.slot .slot-fill {
+  display: block; margin-top: 6px; font-family: var(--sans); font-size: 12.5px;
+  color: var(--text-dim);
+}
+.slot.filled .slot-fill { color: var(--ink); }
+
+.gcards { display: flex; flex-direction: column; gap: 8px; }
+.gcard {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--hairline);
+  padding: 11px 13px; font-family: var(--serif); font-size: 14.5px; line-height: 1.5; color: var(--ink);
+}
+.gcard:hover { border-color: var(--ink); }
+.gcard.used { opacity: 0.35; }
+.gcard.selected { border-color: var(--accent); border-width: 2px; }
+.gcard.placed { border-left: 3px solid var(--good); }
+.gcard .ord {
+  display: inline-block; min-width: 22px; font-family: var(--sans); font-size: 12px;
+  color: var(--accent); font-weight: 700;
+}
+.gcard .bucket-tag {
+  display: block; margin-top: 6px; font-family: var(--sans); font-size: 10px;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);
+}
+.gcard.filed { border-left: 3px solid var(--text-dim); }
+.gcard.b-supports { border-left-color: var(--good); }
+.gcard.b-undermines { border-left-color: var(--accent); }
+
+.buckets { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.opt {
+  display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 8px;
+  background: var(--panel); border: 1px solid var(--hairline);
+  padding: 12px 14px; font-family: var(--serif); font-size: 15px; line-height: 1.5; color: var(--ink);
+}
+.opt:hover { border-color: var(--ink); }
+.opt.picked { border-color: var(--accent); border-width: 2px; background: var(--bg); }
+
+.sentence {
+  display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 6px;
+  background: transparent; border: 1px solid transparent; border-left: 3px solid var(--hairline-soft);
+  padding: 10px 14px; font-family: var(--serif); font-size: 16px; line-height: 1.55; color: var(--ink);
+}
+.sentence:hover { border-left-color: var(--ink); background: var(--bg); }
+.sentence.wrong { border-left-color: var(--accent); opacity: 0.5; }
+
+.score-hero { display: flex; align-items: center; gap: 24px; }
+.score-num { font-size: 62px; line-height: 1; letter-spacing: -3px; }
+.score-num span { font-size: 22px; color: var(--text-dim); }
+
+.review-row {
+  padding: 10px 0 10px 14px; border-left: 3px solid var(--hairline-soft);
+  margin-bottom: 8px; font-size: 14.5px; line-height: 1.5;
+}
+.review-row.ok { border-left-color: var(--good); }
+.review-row.no { border-left-color: var(--accent); }
+
+@media (max-width: 640px) {
+  .score-num { font-size: 48px; }
+  .buckets .btn { flex: 1; padding: 12px 8px; }
+}
+
 details.past-answer summary { cursor: pointer; }
 details.past-answer summary:hover { color: var(--ink); }
 
