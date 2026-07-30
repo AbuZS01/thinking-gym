@@ -32,6 +32,8 @@ const MTC_GYM_CHALLENGES = [
     title: "The Coffee Shop's Immune System",
     scenario: "A small coffee chain keeps getting burned: card skimmers on the terminals, every barista using one shared password, and a laptop full of customer data that walked out the back door. There is no budget for a security team. Solve it using how the human immune system defends a body.",
     frameworks: ["pattern-recognition", "lateral-thinking", "systems-thinking"],
+    emoji: "🦠",
+    hint: "Ask what each defence DOES, stripped of biology: what blocks, what watches, what remembers, what contains, what escalates.",
     payload: {
       sourceDomain: "The human immune system",
       targetDomain: "A coffee shop's security",
@@ -67,6 +69,8 @@ const MTC_GYM_CHALLENGES = [
     title: "What Ants Know About Logistics",
     scenario: "A delivery network keeps re-planning routes from head office, and keeps being wrong: roadworks, weather and demand move faster than the plan. Redesign the routing using how an ant colony finds food.",
     frameworks: ["systems-thinking", "pattern-recognition", "feedback-loops"],
+    emoji: "🐜",
+    hint: "No ant holds the map. Look for the three moving parts: reinforce what worked, let old information fade, keep a few explorers out there.",
     payload: {
       sourceDomain: "How an ant colony finds food",
       targetDomain: "A delivery network's routing",
@@ -102,6 +106,8 @@ const MTC_GYM_CHALLENGES = [
     title: "If Pixar Ran the Outpatient Clinic",
     scenario: "An outpatient department has long waits, late discharges, and staff who have stopped suggesting improvements because the last three were cancelled after one complaint. Redesign how it improves itself, using how Pixar develops a film.",
     frameworks: ["design-thinking", "lateral-thinking", "systems-thinking"],
+    emoji: "🎬",
+    hint: "Pixar's real machinery isn't talent, it's rules that make criticism cheap and early failure survivable.",
     payload: {
       sourceDomain: "How Pixar develops a film",
       targetDomain: "How a clinic improves itself",
@@ -133,12 +139,237 @@ const MTC_GYM_CHALLENGES = [
     },
   },
 
+  {
+    id: "gym-map-4", format: "map", track: "probabilistic", difficulty: 1, xpBase: 60,
+    title: "The Casino's Trick for Freelancers",
+    scenario: "A freelance designer lurches between a £9,000 month and a £400 month, takes any work that appears, and panics every January. Rebuild how she runs her income using how a casino guarantees its profit.",
+    frameworks: ["probabilistic-thinking", "decision-theory", "risk-assessment"],
+    emoji: "🎰",
+    hint: "A casino does not win any single hand. Look for the four things that make the long run actually arrive: the edge, the volume, the reserve, and the cap on any one bet.",
+    payload: {
+      sourceDomain: "How a casino guarantees its profit",
+      targetDomain: "How a freelancer runs her income",
+      pairs: [
+        { prompt: "House edge — every game is priced so the house wins slightly more than it loses, on average", match: "Price each project above what it genuinely costs her, including the unpaid hours she currently absorbs" },
+        { prompt: "Law of large numbers — the edge only shows up over thousands of hands, never in one", match: "Judge her rates on a full year of work, not on whether this particular month felt good" },
+        { prompt: "Bankroll — the house can absorb a huge win because it holds far more cash than any single payout", match: "Hold six months of expenses in a separate account, so one late invoice is not an emergency" },
+        { prompt: "Table limits — no single bet is allowed to be large enough to hurt the house", match: "Cap any one client at a third of her income, however good the money looks" },
+        { prompt: "Losing nights are budgeted for — the house never confuses one night with the game", match: "Expect some months to lose money and plan for them, rather than treating each bad month as a verdict on her career" },
+      ],
+      decoys: [
+        "Work longer hours in the good months to build up a cushion",
+        "Advertise more heavily whenever the pipeline starts to look thin",
+      ],
+      misleads: {
+        question: "The casino is a strong model here. Where does it actively mislead you?",
+        options: [
+          "A casino plays thousands of hands a night, while a freelancer books perhaps forty projects a year — the long run she is relying on may be longer than her career",
+          "Casinos hold no cash reserves, so the savings account has no counterpart in the model",
+          "A casino's odds are fixed and known; a freelancer's true costs are estimates, so 'price above cost' can be confidently wrong",
+          "Casinos never lose individual bets, unlike freelancers",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Casinos do not win by winning. They win by holding a small edge, playing often enough for it to appear, and never letting one bet be big enough to end the game. Any income, portfolio or repeated bet needs those same four parts: an edge, volume, a reserve, and a cap.",
+      whereItMisleads: "The whole model rests on repetition. With forty projects a year rather than forty thousand hands a night, variance dominates for a very long time — so the reserve and the per-client cap matter far more here than the edge does.",
+    },
+  },
+  {
+    id: "gym-map-5", format: "map", track: "systems", difficulty: 2, xpBase: 60,
+    title: "Blood Sugar and the Stockroom",
+    scenario: "A hardware shop is always either drowning in stock nobody wants or out of the one item everyone is asking for. The owner reorders by feel, whenever a shelf looks empty. Redesign the ordering using how the body regulates blood sugar.",
+    frameworks: ["systems-thinking", "feedback-loops", "second-order-thinking"],
+    emoji: "🩸",
+    hint: "The body does not order glucose when it feels low. Look for the set point, the two opposing signals, the buffer store, and the lag between signal and effect.",
+    payload: {
+      sourceDomain: "How the body regulates blood sugar",
+      targetDomain: "How a shop manages its stock",
+      pairs: [
+        { prompt: "A set point — the body defends a narrow target range rather than reacting to each meal", match: "Fix a target stock level for each line, and order against the target instead of against how the shelf looks today" },
+        { prompt: "Two opposing signals — insulin stores the excess, glucagon releases the shortfall", match: "Two standing rules: above target, stop ordering and discount; below target, reorder automatically" },
+        { prompt: "Glycogen in the liver — a buffer that absorbs the gap between intake and demand", match: "Hold a deliberate reserve on the fast-moving lines, sized to cover the gap between deliveries" },
+        { prompt: "Signalling delay — glucose peaks before insulin can act, so the system always corrects late", match: "Order against the supplier's lead time, so today's order is aimed at demand three weeks from now" },
+        { prompt: "Insulin resistance — constant oversupply makes the system stop responding to the signal at all", match: "Notice when repeated panic orders have turned the reorder alert into something staff routinely ignore" },
+      ],
+      decoys: [
+        "Negotiate a bulk discount with the supplier",
+        "Move the fastest-selling items to the front of the shop",
+      ],
+      misleads: {
+        question: "Where does the blood-sugar model mislead you here?",
+        options: [
+          "The body defends one set point that barely moves, while retail demand shifts with season, fashion and a competitor's promotion — so a fixed target quietly goes stale",
+          "The body holds no buffer store, so the stock reserve has no biological counterpart",
+          "Holding glycogen costs the body almost nothing, whereas stock ties up cash and can spoil or go out of date",
+          "The body corrects instantly, whereas suppliers are always slow",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Anything that has to hold a level steady while inflow and outflow move independently needs the same four parts: a set point, opposing correction signals, a buffer, and honest accounting for the delay. Blood sugar, stock, staffing and cash all fail the same way when the delay is ignored.",
+      whereItMisleads: "Biology gets its set point free from evolution and pays almost nothing to hold its buffer. You have to choose the target deliberately, revisit it as demand shifts, and price the cash sitting on your shelves.",
+    },
+  },
+  {
+    id: "gym-map-6", format: "map", track: "causal", difficulty: 3, xpBase: 60,
+    title: "Cholera and the Crash Nobody Can Reproduce",
+    scenario: "An app crashes for roughly one user in three hundred, never on a developer's machine, and the team has spent five weeks guessing. Rebuild the hunt using how John Snow traced a cholera outbreak to a single water pump.",
+    frameworks: ["scientific-thinking", "abductive-reasoning", "root-cause-analysis"],
+    emoji: "🚰",
+    hint: "Snow's advantage was not a theory of germs — he did not have one. It was defining a case precisely, plotting where the cases were, and finding people who should have been ill and were not.",
+    payload: {
+      sourceDomain: "How Snow traced the cholera outbreak",
+      targetDomain: "How a team finds an intermittent crash",
+      pairs: [
+        { prompt: "A case definition — deciding exactly what counts as a case before counting anything", match: "Write down precisely which crash signature you are hunting, so unrelated errors stop polluting the count" },
+        { prompt: "The spot map — plotting every case geographically until the cluster becomes obvious", match: "Plot every crash against device, app version, network and locale, and look for where they pile up" },
+        { prompt: "The negative cases — brewery workers beside the pump who drank beer and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
+        { prompt: "Dose-response — households drawing more water from that pump fell ill more often", match: "Check whether users who hit the suspect code path more often crash proportionally more" },
+        { prompt: "Remove the handle, then watch — intervene on the suspected cause and see whether cases stop", match: "Ship the suspected fix to a slice of users and compare their crash rate against everyone else's" },
+      ],
+      decoys: [
+        "Rewrite the crash-prone screen from scratch with cleaner code",
+        "Post an apology to users and promise a fix in the next release",
+      ],
+      misleads: {
+        question: "Where does the epidemiology model mislead you here?",
+        options: [
+          "Snow could see every case in a small district; you only see crashes from devices that successfully reported one, which is exactly the population most likely to be unrepresentative",
+          "Epidemiology has no equivalent of intervening to test a cause, so shipping a trial fix is unsupported by the analogy",
+          "Cholera had one cause, whereas an intermittent crash is often a conjunction of three conditions — removing one handle can leave the rate almost unchanged",
+          "Snow knew the mechanism in advance, which is the only reason his method worked",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Snow found the pump without knowing what cholera was. The method transfers precisely because it needs no mechanism: define the case, plot it, find who was exposed and stayed well, look for dose-response, then intervene and watch. That works on crashes, outages, defects and disease alike.",
+      whereItMisleads: "Your data is not a district — it is whoever managed to report. And unlike cholera, software failures are often conjunctions, so one removed handle can leave the rate barely moved, which feels exactly like disproof of a correct hypothesis.",
+    },
+  },
+  {
+    id: "gym-map-7", format: "map", track: "adversarial", difficulty: 2, xpBase: 60,
+    title: "The Corner Shop's Opening Move",
+    scenario: "A supermarket has opened four hundred metres from a family grocer's. The grocer's plan is to cut prices and hope. Rebuild the plan using how a strong chess player handles a stronger opponent.",
+    frameworks: ["strategic-thinking", "game-theory", "red-team-thinking"],
+    emoji: "♟️",
+    hint: "A weaker player never trades evenly. They change the kind of position until their opponent's advantage stops mattering.",
+    payload: {
+      sourceDomain: "Playing a stronger opponent at chess",
+      targetDomain: "A corner shop facing a supermarket",
+      pairs: [
+        { prompt: "Do not contest the centre against a stronger opponent — fight on the part of the board that suits you", match: "Stop competing on price and pack size, and compete on what a lorry-based supply chain cannot do at all" },
+        { prompt: "Assume the opponent plays their best reply, not the reply you hope for", match: "Plan for the chain matching any discount within a week, because it can afford to and you cannot" },
+        { prompt: "Tempo — a move that forces a response is worth more than one that merely improves your position", match: "Do the things that force a local response, like same-day delivery to the flats nearby, rather than quietly tidying the shelves" },
+        { prompt: "Sacrifice material when the resulting position wins the game", match: "Drop the low-margin lines the chain sells cheaper, and give that shelf space to what only you stock" },
+        { prompt: "Choose the endgame you want, and steer toward it from the first move", match: "Decide now that you want to be the shop people walk to twice a week, and make every decision serve that" },
+      ],
+      decoys: [
+        "Match the supermarket's price on the twenty most popular items",
+        "Extend opening hours to midnight, seven days a week",
+      ],
+      misleads: {
+        question: "Where does the chess model mislead you here?",
+        options: [
+          "Chess is symmetric and finite — both sides have the same pieces and the game ends. A chain has vastly more resources and no obligation to take turns",
+          "Chess has no concept of choosing where to fight, so 'avoid the centre' has no counterpart",
+          "In chess your opponent is trying to beat you specifically, whereas the chain is largely indifferent to your shop — which changes which of its responses you should actually expect",
+          "Chess players never sacrifice material, so that pair is invalid",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "The weaker side does not win by playing the same game more cheaply. It wins by changing the kind of position: fight where the opponent's advantage does not apply, assume their best reply, and pick the endgame before the first move.",
+      whereItMisleads: "Chess flatters you with a symmetric opponent who is thinking about you. A regional manager may never notice your shop at all, so some anticipated responses never come — and others, aimed at a different rival entirely, hit you anyway.",
+    },
+  },
+  {
+    id: "gym-map-8", format: "map", track: "metacognition", difficulty: 2, xpBase: 60,
+    title: "Run Your Judgement Like an Airline",
+    scenario: "You keep making the same category of mistake: confident decisions, late at night, from memory, that you would not have made in the morning. Rebuild how you manage your own thinking using how commercial aviation manages safety.",
+    frameworks: ["meta-thinking", "cognitive-bias-detection", "postmortem"],
+    emoji: "✈️",
+    hint: "Aviation assumes the expert will fail. Every mechanism exists to catch a competent person on a bad day, not to catch an idiot.",
+    payload: {
+      sourceDomain: "How aviation manages safety",
+      targetDomain: "How you manage your own judgement",
+      pairs: [
+        { prompt: "Checklists — even a veteran captain reads the list aloud, because memory degrades under load", match: "Keep a written list of the four questions you always skip when rushed, and read it rather than recall it" },
+        { prompt: "Blameless reporting — crews report their own near-misses because reporting carries no penalty", match: "Write down your own bad calls in full, somewhere nobody else grades them, so you keep telling yourself the truth" },
+        { prompt: "The flight recorder — what was actually said and done is captured before anyone reconstructs it", match: "Record the decision and your confidence at the time, so hindsight cannot quietly rewrite what you believed" },
+        { prompt: "Simulators — crews rehearse the emergency repeatedly, at no cost, before it ever happens", match: "Rehearse the hard conversation or the failure case out loud in advance, while it is still free" },
+        { prompt: "Duty-time limits — a tired crew is grounded regardless of how capable they feel", match: "Make it a standing rule that irreversible decisions wait for the morning, however clear they seem at midnight" },
+      ],
+      decoys: [
+        "Read more books about decision-making",
+        "Ask a trusted friend to approve your important decisions",
+      ],
+      misleads: {
+        question: "Where does the aviation model mislead you here?",
+        options: [
+          "Aviation learns from thousands of flights a day, while you make few enough big decisions that your personal incident data will always be thin",
+          "Aviation has no equivalent of rehearsing failure, so the simulator pair does not hold",
+          "A crash is unmistakable and immediate, whereas a bad life decision often has no clear moment of failure — so you can run every mechanism and still never learn what went wrong",
+          "Pilots are never fatigued, unlike ordinary people",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Aviation's safety record does not come from hiring better people. It comes from mechanisms that assume a competent person will fail: read rather than recall, report without penalty, record before hindsight, rehearse while it is cheap, and stop when tired. All five transfer directly to your own judgement.",
+      whereItMisleads: "Both borrowed strengths depend on a clear signal. Aviation knows within seconds that something went wrong; most of your decisions never announce their outcome. That is why writing down the prediction, not just the decision, is the one mechanism you cannot skip.",
+    },
+  },
+  {
+    id: "gym-map-9", format: "map", track: "creative", difficulty: 1, xpBase: 60,
+    title: "Run the Meeting Like a Jazz Quartet",
+    scenario: "The fortnightly ideas meeting has the same shape every time: the manager speaks first, two people agree, one person lists reasons it will not work, and nothing is decided. Redesign the meeting using how a jazz quartet improvises.",
+    frameworks: ["divergent-thinking", "lateral-thinking", "design-thinking"],
+    emoji: "🎷",
+    hint: "Improvisation is not the absence of rules. Look for the agreed structure, whose turn it is, what the others do while someone solos, and who is listening.",
+    payload: {
+      sourceDomain: "How a jazz quartet improvises",
+      targetDomain: "How a team runs an ideas meeting",
+      pairs: [
+        { prompt: "An agreed key, tempo and form — the freedom exists because the frame is fixed and shared", match: "Fix the question, the length and the format before the meeting, so the freedom sits in the answers" },
+        { prompt: "Trading solos — everyone gets an uninterrupted turn, and the order is known in advance", match: "Give each person two uninterrupted minutes, in a set order, before any discussion begins" },
+        { prompt: "Comping — while one player solos, the others support rather than compete", match: "While someone is proposing, everyone else's job is to extend the idea, not to test it" },
+        { prompt: "'Yes, and' — a strange note from one player is treated as the new material to build on", match: "When an idea sounds wrong, the next person's job is to find the version of it that works" },
+        { prompt: "Listening outweighs playing — the best players spend most of the tune not soloing", match: "Whoever runs the meeting speaks last, and least" },
+      ],
+      decoys: [
+        "Circulate the agenda the day before so people arrive prepared",
+        "Book a livelier room with a whiteboard and better coffee",
+      ],
+      misleads: {
+        question: "Where does the jazz model mislead you here?",
+        options: [
+          "A jazz set has no decision to reach — it only has to be good in the room, whereas your meeting has to leave with a choice",
+          "Jazz has no agreed structure, which is why the analogy cannot supply one",
+          "A quartet is four players who have rehearsed together for years; a project team has unequal power, different stakes and no shared vocabulary",
+          "Jazz musicians never take turns, so the solo pair is invalid",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Improvisation looks like freedom and is actually structure: a fixed frame, known turns, support rather than competition while someone plays, and building on the strange note. Convergence is a separate act — someone still has to end the tune.",
+      whereItMisleads: "The band has no decision to reach and no boss. Borrow the generating half of the analogy, then add what jazz does not have: a named person who converges, and criteria fixed before anyone starts.",
+    },
+  },
+
   /* ---------------- SPOT THE FLAW ---------------- */
   {
     id: "gym-flaw-1", format: "flaw", track: "metacognition", difficulty: 1, xpBase: 45,
     title: "The 5am Founders",
     scenario: "A bestselling productivity programme is built on the research below.",
     frameworks: ["survivorship-bias", "critical-thinking", "cognitive-bias-detection"],
+    emoji: "🌅",
+    hint: "Ask who was never interviewed. The claim is about what separates two groups — how many groups were studied?",
     payload: {
       argument: [
         "We interviewed 100 founders whose companies passed £10m in revenue.",
@@ -166,6 +397,8 @@ const MTC_GYM_CHALLENGES = [
     title: "The Hospital That Got Worse",
     scenario: "A hospital board is reading this summary before a vote.",
     frameworks: ["analytical-thinking", "critical-thinking", "scientific-thinking"],
+    emoji: "🏥",
+    hint: "Nothing here is false. Ask whether the patients being measured this year are the same kind of patients as last year.",
     payload: {
       argument: [
         "Last year St Aldate's recruited three leading cardiac surgeons and rebuilt its intensive care unit.",
@@ -193,6 +426,8 @@ const MTC_GYM_CHALLENGES = [
     title: "Three Hours of Data",
     scenario: "From a growth team's weekly write-up.",
     frameworks: ["scientific-thinking", "probabilistic-thinking", "base-rates"],
+    emoji: "⏱️",
+    hint: "A randomised split test really can prove cause — so the flaw isn't about causation. Look at how long it ran and when they stopped.",
     payload: {
       argument: [
         "On Tuesday morning we split traffic evenly between the old checkout and a new one.",
@@ -216,12 +451,189 @@ const MTC_GYM_CHALLENGES = [
     },
   },
 
+  {
+    id: "gym-flaw-4", format: "flaw", track: "probabilistic", difficulty: 3, xpBase: 45,
+    title: "One in a Million",
+    scenario: "From a prosecutor's closing argument.",
+    frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
+    emoji: "⚖️",
+    hint: "The statistic is true. Ask what it is the probability OF — and then notice how the defendant was found in the first place.",
+    payload: {
+      argument: [
+        "The defendant's DNA profile matches the sample recovered from the scene.",
+        "The chance that a randomly chosen innocent person would match this profile is one in a million.",
+        "The match was found by searching a database of two million profiles for anyone who fits.",
+        "So there is only a one in a million chance that the defendant is innocent.",
+        "The jury is asked to convict on the strength of that number.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "The one-in-a-million figure is the chance of a match given innocence, not the chance of innocence given a match — and searching two million profiles would be expected to throw up about two innocent matches by itself",
+        "Appeal to authority — the argument leans on the reputation of the forensic laboratory",
+        "Hasty generalisation — a single piece of DNA evidence is generalised to the whole case",
+        "Correlation mistaken for causation — the DNA match is only correlated with guilt",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "The probability of the evidence given innocence, and the probability of innocence given the evidence, are different numbers. Swapping them is the single most consequential statistical error made in courtrooms. Sentence two is true; sentence four does not follow from it.",
+      whereItMisleads: "Sentence three is what makes this fatal rather than merely sloppy. A search across two million profiles is expected to produce roughly two innocent matches on its own, so a database hit tells you far less than the identical match would if the defendant had already been a suspect for independent reasons.",
+    },
+  },
+  {
+    id: "gym-flaw-5", format: "flaw", track: "systems", difficulty: 2, xpBase: 45,
+    title: "Calls Are Down to Four Minutes",
+    scenario: "From a support team's quarterly performance review.",
+    frameworks: ["systems-thinking", "root-cause-analysis", "constraints"],
+    emoji: "☎️",
+    hint: "Every number quoted here is real. Ask whether the work disappeared, or just moved somewhere nobody is being measured.",
+    payload: {
+      argument: [
+        "We set a target of four minutes for the average support call, down from seven.",
+        "Average handling time is now three minutes fifty, and calls answered per agent is up 40%.",
+        "Repeat contacts within a week have risen from 12% to 31%, and written complaints have doubled.",
+        "So the efficiency programme worked, and the same target should be rolled out to the email team.",
+        "The board has approved the extension on the strength of these figures.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "Optimising one stage of a system moved the work rather than removing it — unresolved calls return as repeat contacts and complaints, so total effort per resolved problem may have risen",
+        "Survivorship bias — only the customers who got through were measured",
+        "False dilemma — the review considers only two options for the email team",
+        "Regression to the mean — handling time was unusually high before, and would have fallen anyway",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "A target on one stage of a system almost always exports cost to the next stage. The honest measure is end to end: how much total effort, on both sides, does one fully resolved problem take?",
+      whereItMisleads: "Sentence two is not wrong, and that is the trap — the local metric genuinely improved. Sentence three then ignores the number printed directly above it, which is the shape almost every Goodhart failure takes: a real local win, reported without the number that cancels it.",
+    },
+  },
+  {
+    id: "gym-flaw-6", format: "flaw", track: "causal", difficulty: 2, xpBase: 45,
+    title: "The Worst Branches Improved Most",
+    scenario: "From an internal report recommending a company-wide rollout.",
+    frameworks: ["regression-mean", "scientific-thinking", "analytical-thinking"],
+    emoji: "📉",
+    hint: "The branches were chosen BECAUSE their result was extreme. Ask what usually happens to extreme results next quarter, training or no training.",
+    payload: {
+      argument: [
+        "We identified the twenty worst-performing branches from last quarter's sales figures.",
+        "Each of their managers was sent on a three-day coaching course.",
+        "This quarter those twenty branches improved by an average of 14%, far more than the company as a whole.",
+        "So the coaching course caused the improvement, and every manager should attend it.",
+        "Budget has been requested to send all four hundred managers.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "Regression to the mean — a group picked for being extreme drifts back toward average next quarter with no intervention at all, so the comparison needs untrained branches that were equally bad",
+        "Ad hominem — the report criticises the managers rather than the sales process",
+        "Circular reasoning — the conclusion simply assumes the coaching works",
+        "Sunk cost — the course has already been paid for, so it must be extended",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "Whenever a group is selected for having an extreme result, part of that result was luck — and luck does not repeat. Their improvement is the expected default, not evidence about the intervention.",
+      whereItMisleads: "This is the error that makes punishment look effective and praise look useless: shout at the worst performer and they improve, congratulate the best and they decline. The fix is cheap — take forty bad branches and coach a random twenty of them.",
+    },
+  },
+  {
+    id: "gym-flaw-7", format: "flaw", track: "adversarial", difficulty: 1, xpBase: 45,
+    title: "Zero Incidents",
+    scenario: "From a security team's annual summary.",
+    frameworks: ["red-team-thinking", "critical-thinking", "intelligence-analysis"],
+    emoji: "🛡️",
+    hint: "Two very different situations both produce the number zero. One is that nothing happened. What is the other one?",
+    payload: {
+      argument: [
+        "We replaced the monitoring system in January.",
+        "In the eleven months since, the new system has reported zero security incidents.",
+        "The previous system reported an average of four incidents a month.",
+        "So our security has improved dramatically since January.",
+        "The team is being held up as an example for other departments.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "Zero reported incidents is equally consistent with a system that detects nothing — silence is not evidence of safety until detection itself has been tested",
+        "Hasty generalisation — eleven months is too short a period to generalise from",
+        "Appeal to novelty — the new system is assumed better because it is newer",
+        "Base-rate neglect — the industry-wide incident rate was never considered",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "A detector reporting nothing and a detector that is broken produce identical output. Before treating silence as good news you have to establish that the system can still speak: inject a known test event and confirm it is caught.",
+      whereItMisleads: "The comparison in sentence three is not old security versus new security, it is old detection versus new detection. Any metric that can be improved by measuring less needs a separate check that the measuring still works.",
+    },
+  },
+  {
+    id: "gym-flaw-8", format: "flaw", track: "metacognition", difficulty: 2, xpBase: 45,
+    title: "The Method That Cannot Be Wrong",
+    scenario: "From the sales page of an investment newsletter.",
+    frameworks: ["critical-thinking", "meta-thinking", "cognitive-bias-detection"],
+    emoji: "🔮",
+    hint: "Run through every possible outcome for one of their picks, and ask which of them the method would have to count as a failure.",
+    payload: {
+      argument: [
+        "Our method identifies companies the market has undervalued.",
+        "When one of our picks rises, that confirms the market has recognised the value we spotted.",
+        "When one of our picks falls, that confirms the market has not recognised it yet, so the opportunity is even better.",
+        "Eleven years of results show the method has never been wrong.",
+        "Subscriptions for next year are open now.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "The claim is unfalsifiable — every possible outcome is scored as confirmation, so 'never been wrong' describes the scoring rule rather than the method",
+        "Survivorship bias — only the picks that succeeded were reported",
+        "Correlation mistaken for causation — rising prices are merely correlated with the method",
+        "Straw man — the argument misrepresents what critics of the newsletter actually claim",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "A claim that no observation could contradict is not a strong claim, it is an empty one. Before accepting any track record, ask what result would have counted as a failure. If there isn't one, there is nothing to have been right about.",
+      whereItMisleads: "Sentences one and two are each individually reasonable, which is exactly what makes the pair so effective. The flaw only appears when you hold them together and notice that between them they cover the entire space of outcomes.",
+    },
+  },
+  {
+    id: "gym-flaw-9", format: "flaw", track: "creative", difficulty: 2, xpBase: 45,
+    title: "Nobody Else Does It This Way",
+    scenario: "From a design review for a new banking app.",
+    frameworks: ["first-principles-thinking", "critical-thinking", "convergent-thinking"],
+    emoji: "🧭",
+    hint: "The team is right that a convention can be an accident. Does it follow that this particular convention is one?",
+    payload: {
+      argument: [
+        "Every banking app puts the account balance at the top of the first screen.",
+        "Conventions like this are usually inherited rather than tested, so they deserve to be questioned.",
+        "Our new design moves the balance behind a tap and puts a spending insight there instead.",
+        "Because no competitor does this, our design is the more original one and therefore the better one.",
+        "The change is scheduled to ship to all users next month.",
+      ],
+      flawIdx: 3,
+      flawOptions: [
+        "Novelty is being treated as evidence of quality — questioning the convention is the right instinct, but the answer comes from testing this design against the old one, not from noting that it is unusual",
+        "Appeal to authority — the argument relies on what competitors do",
+        "False dilemma — only two possible screen layouts are considered",
+        "Slippery slope — the argument assumes one change will lead to many others",
+      ],
+      flawAnswer: 0,
+    },
+    debrief: {
+      principle: "First-principles thinking earns you the right to question a convention. It does not tell you the convention is wrong. Sentence two is sound; sentence four swaps a hypothesis for a conclusion without running the test that separates them.",
+      whereItMisleads: "Sometimes nobody does it because nobody tried, and sometimes nobody does it because everybody tried. Those two feel identical from inside a design review, and only a comparison with real users tells them apart.",
+    },
+  },
+
   /* ---------------- ORDER THE CHAIN ---------------- */
   {
     id: "gym-chain-1", format: "chain", track: "systems", difficulty: 1, xpBase: 50,
     title: "The Rent Cap",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["second-order-thinking", "systems-thinking"],
+    emoji: "🏠",
+    hint: "Start with who benefits immediately, then ask what those people do differently, and what that does to everyone not yet in a flat.",
     payload: {
       event: "A city caps how much rent landlords may charge on existing flats.",
       steps: [
@@ -243,6 +655,8 @@ const MTC_GYM_CHALLENGES = [
     title: "Change Your Password Every 30 Days",
     scenario: "A security policy is introduced with good intentions. Order what actually follows.",
     frameworks: ["red-team-thinking", "systems-thinking", "second-order-thinking"],
+    emoji: "🔐",
+    hint: "Begin with what a human being physically cannot do every 30 days, and follow the workarounds from there.",
     payload: {
       event: "A company forces every employee to change their password every 30 days, with strict complexity rules.",
       steps: [
@@ -264,6 +678,8 @@ const MTC_GYM_CHALLENGES = [
     title: "The Camera Kodak Buried",
     scenario: "Order the chain that ends a 130-year-old company.",
     frameworks: ["first-principles-thinking", "second-order-thinking", "strategic-thinking"],
+    emoji: "📷",
+    hint: "The first link isn't a technology failure — it's what film profits did to everyone's incentives inside the company.",
     payload: {
       event: "In 1975 a Kodak engineer builds the first digital camera, and management shelves it.",
       steps: [
@@ -281,12 +697,153 @@ const MTC_GYM_CHALLENGES = [
     },
   },
 
+  {
+    id: "gym-chain-4", format: "chain", track: "probabilistic", difficulty: 2, xpBase: 50,
+    title: "The Surgeon League Table",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["second-order-thinking", "risk-assessment", "probabilistic-thinking"],
+    emoji: "📋",
+    hint: "Start with what a surgeon can change the day after the table is published. Not their skill — their list.",
+    payload: {
+      event: "A health service publishes a league table of every heart surgeon's patient survival rate.",
+      steps: [
+        "Each surgeon can now see exactly which patients would damage their published figure",
+        "The most complex, highest-risk cases begin to be declined or referred elsewhere",
+        "Those patients wait longer, travel further, or are treated by whoever will take them",
+        "Every surgeon's published survival rate improves",
+        "Survival among the sickest patients falls, and the table shows no sign of it",
+      ],
+      intruder: "Surgeons start competing to take on the most difficult cases",
+    },
+    debrief: {
+      principle: "Publishing a rate without publishing the risk mix invites the one response nobody intended: changing who gets measured. The metric improves precisely because the outcome got worse for the people it was meant to protect.",
+      whereItMisleads: "The answer is not secrecy. It is risk-adjustment, plus reporting how many cases each surgeon declined. Measure the denominator, or the denominator becomes the strategy.",
+    },
+  },
+  {
+    id: "gym-chain-5", format: "chain", track: "systems", difficulty: 1, xpBase: 50,
+    title: "Four Lanes Instead of Two",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["systems-thinking", "second-order-thinking", "feedback-loops"],
+    emoji: "🛣️",
+    hint: "Ask who changes their behaviour once the journey gets quicker — including people who were not using that road at all.",
+    payload: {
+      event: "A congested two-lane commuter road is widened to four lanes.",
+      steps: [
+        "The same traffic now moves faster, and journey times fall sharply",
+        "Drivers who had been avoiding the road, or travelling off-peak, switch onto it",
+        "Cheaper commuting makes housing further out attractive, and new estates are built along the route",
+        "Trips keep growing until the road is congested again at its new, larger capacity",
+        "The city now has more cars, longer average commutes, and the same queue as before",
+      ],
+      intruder: "Traffic on the widened road settles permanently below capacity",
+    },
+    debrief: {
+      principle: "In any system where use responds to cost, adding capacity lowers the cost and raises the use. Roads, hospital beds, inbox rules and server capacity all rebound to congestion, because the queue was regulating demand.",
+      whereItMisleads: "This is not an argument against ever building anything. It is an argument for asking what the queue was doing before you removed it — and then either pricing the road, running the buses, or accepting that you have bought growth rather than speed.",
+    },
+  },
+  {
+    id: "gym-chain-6", format: "chain", track: "adversarial", difficulty: 3, xpBase: 50,
+    title: "We'll Match Any Price",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["game-theory", "strategic-thinking", "second-order-thinking"],
+    emoji: "🏷️",
+    hint: "Think from the rival's side of the table. If they cut their price, what happens to the customers they were hoping to win?",
+    payload: {
+      event: "A large retailer promises to match any competitor's advertised price, permanently and automatically.",
+      steps: [
+        "A rival considering a discount realises the retailer will match it within a day",
+        "The discount would therefore win the rival almost no customers, while costing it margin on every sale",
+        "Rivals stop discounting, because undercutting no longer works",
+        "The retailer rarely has to honour the guarantee, since almost nobody advertises a lower price",
+        "Prices across the market settle higher than they were before the promise was made",
+      ],
+      intruder: "Competitors respond with a sustained price war that pushes prices down for years",
+    },
+    debrief: {
+      principle: "A price-match promise reads as a commitment to customers and functions as a commitment to competitors: it removes their reward for cutting prices. The move that looks most generous is the one that stabilises the market at a higher price.",
+      whereItMisleads: "It does not always work. It needs prices to be public, products comparable, and rivals unwilling to fight. A discounter with lower costs and patience can call the bluff, and the guarantee then becomes very expensive.",
+    },
+  },
+  {
+    id: "gym-chain-7", format: "chain", track: "metacognition", difficulty: 1, xpBase: 50,
+    title: "Only Sources You Trust",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
+    emoji: "🫧",
+    hint: "The first step is a genuine improvement. Follow what happens to the disagreements you stop seeing.",
+    payload: {
+      event: "You decide to read only the news sources you have found to be reliable, and drop the rest.",
+      steps: [
+        "The quality of what you read goes up, and the daily annoyance goes down",
+        "The arguments you meet are increasingly ones you already find persuasive",
+        "You stop encountering the strongest version of the other side — only weak versions quoted by your own sources",
+        "Your confidence in your positions rises while your ability to argue against them decays",
+        "You are blindsided by an outcome that people outside your sources saw coming",
+      ],
+      intruder: "Your estimates become better calibrated because the noise has been removed",
+    },
+    debrief: {
+      principle: "Filtering for quality and filtering for agreement feel identical from the inside, because a source that agrees with you reads as more reliable. Rising confidence alongside falling exposure to counter-argument is the signature of the second one.",
+      whereItMisleads: "The answer is not to read nonsense in the name of balance. It is to keep one or two sources that are careful, well argued, and disagree with you. Quality and agreement are different axes, and you can select on the first without collapsing onto the second.",
+    },
+  },
+  {
+    id: "gym-chain-8", format: "chain", track: "metacognition", difficulty: 2, xpBase: 50,
+    title: "Write the Number Down",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["probabilistic-thinking", "meta-thinking", "circle-of-competence"],
+    emoji: "📓",
+    hint: "This chain ends somewhere good. Start with what changes the moment a vague feeling has to become a number on paper.",
+    payload: {
+      event: "You start writing down every prediction you make, with a percentage confidence beside it.",
+      steps: [
+        "Vague feelings have to become numbers, which is uncomfortable and immediately clarifying",
+        "After a few months you can see which topics your 90% calls are actually right about",
+        "You find one or two areas where you are reliably overconfident, and start saying you do not know",
+        "Because your uncertainty is now honest, people begin trusting the calls you do make confidently",
+        "You get pulled into decisions earlier, while they can still be changed",
+      ],
+      intruder: "Your accuracy improves evenly across every topic you write about",
+    },
+    debrief: {
+      principle: "Calibration is not about being right more often. It is about your confidence carrying information — and that only becomes possible once the confidence is recorded before the outcome, where hindsight cannot reach it.",
+      whereItMisleads: "Do not expect uniform improvement. A journal reveals that expertise is local: your 90% may be worth 90% in one domain and 60% in another. The gain comes from knowing which is which, not from getting better at everything.",
+    },
+  },
+  {
+    id: "gym-chain-9", format: "chain", track: "creative", difficulty: 2, xpBase: 50,
+    title: "Bring Me a Business Case",
+    scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
+    frameworks: ["divergent-thinking", "design-thinking", "second-order-thinking"],
+    emoji: "📊",
+    hint: "Ask which kinds of ideas can be justified on a spreadsheet before anyone has tried them — and which kinds cannot.",
+    payload: {
+      event: "A company rules that no new idea may be discussed until its author has produced a costed business case.",
+      steps: [
+        "Only ideas that can be justified on a spreadsheet in advance ever get tabled",
+        "Those are, almost by definition, extensions of what the company already does and already measures",
+        "Genuinely unfamiliar ideas die before discussion, because nobody can forecast a market that does not exist yet",
+        "People stop bringing them, and the pipeline fills with incremental improvements",
+        "A competitor with a weaker process but a cheaper way of testing odd ideas takes the new market",
+      ],
+      intruder: "The quality of the idea pipeline improves as weak proposals are filtered out",
+    },
+    debrief: {
+      principle: "A filter applied before an idea has been tested selects for forecastability, not for value. Anything genuinely new is unforecastable at the point where the filter sits, so the filter removes exactly the class of idea it was built to evaluate.",
+      whereItMisleads: "The rule is not stupid — unbounded discussion of untested ideas burns real money. The fix is to change what the gate asks for: not a forecast, but the cheapest experiment that would tell you whether to keep going.",
+    },
+  },
+
   /* ---------------- SORT THE SIGNAL ---------------- */
   {
     id: "gym-signal-1", format: "signal", track: "causal", difficulty: 1, xpBase: 50,
     title: "Did the Coaching Work?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["scientific-thinking", "regression-mean", "critical-thinking"],
+    emoji: "📈",
+    hint: "For each item ask: would I still expect to see this if the coaching did nothing at all?",
     payload: {
       claim: "Our new sales coaching programme is what improved the team's numbers.",
       evidence: [
@@ -309,6 +866,8 @@ const MTC_GYM_CHALLENGES = [
     title: "Twelve Months of Runway",
     scenario: "You are deciding whether to join this startup. Sort what you have learned.",
     frameworks: ["intelligence-analysis", "risk-assessment", "critical-thinking"],
+    emoji: "💸",
+    hint: "Only three things move a runway: cash coming in, cash going out, and how concentrated the revenue is. Everything else is noise.",
     payload: {
       claim: "This startup will run out of money within a year.",
       evidence: [
@@ -332,6 +891,8 @@ const MTC_GYM_CHALLENGES = [
     title: "The Positive Screening Result",
     scenario: "A patient with no symptoms has just tested positive in a routine screen.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
+    emoji: "🩺",
+    hint: "Two numbers decide this: how rare the disease is, and how often the test cries wolf. Accuracy on the sick is the seductive one.",
     payload: {
       claim: "This positive result means the patient probably has the disease.",
       evidence: [
@@ -348,6 +909,156 @@ const MTC_GYM_CHALLENGES = [
     debrief: {
       principle: "With a rare disease, false positives outnumber true ones even when the test is excellent. 1 in 1,000 prevalence and a 5% false-positive rate means about 50 healthy people flagged for every single true case — the base rate, not the accuracy, dominates the answer.",
       whereItMisleads: "'99% accurate' is the number everyone remembers and the one that misleads. The two numbers that decide it are how rare the condition is and how often the test cries wolf.",
+    },
+  },
+  {
+    id: "gym-signal-4", format: "signal", track: "probabilistic", difficulty: 3, xpBase: 50,
+    title: "Skill or Luck?",
+    scenario: "Sort each fact by what it does to the claim.",
+    frameworks: ["probabilistic-thinking", "survivorship-bias", "base-rates"],
+    emoji: "🎯",
+    hint: "Ask of each fact: how many managers would show this by chance alone? A run of good years is the seductive one.",
+    payload: {
+      claim: "This fund manager's returns come from genuine skill rather than luck.",
+      evidence: [
+        { text: "She has beaten her benchmark in fourteen of the last seventeen years, across two different market cycles", bucket: "supports" },
+        { text: "Her method was written down in advance, and her trades match what it prescribes", bucket: "supports" },
+        { text: "Her returns are uncorrelated with the handful of stocks that drove the market over the period", bucket: "supports" },
+        { text: "Her firm launched forty funds in that period and quietly closed the thirty-one that did worst", bucket: "undermines" },
+        { text: "Almost all of the outperformance came from a single position in one year", bucket: "undermines" },
+        { text: "The strong years were all before her strategy became widely copied", bucket: "undermines" },
+        { text: "She is the most frequently quoted fund manager in the financial press", bucket: "irrelevant" },
+        { text: "Her fees are well above the industry average", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "Luck and skill produce identical short records. What separates them is whether the process was specified in advance, whether the record survives the selection that produced it, and whether returns are spread across many independent decisions rather than concentrated in one.",
+      whereItMisleads: "Forty funds launched and thirty-one closed is the fact that quietly destroys the headline: with that many attempts an outstanding survivor is expected even if nobody involved has any skill at all. High fees feel damning and say nothing about skill — that is a separate question about whether the skill is worth paying for.",
+    },
+  },
+  {
+    id: "gym-signal-5", format: "signal", track: "systems", difficulty: 3, xpBase: 50,
+    title: "Did the Bus Lane Work?",
+    scenario: "Sort each finding by what it does to the claim.",
+    frameworks: ["scientific-thinking", "counterfactual-thinking", "systems-thinking"],
+    emoji: "🚌",
+    hint: "You are hunting for anything that would have moved the same way WITHOUT the bus lane. One item is a proper control — find it.",
+    payload: {
+      claim: "The new bus lane is what reduced city-centre car congestion.",
+      evidence: [
+        { text: "A comparable corridor with no bus lane, measured over the same months, showed no change at all", bucket: "supports" },
+        { text: "Congestion fell in the week the lane opened and has stayed down for fourteen months", bucket: "supports" },
+        { text: "Bus passenger numbers rose 22%, and car counts fell by roughly the same number of journeys", bucket: "supports" },
+        { text: "Fuel prices rose 30% over the same period", bucket: "undermines" },
+        { text: "Two large city-centre employers moved to home working in the same quarter", bucket: "undermines" },
+        { text: "Traffic on the parallel residential streets rose sharply", bucket: "undermines" },
+        { text: "The scheme was funded by a well-regarded transport charity", bucket: "irrelevant" },
+        { text: "Drivers surveyed afterwards said they disliked the change", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "The question is never 'did the number move?' but 'would it have moved anyway?' One comparable untouched corridor is worth more than a year of before-and-after data, because it is the only item here that speaks to the counterfactual.",
+      whereItMisleads: "Look again at the parallel streets. Rising traffic there does not disprove the lane — it reframes the claim. The traffic may have been displaced rather than removed, which means the lane worked on the measured road and failed on the system.",
+    },
+  },
+  {
+    id: "gym-signal-6", format: "signal", track: "causal", difficulty: 3, xpBase: 50,
+    title: "The Supplement Trial",
+    scenario: "Sort each finding by what it does to the claim.",
+    frameworks: ["scientific-thinking", "critical-thinking", "analytical-thinking"],
+    emoji: "💊",
+    hint: "Judge the study's design separately from its results. Two items sound like technical footnotes and are the ones that matter.",
+    payload: {
+      claim: "This supplement lowers blood pressure in healthy adults.",
+      evidence: [
+        { text: "The trial was randomised, placebo-controlled, and its outcome measure was registered before it began", bucket: "supports" },
+        { text: "The effect held in a second trial run by an unrelated team in another country", bucket: "supports" },
+        { text: "There is a known mechanism by which the active compound relaxes blood vessel walls", bucket: "supports" },
+        { text: "Thirty-eight per cent of participants dropped out, mostly from the treatment group", bucket: "undermines" },
+        { text: "The reported drop was 2 mmHg, inside the range of the cuff's own measurement error", bucket: "undermines" },
+        { text: "The published paper reports twelve outcomes, and the registered one was a different measure entirely", bucket: "undermines" },
+        { text: "The trial was run at a university with a strong medical reputation", bucket: "irrelevant" },
+        { text: "The lead author has published forty papers on cardiovascular health", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "Design and results have to be judged separately. A pre-registered randomised trial is genuinely strong evidence — and it can still report an effect smaller than its own instrument can measure, on an outcome it swapped in after the fact.",
+      whereItMisleads: "The switched outcome measure is the fact that actually undoes the study, and it reads like a technical footnote. Reputation and publication count are the items that feel like evidence and cannot move the estimate at all — a well-regarded lab produces a null result exactly as readily as a positive one.",
+    },
+  },
+  {
+    id: "gym-signal-7", format: "signal", track: "adversarial", difficulty: 3, xpBase: 50,
+    title: "Is This Account a Real Person?",
+    scenario: "Sort each finding by what it does to the claim.",
+    frameworks: ["intelligence-analysis", "red-team-thinking", "pattern-recognition"],
+    emoji: "🕵️",
+    hint: "Weigh each fact by how expensive it would be to fake. Some of these cost an operator nothing at all.",
+    payload: {
+      claim: "This social media account is part of a coordinated influence operation, not an ordinary person.",
+      evidence: [
+        { text: "Its posting hours cluster tightly into one office working day, in a timezone different from its stated location", bucket: "supports" },
+        { text: "It was created four years ago, posted nothing for three, then began posting forty times a day on one political topic", bucket: "supports" },
+        { text: "Its profile photograph also appears on a stock image site", bucket: "supports" },
+        { text: "Nineteen other accounts post the same phrasing within minutes of each other", bucket: "supports" },
+        { text: "It has a decade of mundane posts about a local football team, with details only a resident would know", bucket: "undermines" },
+        { text: "It argues with accounts on its own side, and has visibly changed position twice", bucket: "undermines" },
+        { text: "It has only three hundred followers", bucket: "irrelevant" },
+        { text: "It writes in an aggressive tone with poor spelling", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "Analysts weight evidence by how hard it would be to fake. Coordinated timing across many accounts and a decade of verifiable local detail are both expensive. Tone, spelling and follower count are free, which is precisely why they carry no information.",
+      whereItMisleads: "The findings here point both ways, and an honest answer is a confidence level rather than a verdict — a rented or compromised long-standing account produces exactly this mixture. Note too that a low follower count feels exonerating and is not: most accounts in an operation are small by design.",
+    },
+  },
+  {
+    id: "gym-signal-8", format: "signal", track: "metacognition", difficulty: 3, xpBase: 50,
+    title: "Do You Actually Understand It?",
+    scenario: "Sort each fact by what it does to the claim.",
+    frameworks: ["circle-of-competence", "meta-thinking", "feynman"],
+    emoji: "🪞",
+    hint: "Understanding shows up as things you can DO — predict, explain, argue the other side. Familiarity shows up as a feeling.",
+    payload: {
+      claim: "I understand this topic well enough to advise someone else on it.",
+      evidence: [
+        { text: "I can explain it to a beginner in plain words with no jargon, and they can then use it", bucket: "supports" },
+        { text: "I wrote down three predictions in this area before the outcomes were known, and two were right", bucket: "supports" },
+        { text: "I can state the strongest objection to my own position, and what would change my mind", bucket: "supports" },
+        { text: "Everything I have read on it agrees with me, and I cannot name a serious dissenter", bucket: "undermines" },
+        { text: "I have only read summaries and commentary, never anything primary", bucket: "undermines" },
+        { text: "I cannot say where the boundary of what I know actually falls", bucket: "undermines" },
+        { text: "I have read a great deal about it and feel confident", bucket: "irrelevant" },
+        { text: "The topic comes up often in conversations I am part of", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "Understanding is demonstrated, not felt. Explaining it to a beginner, predicting before the outcome, and arguing the other side are things you can either do or not. Confidence and familiarity are available whether you understand it or not.",
+      whereItMisleads: "The most useful item is the one about the boundary. Knowing a topic and knowing where your knowledge of it stops are separate skills — and advice given from inside a known boundary is worth far more than advice given without knowing where the edge is.",
+    },
+  },
+  {
+    id: "gym-signal-9", format: "signal", track: "creative", difficulty: 3, xpBase: 50,
+    title: "Is the Idea Worth Building?",
+    scenario: "Sort each finding by what it does to the claim.",
+    frameworks: ["entrepreneurial-thinking", "design-thinking", "convergent-thinking"],
+    emoji: "🚀",
+    hint: "Separate what people have actually done from what they have said. Enthusiasm is free, so it cannot be evidence.",
+    payload: {
+      claim: "This idea is worth spending the next six months building.",
+      evidence: [
+        { text: "Two people paid a deposit for it before anything existed", bucket: "supports" },
+        { text: "A paper mock-up was picked up and used twice, unprompted, by someone who was not asked to", bucket: "supports" },
+        { text: "Six potential users described the problem to us before we mentioned any solution", bucket: "supports" },
+        { text: "It only works if users change something they currently do every morning", bucket: "undermines" },
+        { text: "Three funded companies attacked this market and all pivoted away from it", bucket: "undermines" },
+        { text: "Everyone we showed it to said they would definitely use it, and none has since", bucket: "undermines" },
+        { text: "The domain name is available and the branding tests well", bucket: "irrelevant" },
+        { text: "The founding team is unusually excited about it", bucket: "irrelevant" },
+      ],
+    },
+    debrief: {
+      principle: "The evidence that counts is behaviour that cost someone something — money, time, or the effort of describing the problem before you mentioned your solution. Stated intention is free, and free evidence is almost uncorrelated with what people go on to do.",
+      whereItMisleads: "Three funded competitors pivoting away is the item most founders reframe as an opportunity. Sometimes it is: they may have been early, or wrong. But you have to name what you know that they discovered and dismissed, and 'we care more' is not an answer.",
     },
   },
 ];

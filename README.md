@@ -9,10 +9,25 @@ against a hand-written answer key, so feedback is instant, free, identical for
 everyone, and never says "grade yourself". Progress lives in your browser's
 `localStorage`: fully private, works offline.
 
+## Getting around
+
+Four tabs along the bottom:
+
+| Tab | What's in it |
+|---|---|
+| **Home** | streak / points / challenges-done strip, today's challenge, track preview |
+| **Challenges** | the Gym session and its six tracks, Deep Work, Boss Battle, Calibration, Review |
+| **Progress** | level and XP, skill tracks, weakness meters, calibration trend, weekly report, journal |
+| **Profile** | level badge, achievements, toolbox and frameworks, export / import / erase |
+
+Every screen is also a deep link (`#/gym/play/<id>`, `#/journal`, `#/toolbox`, …),
+and the tab bar lights the owning tab whichever route you land on.
+
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-Four formats, each objectively scored:
+**36 challenges** — nine in each of four formats, six in each of six tracks,
+spread across difficulty 1–3 — each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -25,10 +40,19 @@ Four formats, each objectively scored:
 - **Sort the Signal** — file each piece of evidence as supporting, undermining,
   or neither.
 
-Every challenge ends with a debrief: the principle you just used, and where it
-misleads you. Challenges are graded 0–100%, replay themselves on a spaced
-schedule based on how well you did, and feed six skill tracks (Probabilistic,
-Systems, Causal & Scientific, Adversarial & Strategic, Metacognition, Creative).
+Every challenge ends with a debrief split in two: **the principle** you just
+used, and **where it misleads you** — because a mental model you can't see the
+edges of is a liability. Challenges are graded 0–100%, replay themselves on a
+spaced schedule based on how well you did, and feed six skill tracks
+(Probabilistic, Systems, Causal & Scientific, Adversarial & Strategic,
+Metacognition, Creative).
+
+Each one also offers a **hint** (one nudge sentence, costing 15% of the score)
+and an optional free-text box — write your own thinking alongside the board and
+it earns a flat +5 XP, saves to the journal, and is never graded. The day's three
+are picked from what's due for replay, then what you've never played, then your
+weakest — always three different formats, and stable within a day so refreshing
+doesn't reshuffle your session.
 
 ## Deep Work and the rest
 
@@ -59,7 +83,7 @@ Systems, Causal & Scientific, Adversarial & Strategic, Metacognition, Creative).
 - **Journal** — every answer you submit is saved and browsable, so you can
   watch how your reasoning changes over time.
 - **Export / Import** — back up all progress (including the journal) to a JSON
-  file from the footer, and restore it on any device.
+  file from the Profile tab, and restore it on any device.
 
 Gym challenges are graded objectively. Deep Work exercises are self-assessed:
 you attempt one, optionally reveal progressive Socratic hints (each costs 20% of
@@ -108,16 +132,6 @@ same way.
 When you change any shipped file, bump `CACHE_VERSION` in `sw.js` so installed
 copies pick up the update.
 
-## Pushing this to your own GitHub repo
-
-This project was built locally and isn't pushed anywhere yet. To publish it:
-
-```bash
-cd master-thinking-coach
-git remote add origin <your-empty-repo-url>
-git push -u origin master
-```
-
 ## Project structure
 
 - `gym-content.js` — the Gym: challenges and their answer keys, one object per
@@ -132,7 +146,12 @@ git push -u origin master
   battle rotation. Pure functions over a plain state object.
 - `app.js` — UI layer: renders screens from engine state, handles all
   interaction via event delegation.
-- `style.css`, `index.html` — presentation and shell.
+- `style.css`, `index.html` — presentation and shell. The theme is a violet
+  mobile design system driven by custom properties in `:root`; `--tabbar-h` and
+  the `scroll-padding` on `html` are coupled, since both sticky bars (app bar,
+  play-screen action row) have to stay clear of anything the browser scrolls to.
+- `sw.js` — service worker (stale-while-revalidate). Bump `CACHE_VERSION` on
+  every shipped change or installed copies keep serving the old build.
 
 ## Extending it
 
@@ -141,3 +160,10 @@ git push -u origin master
 - Add achievements by adding `{ id, name, desc, xp, rule }` to
   `MTC_ACHIEVEMENTS`, where `rule` is a function of the aggregated stats
   object (see existing ones for examples).
+- Add Gym challenges by appending to `MTC_GYM_CHALLENGES` in `gym-content.js`.
+  Each needs `id, format, track, difficulty, xpBase, title, scenario,
+  frameworks, emoji, hint, payload, debrief`; `frameworks` entries must be real
+  ids from `MTC_FRAMEWORKS` or `MTC_TOOLBOX`, and each format has its own
+  `payload` shape (see the four existing groups). Nothing else needs changing —
+  new challenges enter rotation, the tracks, and the replay schedule on their
+  own.

@@ -80,139 +80,284 @@ function levelInfo() {
 
 /* ---------- Layout ---------- */
 
-function navBtn(key, label) {
-  const r = route();
-  const active = r === key || r.startsWith(key + "/") || (key === "quest" && r.startsWith("exercise/")) || (key === "toolbox" && r.startsWith("workbench/"));
-  return `<a href="#/${key}" data-nav="${key}" ${active ? 'class="active" aria-current="page"' : ""}>${label}</a>`;
+const TABS = [
+  { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
+  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review"] },
+  { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report"] },
+  { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench"] },
+];
+
+function activeTab() {
+  const head = route().split("/")[0];
+  const tab = TABS.find((t) => t.owns.includes(head));
+  return tab ? tab.id : "dashboard";
 }
 
-function navHTML() {
-  const li = levelInfo();
-  const dueCount = MTC.dueReviewCards(STATE).length;
-  return `<div class="topnav">
-    <a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> The Thinking Gym</a>
-    <div class="navlinks">
-      ${navBtn("dashboard", "Dashboard")}
-      ${navBtn("gym", "The Gym")}
-      ${navBtn("quest", "Deep Work")}
-      ${navBtn("calibration", "Calibration")}
-      ${navBtn("review", dueCount > 0 ? `Review (${dueCount})` : "Review")}
-      ${navBtn("boss", "Boss Battle")}
-      ${navBtn("journal", "Journal")}
-      ${navBtn("toolbox", "Toolbox")}
-      ${navBtn("frameworks", "Frameworks")}
-      ${navBtn("achievements", "Achievements")}
-    </div>
-    <div class="status-chip">Lv <b>${li.level}</b> &middot; ${esc(li.title)} ${STATE.streak > 0 ? `&middot; &#128293;${STATE.streak}` : ""} ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039;` : ""}</div>
+function tabbarHTML() {
+  const cur = activeTab();
+  return `<nav class="tabbar">${TABS.map((t) => `
+    <a href="#/${t.id}" data-nav="${t.id}" class="${cur === t.id ? "active" : ""}" ${cur === t.id ? 'aria-current="page"' : ""}>
+      <span class="ico">${t.ico}</span>${t.label}
+    </a>`).join("")}</nav>`;
+}
+
+// Screens that are a tab root show the brand; everything else shows a back arrow.
+function appbarHTML(title, backTo) {
+  const streak = STATE.streak > 0
+    ? `<span class="streak-chip">&#128293; ${STATE.streak}</span>`
+    : `<span class="streak-chip dim">&#128293; 0</span>`;
+  if (backTo === null) {
+    return `<div class="appbar"><a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> ${esc(title)}</a>${streak}</div>`;
+  }
+  return `<div class="appbar">
+    <a class="back" href="#/${backTo}" aria-label="Back">&#8249;</a>
+    <div class="title">${esc(title)}</div>${streak}
   </div>`;
 }
 
-function footerHTML() {
-  return `<footer class="foot">
-    Progress is stored in this browser only.
-    &middot; <button data-export-progress>Export progress</button>
-    &middot; <button data-import-progress>Import progress</button>
-    &middot; <button data-reset-progress>Erase all progress</button>
-    <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
-  </footer>`;
+// title + where the back arrow goes, per route (null = tab root, show brand)
+function chromeFor(r) {
+  if (r === "dashboard") return ["The Thinking Gym", null];
+  if (r === "gym") return ["Challenges", null];
+  if (r === "progress") return ["Progress", null];
+  if (r === "profile") return ["Profile", null];
+  if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
+  if (r.startsWith("gym/track/")) return ["Track", "gym"];
+  if (r === "quest") return ["Deep Work", "gym"];
+  if (r.startsWith("exercise/")) return ["Exercise", "quest"];
+  if (r === "boss") return ["Boss Battle", "gym"];
+  if (r === "calibration") return ["Calibration", "gym"];
+  if (r === "review") return ["Review", "gym"];
+  if (r === "journal") return ["Journal", "progress"];
+  if (r === "report") return ["Weekly Report", "progress"];
+  if (r === "achievements") return ["Achievements", "profile"];
+  if (r === "toolbox") return ["Toolbox", "profile"];
+  if (r === "frameworks") return ["Frameworks", "profile"];
+  if (r.startsWith("frameworks/")) return ["Framework", "frameworks"];
+  if (r.startsWith("workbench/")) return ["Workbench", "toolbox"];
+  return ["The Thinking Gym", null];
 }
 
-/* ---------- Onboarding ---------- */
+/* ---------- Onboarding (landing) ---------- */
 
 function onboardingHTML() {
+  const feats = [
+    ["\u{1F9E9}", "Daily challenges", "New thought-provoking challenges every day"],
+    ["\u{1F517}", "Learn by connecting", "Link ideas from different domains and build your mental models"],
+    ["\u{1F4C8}", "Track your growth", "See your progress and become a better thinker over time"],
+  ];
   return `<div class="onboarding">
-    <h1>The Thinking Gym</h1>
-    <p>Train your brain to connect unrelated ideas. Ten minutes a day, played not read. Your progress stays on this device.</p>
+    <div class="logo"><span class="mark">&#9670;</span> The Thinking Gym</div>
+    <h1>Connect ideas.<br><span class="grad">Expand your mind.</span></h1>
+    <p class="lede">Daily challenges that help you see patterns, make connections and think like a creator.</p>
     <form data-onboard-form>
       <input type="text" name="playerName" placeholder="Your name" maxlength="40" autofocus />
-      <div class="field"><button class="btn" type="submit">Start</button></div>
+      <div class="field"><button class="btn block" type="submit">Start Today</button></div>
     </form>
+    <div style="margin-top:32px">
+      ${feats.map(([i, h, p]) => `<div class="feat"><div class="ico">${i}</div><div><h3>${h}</h3><p>${p}</p></div></div>`).join("")}
+    </div>
   </div>`;
 }
 
 /* ---------- Dashboard ---------- */
 
+const TRACK_ICONS = {
+  probabilistic: "\u{1F3B2}", systems: "\u{1F578}\uFE0F", causal: "\u{1F52C}",
+  adversarial: "\u265F\uFE0F", metacognition: "\u{1FA9E}", creative: "\u{1F4A1}",
+};
+const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}" };
+
+function trackIcon(id) { return TRACK_ICONS[id] || "\u{1F9E0}"; }
+
 function dashboardHTML() {
   const li = levelInfo();
-  const gymSession = MTC.gymSession(STATE);
-  const calStats = MTC.calibrationStats(STATE);
-  const dueCount = MTC.dueReviewCards(STATE).length;
+  const session = MTC.gymSession(STATE);
+  const tracks = MTC.gymTrackProgress(STATE);
+  const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
+  const next = session[0];
+
+  return `
+  <div class="stat-strip">
+    <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
+    <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
+    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
+    <h1 style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h1>
+    <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
+    <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} / ${li.xpForNext} XP to level ${li.level + 1}
+      ${STATE.graceShields > 0 ? "&middot; &#128737;&#65039; grace day ready" : ""}</p>
+  </div>
+
+  ${next ? `<a class="card wide" href="#/gym/play/${next.id}">
+    <span class="tag">Today's challenge</span>
+    <div class="challenge-card head" style="background:transparent;padding:0;margin:0">
+      <div class="emoji-badge">${next.emoji || trackIcon(next.track)}</div>
+      <div><h2>${esc(next.title)}</h2><p class="subtle">${esc(MTC_GYM_FORMATS[next.format].tagline)}</p></div>
+    </div>
+    <span class="cta">Start &rarr;</span>
+  </a>` : ""}
+
+  <div class="section-head"><h2>Your tracks</h2><a href="#/gym">View all</a></div>
+  <div class="grid tight">
+    ${tracks.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/track/${t.id}">
+      <div class="ico">${trackIcon(t.id)}</div>
+      <h3>${esc(t.name)}</h3>
+      <div class="meta">${t.mastered}/${t.total} clean</div>
+    </a>`).join("")}
+  </div>
+
+  <div class="section-head"><h2>Keep going</h2></div>
+  <div class="panel">
+    <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">The Gym</span><span class="val">${session.length} queued</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
+  </div>`;
+}
+
+/* ---------- Challenges tab ---------- */
+
+function challengesHTML() {
+  const session = MTC.gymSession(STATE);
+  const tracks = MTC.gymTrackProgress(STATE);
+  const replays = MTC.dueGymReplays(STATE).length;
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const battleState = MTC.getCurrentBossBattle(STATE);
   const battle = MTC.getBossBattleDef(battleState.battleId);
-  const weak = MTC.weaknessProfile(STATE).filter((w) => w.attempts > 0).slice(0, 5);
+  const calStats = MTC.calibrationStats(STATE);
+  const dueCount = MTC.dueReviewCards(STATE).length;
 
   return `
-  <div class="panel">
-    <div class="level-hero">
-      <div class="level-num">${li.level}<sup>lvl</sup></div>
-      <div style="flex:1">
-        <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
-        <h1>${esc(li.title)}</h1>
-        <div class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP to next level</div>
-        <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
-        <div class="subtle" style="margin-top:8px">${STATE.graceShields > 0 ? "&#128737;&#65039; Grace day ready &mdash; one missed day won't break your streak" : "No grace day held &mdash; finish the &#9733; core trio to earn one"}</div>
-      </div>
-    </div>
-  </div>
-
+  <div class="section-head"><h2>Today's session</h2><span class="subtle">${session.length} challenges &middot; ~10 min</span></div>
   <div class="grid">
-    <a class="panel card wide" href="#/gym">
-      <span class="tag">Today's session</span>
-      <h2>The Gym</h2>
-      <p class="subtle">${gymSession.map((c) => esc(c.title)).join(" &middot; ")}</p>
-      <span class="cta">Train &rarr;</span>
-    </a>
-    <a class="panel card" href="#/quest">
-      <span class="tag">Long form</span>
-      <h2>Deep Work</h2>
-      <p class="subtle">${quest.completed.length} / ${quest.items.length} written exercises</p>
-      <span class="cta">Open &rarr;</span>
-    </a>
-    <a class="panel card" href="#/boss">
-      <span class="tag">This week</span>
-      <h2>${battleState.completed ? "Boss Defeated" : "Boss Battle"}</h2>
-      <p class="subtle">${battleState.completed ? "New battle next week." : esc(battle.name)}</p>
-      <span class="cta">${battleState.completed ? "Review" : "Enter"} &rarr;</span>
-    </a>
-    <a class="panel card" href="#/calibration">
-      <span class="tag">Auto-graded</span>
-      <h2>Calibration</h2>
-      <p class="subtle">${calStats.total ? `${calStats.total} answered &middot; ${calStats.accuracy}% right at ${calStats.avgConfidence}% confidence` : "How well do you know what you know?"}</p>
-      <span class="cta">Train &rarr;</span>
-    </a>
-    <a class="panel card" href="#/review">
-      <span class="tag">Memory</span>
-      <h2>Review</h2>
-      <p class="subtle">${dueCount > 0 ? `${dueCount} card${dueCount === 1 ? "" : "s"} ready` : "All caught up"}</p>
-      <span class="cta">Review &rarr;</span>
-    </a>
-    <a class="panel card" href="#/achievements">
-      <span class="tag">Progress</span>
-      <h2>Achievements</h2>
-      <p class="subtle">${STATE.achievements.length} / ${MTC_ACHIEVEMENTS.length} unlocked</p>
-      <span class="cta">View &rarr;</span>
-    </a>
+    ${session.map((c) => {
+      const g = STATE.gym[c.id];
+      const fmt = MTC_GYM_FORMATS[c.format];
+      return `<a class="card" href="#/gym/play/${c.id}">
+        <span class="tag">${FORMAT_ICONS[c.format]} ${esc(fmt.name)}</span>${g ? `<span class="tag core">Replay</span>` : ""}
+        <h2>${esc(c.title)}</h2>
+        <p class="subtle">${esc(fmt.tagline)}${g ? ` &middot; best ${g.bestScore}%` : ""}</p>
+        <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
+      </a>`;
+    }).join("")}
+  </div>
+  ${replays ? `<p class="subtle" style="margin:10px 2px">${replays} challenge${replays === 1 ? " is" : "s are"} due for a replay &mdash; already queued.</p>` : ""}
+
+  <div class="section-head"><h2>Explore tracks</h2></div>
+  <div class="grid tight">
+    ${tracks.map((t, i) => `<a class="tile t${i % 6}" href="#/gym/track/${t.id}">
+      <div class="ico">${trackIcon(t.id)}</div>
+      <h3>${esc(t.name)}</h3>
+      <div class="meta">${t.total} challenges &middot; ${t.mastered} clean</div>
+    </a>`).join("")}
+  </div>
+
+  <div class="section-head"><h2>Other training</h2></div>
+  <div class="panel">
+    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">${quest.completed.length}/${quest.items.length}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/boss"><span class="ico">&#128121;</span><span class="label">Boss Battle</span><span class="val">${battleState.completed ? "done" : esc(battle.name.slice(0, 18))}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/calibration"><span class="ico">&#127919;</span><span class="label">Calibration</span><span class="val">${calStats.total ? calStats.accuracy + "%" : "new"}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/review"><span class="ico">&#128218;</span><span class="label">Review</span><span class="val">${dueCount || "0"} due</span><span class="chev">&#8250;</span></a>
+  </div>`;
+}
+
+/* ---------- Progress tab ---------- */
+
+function progressHTML() {
+  const li = levelInfo();
+  const tracks = MTC.gymTrackProgress(STATE);
+  const weak = MTC.weaknessProfile(STATE).filter((w) => w.attempts > 0).slice(0, 5);
+  const calStats = MTC.calibrationStats(STATE);
+  const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
+
+  return `
+  <div class="stat-strip">
+    <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
+    <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
+    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
   </div>
 
   <div class="panel">
-    <h2>Weakness Radar</h2>
+    <h2>Connection Mastery</h2>
+    <p class="subtle">Level ${li.level} &middot; ${esc(li.title)}</p>
+    <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
+    <p class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP</p>
+  </div>
+
+  <div class="section-head"><h2>Track mastery</h2><a href="#/gym">Train</a></div>
+  <div class="panel">
+    ${tracks.map((t) => `<a class="weak-row" href="#/gym/track/${t.id}">
+      <span class="name">${trackIcon(t.id)} ${esc(t.name)}</span>
+      <div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div>
+      <span class="subtle">${t.mastered}/${t.total}</span>
+    </a>`).join("")}
+  </div>
+
+  <div class="section-head"><h2>Weakness radar</h2></div>
+  <div class="panel">
     ${weak.length === 0
-      ? `<p class="subtle">Complete a few exercises to reveal your weakest frameworks.</p>`
+      ? `<p class="subtle">Complete a few challenges to reveal your weakest thinking tools.</p>`
       : weak.map((w) => `<div class="weak-row"><span class="name">${esc(w.name)}</span><div class="weak-meter"><div class="fill" style="width:${Math.round(w.avg)}%"></div></div><span class="subtle">${Math.round(w.avg)}%</span></div>`).join("")}
   </div>
 
   <div class="panel">
-    <h2>Skill Tracks</h2>
-    ${MTC.gymTrackProgress(STATE).map((t) => `<div class="weak-row"><span class="name">${esc(t.name)}</span><div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div><span class="subtle" style="width:74px">${t.mastered}/${t.total} clean</span></div>`).join("")}
+    <a class="list-row" href="#/report"><span class="ico">&#128197;</span><span class="label">Weekly report</span><span class="val">this vs last</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/journal"><span class="ico">&#128214;</span><span class="label">Journal</span><span class="val">${STATE.history.filter((h) => h.answer).length}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/calibration"><span class="ico">&#127919;</span><span class="label">Calibration</span><span class="val">${calStats.total ? `${calStats.accuracy}% @ ${calStats.avgConfidence}%` : "not started"}</span><span class="chev">&#8250;</span></a>
+  </div>`;
+}
+
+/* ---------- Profile tab ---------- */
+
+function profileHTML() {
+  const li = levelInfo();
+  const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
+  const recent = MTC_ACHIEVEMENTS.filter((a) => STATE.achievements.includes(a.id)).slice(-3).reverse();
+
+  return `
+  <div class="panel">
+    <div class="level-hero">
+      <div class="level-num">${li.level}<sup>LVL</sup></div>
+      <div style="flex:1">
+        <h1 style="font-size:20px">${esc(STATE.name)}</h1>
+        <p class="subtle" style="margin:2px 0 8px">${esc(li.title)}</p>
+        <span class="badge">Level ${li.level}</span>
+      </div>
+    </div>
   </div>
 
-  <div class="grid tight">
-    <a class="panel card" href="#/journal"><h2>Journal</h2><p class="subtle">${STATE.history.length} answer${STATE.history.length === 1 ? "" : "s"}</p><span class="cta">Open &rarr;</span></a>
-    <a class="panel card" href="#/toolbox"><h2>Toolbox</h2><p class="subtle">${MTC_TOOLBOX.length} thinking tools</p><span class="cta">Open &rarr;</span></a>
-    <a class="panel card" href="#/frameworks"><h2>Frameworks</h2><p class="subtle">${MTC_FRAMEWORKS.length} thinking styles</p><span class="cta">Open &rarr;</span></a>
-    <a class="panel card" href="#/report"><h2>Weekly Report</h2><p class="subtle">This week vs last</p><span class="cta">Open &rarr;</span></a>
-  </div>`;
+  <div class="stat-strip">
+    <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
+    <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
+    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
+  </div>
+
+  <div class="section-head"><h2>Achievements</h2><a href="#/achievements">View all</a></div>
+  <div class="panel">
+    ${STATE.achievements.length === 0
+      ? `<p class="subtle">Play your first challenge to start unlocking these.</p>`
+      : recent.map((a) => `<div class="list-row"><span class="ico">&#127942;</span><span class="label">${esc(a.name)}</span><span class="val">+${a.xp}</span></div>`).join("")}
+  </div>
+
+  <div class="section-head"><h2>Library</h2></div>
+  <div class="panel">
+    <a class="list-row" href="#/toolbox"><span class="ico">&#129520;</span><span class="label">Thinking Toolbox</span><span class="val">${MTC_TOOLBOX.length}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/frameworks"><span class="ico">&#128218;</span><span class="label">Frameworks</span><span class="val">${MTC_FRAMEWORKS.length}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/achievements"><span class="ico">&#127941;</span><span class="label">All achievements</span><span class="val">${STATE.achievements.length}/${MTC_ACHIEVEMENTS.length}</span><span class="chev">&#8250;</span></a>
+  </div>
+
+  <div class="section-head"><h2>Settings</h2></div>
+  <div class="panel">
+    <button class="list-row" data-export-progress><span class="ico">&#11015;&#65039;</span><span class="label">Export progress</span><span class="chev">&#8250;</span></button>
+    <button class="list-row" data-import-progress><span class="ico">&#11014;&#65039;</span><span class="label">Import progress</span><span class="chev">&#8250;</span></button>
+    <button class="list-row" data-export-journal><span class="ico">&#128221;</span><span class="label">Export journal (.md)</span><span class="chev">&#8250;</span></button>
+    <button class="list-row danger" data-reset-progress><span class="ico">&#128465;&#65039;</span><span class="label">Erase all progress</span><span class="chev">&#8250;</span></button>
+    <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
+  </div>
+  <p class="subtle" style="text-align:center;margin:14px 0">Everything is stored on this device only.</p>`;
 }
 
 /* ---------- Daily Quest ---------- */
@@ -659,37 +804,6 @@ function workbenchHTML(toolId) {
 
 /* ---------- The Gym ---------- */
 
-function gymHomeHTML() {
-  const session = MTC.gymSession(STATE);
-  const tracks = MTC.gymTrackProgress(STATE);
-  const replays = MTC.dueGymReplays(STATE).length;
-  return `<div class="panel">
-    <h1>The Gym</h1>
-    <p class="subtle">Three challenges, about ten minutes. Everything here is scored against a real answer key &mdash; no self-marking.</p>
-  </div>
-  <div class="grid">
-    ${session.map((c) => {
-      const g = STATE.gym[c.id];
-      const fmt = MTC_GYM_FORMATS[c.format];
-      return `<a class="panel card" href="#/gym/play/${c.id}">
-        <span class="tag">${esc(fmt.name)}</span>${g ? `<span class="tag core">Replay</span>` : ""}
-        <h2>${esc(c.title)}</h2>
-        <p class="subtle">${esc(fmt.tagline)}${g ? ` &middot; best ${g.bestScore}%` : ""}</p>
-        <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
-      </a>`;
-    }).join("")}
-  </div>
-  ${replays ? `<div class="panel"><p class="subtle">${replays} challenge${replays === 1 ? " is" : "s are"} due for a replay &mdash; they're already in today's session queue.</p></div>` : ""}
-  <div class="panel">
-    <h2>Tracks</h2>
-    ${tracks.map((t) => `<a class="weak-row track-row" href="#/gym/track/${t.id}">
-      <span class="name">${esc(t.name)}</span>
-      <div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div>
-      <span class="subtle" style="width:74px">${t.mastered}/${t.total} clean</span>
-    </a>`).join("")}
-  </div>`;
-}
-
 function gymTrackHTML(trackId) {
   const track = MTC_SKILL_TRACKS.find((t) => t.id === trackId);
   if (!track) return `<div class="panel">Track not found. <a class="btn" href="#/gym">The Gym</a></div>`;
@@ -796,15 +910,21 @@ function resultToastHTML(result) {
 function render() {
   const app = document.getElementById("app");
   if (!STATE.name) {
+    document.body.classList.add("landing");
     app.innerHTML = onboardingHTML();
+    const host = document.getElementById("tabbar-host");
+    if (host) host.remove();
     return;
   }
+  document.body.classList.remove("landing");
   const r = route();
   let body;
   if (r === "dashboard") body = dashboardHTML();
+  else if (r === "progress") body = progressHTML();
+  else if (r === "profile") body = profileHTML();
   else if (r === "quest") body = questHTML();
   else if (r.startsWith("exercise/")) body = exerciseHTML(r.split("/")[1]);
-  else if (r === "gym") body = gymHomeHTML();
+  else if (r === "gym") body = challengesHTML();
   else if (r.startsWith("gym/track/")) body = gymTrackHTML(r.split("/")[2]);
   else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
   else if (r === "boss") body = bossHTML();
@@ -819,7 +939,16 @@ function render() {
   else if (r === "achievements") body = achievementsHTML();
   else body = dashboardHTML();
 
-  app.innerHTML = navHTML() + body + footerHTML();
+  const [title, backTo] = chromeFor(r);
+  app.innerHTML = appbarHTML(title, backTo) + body;
+  document.body.insertAdjacentHTML("beforeend", "");
+  let bar = document.getElementById("tabbar-host");
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = "tabbar-host";
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = tabbarHTML();
   if (pendingResult) app.insertAdjacentHTML("beforeend", resultToastHTML(pendingResult));
 }
 

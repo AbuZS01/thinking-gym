@@ -33,7 +33,7 @@ const GYM = (() => {
   function e(s) { return esc(s); }
 
   function init(ch) {
-    const base = { id: ch.id, format: ch.format, result: null, note: "" };
+    const base = { id: ch.id, format: ch.format, result: null, note: "", hintShown: false };
     if (ch.format === "map") {
       const cards = seededShuffle(
         ch.payload.pairs.map((p) => p.match).concat(ch.payload.decoys), ch.id);
@@ -89,7 +89,10 @@ const GYM = (() => {
     return { points: correct * 5, max: ev.length * 5, correct };
   }
 
-  function pct(sc) { return Math.round((sc.points / sc.max) * 100); }
+  function pct(sc) {
+    const raw = (sc.points / sc.max) * 100;
+    return Math.max(0, Math.round(play.hintShown ? raw * 0.85 : raw));
+  }
 
   /* ---------- board renderers ---------- */
 
@@ -119,10 +122,8 @@ const GYM = (() => {
       <p class="subtle">Two of these belong nowhere.</p>
       <div class="gcards">${cards}</div>
     </div>
-    <div class="panel">
-      <button class="btn" data-gym-check ${ready ? "" : "disabled"}>Check my mapping</button>
-      ${ready ? "" : `<p class="subtle">Fill every slot to check.</p>`}
-    </div>`;
+    ${ideasHTML()}
+    ${actionRowHTML("Check my mapping", ready)}`;
   }
 
   function mapMisleadsHTML(ch) {
@@ -133,8 +134,8 @@ const GYM = (() => {
       <p class="subtle">Select every answer that applies.</p>
       ${m.options.map((o, i) =>
         `<button class="opt ${play.misleads.includes(i) ? "picked" : ""}" data-gym-mislead="${i}">${e(o)}</button>`).join("")}
-      <div class="field"><button class="btn" data-gym-check ${play.misleads.length ? "" : "disabled"}>Finish</button></div>
-    </div>`;
+    </div>
+    ${actionRowHTML("Finish", play.misleads.length > 0)}`;
   }
 
   function flawHTML(ch) {
@@ -149,14 +150,17 @@ const GYM = (() => {
           return `<button class="sentence ${isWrong ? "wrong" : ""}" data-gym-sentence="${i}">${e(s)}</button>`;
         }).join("")}
         ${wrongPick ? `<p class="subtle nudge">Not that one &mdash; that sentence is just reporting what was found. Look for where a conclusion outruns the evidence. Try again (half marks now).</p>` : ""}
-      </div>`;
+      </div>
+      ${ideasHTML()}
+      ${hintRowHTML()}`;
     }
     return `<div class="panel">
       <h2>Name the error</h2>
       <p class="subtle">You found it: <i>${e(p.argument[p.flawIdx])}</i></p>
       ${p.flawOptions.map((o, i) =>
         `<button class="opt" data-gym-flaw="${i}">${e(o)}</button>`).join("")}
-    </div>`;
+    </div>
+    ${hintRowHTML()}`;
   }
 
   function chainHTML(ch) {
@@ -180,10 +184,8 @@ const GYM = (() => {
       <p class="subtle">One of these does not belong in the chain at all &mdash; leave it out.</p>
       <div class="gcards">${remaining || `<p class="subtle">All placed.</p>`}</div>
     </div>
-    <div class="panel">
-      <button class="btn" data-gym-check ${ready ? "" : "disabled"}>Check my chain</button>
-      ${ready ? "" : `<p class="subtle">Place ${p.steps.length} cards to check.</p>`}
-    </div>`;
+    ${ideasHTML()}
+    ${actionRowHTML("Check my chain", ready)}`;
   }
 
   function signalHTML(ch) {
@@ -191,7 +193,7 @@ const GYM = (() => {
     const cards = p.evidence.map((x, i) => {
       const b = play.assign[i];
       const sel = play.selectedCard === i;
-      return `<button class="gcard ${b ? "filed b-" + b : ""} ${sel ? "selected" : ""}" data-gym-evidence="${i}">
+      return `<button class="gcard ${b ? "b-" + b : ""} ${sel ? "selected" : ""}" data-gym-evidence="${i}">
         ${e(x.text)}${b ? `<span class="bucket-tag">${b}</span>` : ""}
       </button>`;
     }).join("");
@@ -210,10 +212,35 @@ const GYM = (() => {
       <button class="btn secondary" data-gym-bucket="undermines" ${play.selectedCard === null ? "disabled" : ""}>Undermines</button>
       <button class="btn secondary" data-gym-bucket="irrelevant" ${play.selectedCard === null ? "disabled" : ""}>Neither</button>
     </div>
-    <div class="panel">
-      <button class="btn" data-gym-check ${ready ? "" : "disabled"}>Check my sorting</button>
-      ${ready ? "" : `<p class="subtle">File every card to check.</p>`}
+    ${ideasHTML()}
+    ${actionRowHTML("Check my sorting", ready)}`;
+  }
+
+  // the reference's free-text box: optional, never graded, saved to the journal
+  function ideasHTML() {
+    return `<div class="panel">
+      <h2>Your thinking <span class="subtle">(optional, +5 XP)</span></h2>
+      <textarea id="gym-note" placeholder="Type your ideas here...">${e(play.note)}</textarea>
     </div>`;
+  }
+
+  function hintRowHTML() {
+    const ch = current();
+    if (!ch.hint) return "";
+    return play.hintShown
+      ? `<div class="hint-box">${e(ch.hint)}</div>`
+      : `<div class="field"><button class="btn ghost" data-gym-hint>&#128161; Hint (costs 15%)</button></div>`;
+  }
+
+  function actionRowHTML(label, ready) {
+    const ch = current();
+    const hint = ch.hint && !play.hintShown
+      ? `<button class="btn secondary" data-gym-hint>&#128161; Hint</button>`
+      : "";
+    return `${play.hintShown && ch.hint ? `<div class="hint-box">${e(ch.hint)}</div>` : ""}
+      <div class="action-row">${hint}
+        <button class="btn" data-gym-check ${ready ? "" : "disabled"}>${label}</button>
+      </div>`;
   }
 
   /* ---------- result ---------- */
@@ -275,28 +302,40 @@ const GYM = (() => {
   function resultHTML(ch) {
     const sc = play.result;
     const p = pct(sc);
+    const tone = p >= 80 ? "" : p >= 50 ? " mid" : " low";
+    // "Great connection!" only makes sense for Map It; the other three formats get
+    // top marks for spotting, ordering and sorting, not for connecting.
+    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!" };
+    const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
+      : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
+    const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
     return `<div class="panel">
-      <div class="score-hero">
-        <div class="score-num">${p}<span>%</span></div>
+      <div class="result-hero">
+        <div class="tick${tone}">${p >= 50 ? "&#10003;" : "!"}</div>
         <div>
-          <h1>${p >= 90 ? "Clean" : p >= 70 ? "Solid" : p >= 40 ? "Rough" : "Rebuild that"}</h1>
-          <p class="subtle">${sc.points} of ${sc.max} points</p>
+          <h1>${headline}</h1>
+          <p class="subtle">You earned <b>${sc.points}</b> of ${sc.max} points &middot; <span class="score-num">${p}<span>%</span></span></p>
         </div>
       </div>
+      ${play.hintShown ? `<p class="subtle nudge">Hint used &mdash; 15% off this score.</p>` : ""}
     </div>
     <div class="panel">
       <h2>What you did</h2>
       ${reviewHTML(ch, sc)}
     </div>
     <div class="panel">
-      <div class="model-answer"><div class="lbl">The principle</div>${e(ch.debrief.principle)}</div>
-      <div class="model-answer"><div class="lbl">Where it misleads</div>${e(ch.debrief.whereItMisleads)}</div>
+      <div class="info-panel green"><div class="lbl">The principle</div>${e(ch.debrief.principle)}</div>
+      <div class="info-panel purple"><div class="lbl">Where it misleads</div>${e(ch.debrief.whereItMisleads)}</div>
     </div>
     <div class="panel">
-      <h2>Anything to add? <span class="subtle">(optional, +5 XP)</span></h2>
-      <p class="subtle">Not graded &mdash; saved to your journal.</p>
-      <textarea id="gym-note" placeholder="What you spotted, or what you'd do differently.">${e(play.note)}</textarea>
-      <div class="field"><button class="btn" data-gym-save="${ch.id}">Bank it${play.note.trim() ? " (+5)" : ""}</button></div>
+      <h2>Your thinking <span class="subtle">(optional, +5 XP)</span></h2>
+      <p class="subtle">Never graded &mdash; saved to your journal.</p>
+      <textarea id="gym-note" placeholder="Type your ideas here...">${e(play.note)}</textarea>
+    </div>
+    <div class="field">
+      <button class="btn block" data-gym-save="${ch.id}" data-gym-next="${nextCh ? nextCh.id : ""}">
+        ${nextCh ? "Bank it &amp; next challenge" : "Bank it"}${play.note.trim() ? " (+5)" : ""}
+      </button>
     </div>`;
   }
 
@@ -307,13 +346,24 @@ const GYM = (() => {
     if (!ch) return `<div class="panel">Challenge not found. <a class="btn" href="#/gym">Back to the Gym</a></div>`;
     if (!play || play.id !== challengeId) play = init(ch);
     const fmt = MTC_GYM_FORMATS[ch.format];
-    const header = `<div class="panel">
-      <a class="crumb" href="#/gym">&larr; The Gym</a>
-      <div><span class="pill">${e(fmt.name)}</span><span class="pill">${e((MTC_SKILL_TRACKS.find((t) => t.id === ch.track) || {}).name || ch.track)}</span></div>
-      <h1>${e(ch.title)}</h1>
-      <p>${e(ch.scenario)}</p>
-      ${play.result ? "" : `<p class="subtle">${e(fmt.how)}</p>`}
-    </div>`;
+    const track = MTC_SKILL_TRACKS.find((t) => t.id === ch.track) || {};
+    const session = MTC.gymSession(STATE);
+    const idx = session.findIndex((c) => c.id === ch.id);
+    const progress = idx >= 0
+      ? `<div class="play-progress">
+          <div class="row"><span>${e(fmt.name)}</span><span>${idx + 1} of ${session.length}</span></div>
+          <div class="progress"><div class="fill" style="width:${Math.round(((idx + (play.result ? 1 : 0)) / session.length) * 100)}%"></div></div>
+        </div>` : "";
+    const header = `${progress}
+      <div class="challenge-card">
+        <span class="label">Challenge</span>
+        <div class="head">
+          <div class="emoji-badge">${ch.emoji || (typeof trackIcon === "function" ? trackIcon(ch.track) : "\u{1F9E0}")}</div>
+          <div><h1>${e(ch.title)}</h1><p class="subtle">${e(track.name || ch.track)}</p></div>
+        </div>
+        <p>${e(ch.scenario)}</p>
+        ${play.result ? "" : `<p class="subtle" style="margin-top:10px">${e(fmt.how)}</p>`}
+      </div>`;
 
     if (play.result) return header + resultHTML(ch);
     if (ch.format === "map") return header + (play.stage === "board" ? mapBoardHTML(ch) : mapMisleadsHTML(ch));
@@ -396,12 +446,15 @@ const GYM = (() => {
       return true;
     }
 
+    if (hit("data-gym-hint")) { play.hintShown = true; return true; }
+
     const save = hit("data-gym-save");
     if (save) {
       const res = MTC.submitGymChallenge(STATE, save.dataset.gymSave, pct(play.result), play.note);
       pendingResult = res;
+      const nextId = save.dataset.gymNext;
       play = null;
-      navigate("gym");
+      navigate(nextId ? "gym/play/" + nextId : "gym");
       return true;
     }
     return false;

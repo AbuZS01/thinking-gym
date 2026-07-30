@@ -550,19 +550,47 @@ const MTC = (() => {
     return MTC_GYM_CHALLENGES.filter((c) => c.track === trackId);
   }
 
-  // Today's session: prefer never-played, then whatever is due for a replay,
-  // then the lowest best-score. Deterministic given state, so a refresh mid
-  // session doesn't reshuffle the queue.
+  // Today's session: due replays first, then never-played, then weakest scores.
+  // Ties break on a date-seeded key so the trio is stable through the day but
+  // differs day to day, and formats are kept varied so you never get three of
+  // the same game in a row.
   function gymSession(state, size = 3) {
     const today = todayStr();
-    const scored = MTC_GYM_CHALLENGES.map((c) => {
+    // FNV-1a, but with the date FIRST and a final avalanche. Both matter: hashing
+    // "id" + "date" puts the only varying bytes last, where they shift the high
+    // bits too little to reorder the sort — which froze the daily pick to the same
+    // handful of challenges for days at a time.
+    const seed = (s) => {
+      let h = 2166136261;
+      const str = today + "|" + s;
+      for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+      h ^= h >>> 16; h = Math.imul(h, 2246822507);
+      h ^= h >>> 13; h = Math.imul(h, 3266489909);
+      h ^= h >>> 16;
+      return (h >>> 0) / 4294967295;
+    };
+    const ranked = MTC_GYM_CHALLENGES.map((c) => {
       const g = state.gym[c.id];
-      if (!g) return { c, rank: 0, tie: c.id };
-      const due = g.due && g.due <= today;
-      return { c, rank: due ? 1 : 2, tie: (g.bestScore || 0) + "" + c.id };
-    });
-    scored.sort((a, b) => a.rank - b.rank || (a.tie < b.tie ? -1 : 1));
-    return scored.slice(0, size).map((s) => s.c);
+      let rank;
+      if (g && g.due && g.due <= today) rank = 0;      // due for replay
+      else if (!g) rank = 1;                            // never played
+      else rank = 2 + g.bestScore / 100;                // weakest first
+      return { c, rank, key: seed(c.id) };
+    }).sort((a, b) => a.rank - b.rank || a.key - b.key);
+
+    const picked = [];
+    const formats = new Set();
+    for (const r of ranked) {
+      if (picked.length >= size) break;
+      if (formats.has(r.c.format)) continue;
+      picked.push(r.c);
+      formats.add(r.c.format);
+    }
+    for (const r of ranked) {                            // top up if formats ran out
+      if (picked.length >= size) break;
+      if (!picked.includes(r.c)) picked.push(r.c);
+    }
+    return picked;
   }
 
   function gymTrackProgress(state) {
