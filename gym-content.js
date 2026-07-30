@@ -1185,4 +1185,513 @@ const MTC_GYM_CHALLENGES = [
       whereItMisleads: "The 12% and the £250 are estimates, presented with the same confidence as the £90 price — which is a real number. Precise-looking arithmetic on soft inputs can make a decision feel settled when the inputs are the actual uncertainty.",
     },
   },
+  {
+    id: "gym-workout-3", format: "workout", track: "metacognition", difficulty: 2, xpBase: 50,
+    title: "The Valid-Sounding Syllogism",
+    scenario: "From a startup advice column: “All successful startups moved fast. This startup moved fast. Therefore this startup will be successful.”",
+    frameworks: ["deductive-reasoning", "critical-thinking", "survivorship-bias"],
+    emoji: "🏃",
+    hint: "Strip the words out and write the shape: All A are B, this is B, therefore this is A. Then ask whether that shape is ever reliable.",
+    payload: {
+      problem: "Work out whether the argument is logically valid — separately from whether its conclusion happens to come true.",
+      steps: [
+        {
+          ask: "What is the form of the argument?",
+          options: [
+            "All A are B; this is B; therefore this is A",
+            "All A are B; this is A; therefore this is B",
+            "If A then B; not B; therefore not A",
+            "Some A are B; this is A; therefore this is B",
+          ],
+          answer: 0,
+          because: "“Moved fast” is the shared property B, and “successful” is A. The argument observes B and concludes A — the reverse of the direction the premise licenses.",
+        },
+        {
+          ask: "Is that form valid?",
+          options: [
+            "No — it is affirming the consequent",
+            "Yes — it follows the same shape as a valid syllogism",
+            "Only if the first premise was established by a large enough study",
+            "It cannot be assessed without knowing the startup",
+          ],
+          answer: 0,
+          because: "Valid would be: all A are B, this is A, so this is B. Going from B back to A is the classic invalid step, whatever the subject matter.",
+        },
+        {
+          ask: "What concretely goes wrong?",
+          options: [
+            "Plenty of failed startups also moved fast, so moving fast cannot imply success",
+            "Not every successful startup actually moved fast",
+            "“Moving fast” is too vague a phrase to reason about",
+            "Nothing goes wrong; the conclusion is probably true anyway",
+          ],
+          answer: 0,
+          because: "The premise only says the successes all share the trait. It says nothing about how many failures share it — and if most failures moved fast too, the trait carries no information about outcome.",
+        },
+        {
+          ask: "Suppose this startup does go on to succeed. Was the argument valid?",
+          options: [
+            "Still invalid — validity is about the form, not whether the conclusion turns out true",
+            "Yes — a correct conclusion shows the reasoning worked",
+            "Partly — it becomes valid once the outcome is known",
+            "The question cannot be answered until more startups are observed",
+          ],
+          answer: 0,
+          because: "An invalid argument can reach a true conclusion by luck. Being right is not the same as having reasoned correctly, and conflating them is how bad reasoning survives.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Validity is a property of the shape of an argument, not of its conclusion. A necessary condition is not a sufficient one: every success sharing a trait tells you nothing until you know how many failures shared it too.",
+      whereItMisleads: "This exact fallacy powers most “habits of successful people” advice. The fix is a single question — how many people did this and failed? — and it is almost never in the article.",
+    },
+  },
+  {
+    id: "gym-workout-4", format: "workout", track: "probabilistic", difficulty: 3, xpBase: 50,
+    title: "Three Doors",
+    scenario: "A game show has three doors: one hides a prize, two are empty. You pick door 1. The host, who knows what is behind every door, opens door 3 to show it empty, then offers you the chance to switch to door 2.",
+    frameworks: ["probabilistic-thinking", "bayesian-thinking", "counterfactual-thinking"],
+    emoji: "🚪",
+    hint: "Do not start at the end. Start with the chance your very first pick was right, before the host did anything — and notice that the host could always have opened an empty door.",
+    payload: {
+      problem: "Work out whether you should switch, and what the host's action actually told you.",
+      steps: [
+        {
+          ask: "Before the host does anything, what is the chance your first pick is right?",
+          options: ["1 in 3", "1 in 2", "2 in 3", "It cannot be determined"],
+          answer: 0,
+          because: "Three doors, one prize, no information — your pick is right one time in three.",
+        },
+        {
+          ask: "So what is the chance the prize is behind one of the two doors you did NOT pick?",
+          options: ["2 in 3", "1 in 3", "1 in 2", "It depends which door you picked"],
+          answer: 0,
+          because: "The chances have to add to one. If your door holds 1/3, the other two hold 2/3 between them.",
+        },
+        {
+          ask: "The host opens an empty door. Does that raise the chance your original door is right?",
+          options: [
+            "No — he could always open an empty door, so doing so says nothing about your door",
+            "Yes — with one door gone it becomes a straight 50/50",
+            "Yes — eliminating an option always improves the remaining odds equally",
+            "Only if he chose which door to open at random",
+          ],
+          answer: 0,
+          because: "An action that was guaranteed to be possible carries no information. He was never going to reveal the prize, so his opening an empty door was certain from the start.",
+        },
+        {
+          ask: "So where has the 2 in 3 ended up?",
+          options: [
+            "Entirely on door 2 — the unopened door you did not pick, so switch",
+            "Split evenly between doors 1 and 2, so it makes no difference",
+            "On door 1, because your original reasoning is now confirmed",
+            "Nowhere — probability does not survive the host's intervention",
+          ],
+          answer: 0,
+          because: "The 2/3 was spread across doors 2 and 3. Door 3 is now known empty, so the whole 2/3 concentrates on door 2. Switching wins two times in three.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "What an action reveals depends on what else it could have done. The host's reveal is uninformative about your door precisely because it was guaranteed — and that guarantee is what funnels the remaining probability onto one door.",
+      whereItMisleads: "Change the host and the answer changes. If he opened a door at random and happened to miss the prize, it really is 50/50. The puzzle is about the rule the host follows, not the door count — so always ask what the informant was obliged to do.",
+    },
+  },
+  {
+    id: "gym-workout-5", format: "workout", track: "metacognition", difficulty: 3, xpBase: 50,
+    title: "Four Cards, Then Four Drinkers",
+    scenario: "Four cards lie on a table showing 3, 8, red and blue. Each has a number on one side and a colour on the other. The rule: if a card shows an even number, its other side is red.",
+    frameworks: ["deductive-reasoning", "cognitive-bias-detection", "critical-thinking"],
+    emoji: "🃏",
+    hint: "You are testing whether the rule can be BROKEN, not whether it can be confirmed. For each card ask: could turning this one reveal a violation?",
+    payload: {
+      problem: "Work out which cards must be turned, then do the same task in a different costume and notice what changes.",
+      steps: [
+        {
+          ask: "Which cards must you turn to test the rule, and no others?",
+          options: [
+            "8 and blue",
+            "8 and red",
+            "8, red and blue",
+            "3 and 8",
+          ],
+          answer: 0,
+          because: "8 is even, so its back must be red. Blue's back must not be even. Those are the only two cards whose hidden face could break the rule.",
+        },
+        {
+          ask: "Why is turning “red” not worth doing?",
+          options: [
+            "The rule constrains what is behind even numbers, not what is behind red — any number is allowed there",
+            "Red already satisfies the rule, so it confirms it",
+            "Red could break the rule, but 8 already tests the same thing",
+            "It is worth turning; the rule works in both directions",
+          ],
+          answer: 0,
+          because: "“Even implies red” says nothing about what may sit behind a red face. An odd number behind red breaks no rule — which is exactly why the card is uninformative.",
+        },
+        {
+          ask: "Now the same logic in a bar: someone drinking beer, someone drinking cola, a 17-year-old and a 23-year-old. The rule is that drinking alcohol requires being over 18. Whom must you check?",
+          options: [
+            "The beer drinker's age and the 17-year-old's drink",
+            "The beer drinker's age and the 23-year-old's drink",
+            "The 17-year-old's drink and the cola drinker's age",
+            "All four, since any of them could be breaking the rule",
+          ],
+          answer: 0,
+          because: "Structurally identical to the cards: beer is the “even number” and being under 18 is the “not red”. The 23-year-old may drink anything and the cola drinker may be any age.",
+        },
+        {
+          ask: "Most people find the bar version easy and the card version hard. What does that show?",
+          options: [
+            "The mind hunts rule-breakers readily when the frame is social, and drifts to seeking confirmation when it is abstract",
+            "The bar version is logically simpler than the card version",
+            "People reason better about numbers than about ages",
+            "Nothing — the two tasks are unrelated",
+          ],
+          answer: 0,
+          because: "The logic is identical, so the difficulty cannot come from the logic. Framed as catching cheats, looking for violations is effortless; framed abstractly, people reach for cards that would confirm the rule instead.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Testing a rule means hunting for what would break it, not what would fit it. In the abstract that instinct deserts most people — which is why translating a claim into “who would be cheating?” is a genuine reasoning technique, not a gimmick.",
+      whereItMisleads: "The social framing that rescues you here can also mislead: it makes you excellent at spotting violations and no better at noticing whether the rule was worth having. Confirmation bias is not cured by the costume, only bypassed.",
+    },
+  },
+  {
+    id: "gym-workout-6", format: "workout", track: "adversarial", difficulty: 3, xpBase: 50,
+    title: "Two Guards, Two Doors",
+    scenario: "Two doors: one leads to freedom, one to a trap. Two guards: one always lies, one always tells the truth — and you cannot tell which is which. You may ask one guard one question.",
+    frameworks: ["deductive-reasoning", "red-team-thinking", "critical-thinking"],
+    emoji: "🚧",
+    hint: "You cannot find out who is honest, and you do not need to. Build a question whose answer passes through the unknown distortion an odd number of times.",
+    payload: {
+      problem: "Work out a single question that identifies the freedom door whichever guard you happen to ask.",
+      steps: [
+        {
+          ask: "Why does simply asking “which door leads to freedom?” fail?",
+          options: [
+            "The answer may or may not be inverted, and you cannot tell which",
+            "Neither guard knows which door leads to freedom",
+            "The guards are not obliged to answer at all",
+            "It works two times in three, which is not a guarantee",
+          ],
+          answer: 0,
+          because: "You get a pointer through a channel of unknown polarity. It is either right or exactly wrong, and nothing in the answer tells you which.",
+        },
+        {
+          ask: "Which question removes the problem?",
+          options: [
+            "“If I asked the other guard which door leads to freedom, which would they point to?”",
+            "“Are you the guard who tells the truth?”",
+            "“Does the left door lead to freedom, yes or no?”",
+            "“Would you both agree that the left door leads to freedom?”",
+          ],
+          answer: 0,
+          because: "It routes the answer through both guards, so exactly one inversion always occurs. Asking a guard about themselves fails — both answer “yes”.",
+        },
+        {
+          ask: "Work it through. Whichever guard you happened to ask, what does the answer point to?",
+          options: [
+            "The trap, reliably — one truth and one lie compose to exactly one inversion",
+            "Freedom, reliably — the two inversions cancel out",
+            "The trap if you asked the liar, freedom if you asked the truth-teller",
+            "It is unpredictable, which is why the question is useless",
+          ],
+          answer: 0,
+          because: "Ask the truth-teller and they honestly report the liar's false pointer. Ask the liar and they lie about the truth-teller's correct pointer. Both routes invert once.",
+        },
+        {
+          ask: "So what do you do?",
+          options: [
+            "Walk through the other door",
+            "Walk through the door indicated",
+            "Ask the second guard the same question to confirm",
+            "Pick either door; the question has not helped",
+          ],
+          answer: 0,
+          because: "The answer is dependably wrong, and a dependably wrong signal is exactly as useful as a dependably right one — you just invert it.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "When a channel has unknown polarity, stop trying to determine the polarity and build a query that passes through it an odd number of times. A reliably inverted answer is as good as a reliably true one.",
+      whereItMisleads: "It needs the distortion to be perfectly consistent. A guard who lies most of the time, or misunderstands, or refuses, breaks the composition entirely — and real informants are far more often unreliable than they are perfectly inverted.",
+    },
+  },
+  {
+    id: "gym-workout-7", format: "workout", track: "probabilistic", difficulty: 3, xpBase: 50,
+    title: "The Night Taxi",
+    scenario: "In this city 85% of taxis are Green and 15% are Blue. A taxi is involved in a night-time hit-and-run. A witness says it was Blue, and testing shows this witness identifies taxi colours correctly at night 80% of the time.",
+    frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
+    emoji: "🚕",
+    hint: "Do not reason in percentages — take 100 taxis and count actual cabs. Count the true Blue calls and the false Blue calls separately, then compare them.",
+    payload: {
+      problem: "Work out the probability that the taxi really was Blue, given the witness said Blue.",
+      steps: [
+        {
+          ask: "Take 100 taxis. How many are Blue?",
+          options: ["15", "80", "85", "20"],
+          answer: 0,
+          because: "15% of 100 is 15 Blue cabs and 85 Green ones. Starting from the base rate is the whole move.",
+        },
+        {
+          ask: "Of those 15 Blue taxis, how many does the witness correctly call Blue?",
+          options: ["12", "15", "3", "8"],
+          answer: 0,
+          because: "80% of 15 = 12 correct Blue calls. The other 3 Blue cabs get called Green.",
+        },
+        {
+          ask: "Of the 85 Green taxis, how many does the witness wrongly call Blue?",
+          options: ["17", "68", "20", "12"],
+          answer: 0,
+          because: "The witness errs 20% of the time, and 20% of 85 = 17. These are false Blue calls — and there are more of them than true ones.",
+        },
+        {
+          ask: "So given a “Blue” report, what is the chance the taxi really was Blue?",
+          options: ["About 41%", "About 80%", "About 15%", "About 59%"],
+          answer: 0,
+          because: "12 true Blue calls out of 12 + 17 = 29 total Blue calls, which is 41%. The witness is genuinely reliable and still probably wrong, because Green cabs are so much more common.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Evidence quality and prior rarity have to be combined, never chosen between. A reliable witness to a rare event is routinely, mathematically, probably wrong — because the common category generates more errors than the rare one generates hits.",
+      whereItMisleads: "The 80% is the number that sticks, and it is the wrong anchor. Notice too that the answer moved from 15% to 41% — the witness was informative, just nowhere near decisive. “Probably wrong” is not the same as “worthless”.",
+    },
+  },
+  {
+    id: "gym-workout-8", format: "workout", track: "causal", difficulty: 2, xpBase: 50,
+    title: "The Missing Pound",
+    scenario: "Three guests pay £30 for a room, £10 each. The manager realises it should have been £25 and sends £5 back with the porter, who pockets £2 and returns £1 to each guest. So the guests paid £9 each, which is £27, plus the porter's £2 makes £29. Where is the missing pound?",
+    frameworks: ["analytical-thinking", "critical-thinking", "deductive-reasoning"],
+    emoji: "🧾",
+    hint: "The puzzle performs an invalid addition for you, confidently, and then asks you to explain its result. Check whether those two numbers belong on the same side of the ledger before you accept the £29.",
+    payload: {
+      problem: "Work out where the pound went — or establish that the question is malformed.",
+      steps: [
+        {
+          ask: "After the refunds, what did the guests actually pay in total?",
+          options: ["£27", "£29", "£30", "£25"],
+          answer: 0,
+          because: "£10 each less £1 back is £9 each, so £27 left their pockets. That is the only figure the phrase “the guests paid” can mean.",
+        },
+        {
+          ask: "Where did that £27 go?",
+          options: [
+            "£25 to the hotel and £2 to the porter",
+            "£25 to the hotel and £2 still owed to the guests",
+            "£27 to the hotel, with the porter's £2 coming from elsewhere",
+            "£29 to the hotel and porter, less £2 unaccounted for",
+          ],
+          answer: 0,
+          because: "£25 + £2 = £27 exactly. The money is fully accounted for; nothing has gone anywhere unexplained.",
+        },
+        {
+          ask: "The puzzle adds the guests' £27 to the porter's £2 to reach £29. What is wrong with that sum?",
+          options: [
+            "It double-counts the porter's £2, which is already inside the £27",
+            "It should have added the £3 of refunds instead of the £2",
+            "It uses £27 when the correct figure is £28",
+            "Nothing is wrong; the £29 is correct and a pound really is missing",
+          ],
+          answer: 0,
+          because: "£27 is money paid out; £2 is part of where that money landed. Adding a total to one of its own components produces a number that means nothing — and £29 was never supposed to equal anything.",
+        },
+        {
+          ask: "So how much is missing?",
+          options: [
+            "Nothing — £27 paid plus £3 refunded is the original £30",
+            "£1, which the porter miscounted",
+            "£1, which the hotel retained in error",
+            "It cannot be determined from the information given",
+          ],
+          answer: 0,
+          because: "The books balance both ways: £27 = £25 + £2, and £27 + £3 = £30. The missing pound is an artefact of the question, not of the transaction.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Before explaining a discrepancy, check that the discrepancy is real. Here the puzzle hands you a pre-computed comparison and asks only for your conclusion — and the comparison adds a total to one of its own parts.",
+      whereItMisleads: "The everyday version is any analysis that arrives with the arithmetic already done: a chart, a ratio, a headline figure. The question to ask is not “why is this number odd?” but “is this number supposed to mean anything?”",
+    },
+  },
+  {
+    id: "gym-workout-9", format: "workout", track: "probabilistic", difficulty: 2, xpBase: 50,
+    title: "Two Job Offers",
+    scenario: "Offer A: a stable role at £90,000, near-certain. Offer B: a startup role at £70,000 base plus equity — most likely worth nothing, but with roughly a 15% chance of being worth about £400,000 over four years.",
+    frameworks: ["decision-theory", "expected-value", "risk-assessment"],
+    emoji: "💼",
+    hint: "Put the equity on the same annual footing as the salaries before comparing anything. Then ask what the expected value is quietly assuming about your finances.",
+    payload: {
+      problem: "Work out which offer is better on expected value, then work out whether expected value should decide it.",
+      steps: [
+        {
+          ask: "What is the equity worth per year, in expected value?",
+          options: ["£15,000", "£60,000", "£400,000", "£100,000"],
+          answer: 0,
+          because: "0.15 × £400,000 = £60,000 expected in total, spread over four years = £15,000 a year. Both the probability and the time horizon have to be applied.",
+        },
+        {
+          ask: "So how does B's expected annual total compare with A's £90,000?",
+          options: [
+            "About £85,000 — slightly below A",
+            "About £130,000 — well above A",
+            "About £70,000 — far below A",
+            "Exactly equal, so the choice is arbitrary",
+          ],
+          answer: 0,
+          because: "£70,000 + £15,000 = £85,000. Close enough to A that the expected value is not really deciding anything.",
+        },
+        {
+          ask: "The two are close. What should actually settle it?",
+          options: [
+            "Whether you can absorb the 85%-likely outcome of £70,000",
+            "Whether the startup's founders seem impressive",
+            "Which number is larger once you recompute more precisely",
+            "How much you would regret missing the upside",
+          ],
+          answer: 0,
+          because: "You will live one branch, not the average, and the overwhelmingly likely branch is £70,000. Whether that branch is comfortable or ruinous is the real question.",
+        },
+        {
+          ask: "So who should take Offer B?",
+          options: [
+            "Someone with enough savings to live the likely £70,000 outcome without strain",
+            "Anyone, since the expected values are close",
+            "Someone who needs the higher income immediately",
+            "Nobody — A dominates on expected value",
+          ],
+          answer: 0,
+          because: "A lottery ticket is only rational if you can afford the ticket. The equity is worth taking when the likely outcome is survivable, not when the average looks acceptable.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Building the tree does not remove the judgement — it makes the trade-off explicit instead of hiding it inside a gut feeling. Two options with near-identical expected values can still be very different bets, and what separates them is the shape of the distribution, not its mean.",
+      whereItMisleads: "The 15% and the £400,000 are guesses dressed as data, and the £90,000 is a fact. Beware any comparison that puts an estimate and a certainty in the same column without saying so.",
+    },
+  },
+  {
+    id: "gym-workout-10", format: "workout", track: "systems", difficulty: 2, xpBase: 50,
+    title: "Build or Buy",
+    scenario: "Your startup needs internal analytics. Building it in-house takes roughly three engineer-months and gives full control. Buying costs £30,000 a year, works next week, and is less flexible.",
+    frameworks: ["opportunity-cost", "systems-thinking", "strategic-thinking"],
+    emoji: "🔧",
+    hint: "Both price tags are incomplete. Ask what each option keeps costing you after the first month, and which resource you actually have least of.",
+    payload: {
+      problem: "Work out the real comparison, then work out what should tip it.",
+      steps: [
+        {
+          ask: "What does the “three engineer-months” figure leave out?",
+          options: [
+            "Permanent maintenance, plus the product work those three months displace",
+            "The cost of hiring the engineers in the first place",
+            "The licences the in-house tool will still need",
+            "Nothing significant — it is a fair estimate of the work",
+          ],
+          answer: 0,
+          because: "Building is not a one-off payment. Someone owns that tool forever, and the three months came out of the roadmap — which is the larger and less visible cost.",
+        },
+        {
+          ask: "What does the £30,000 leave out?",
+          options: [
+            "Lock-in, and inflexibility on the cases the vendor did not anticipate",
+            "The cost of the engineers who will integrate it",
+            "Nothing — a subscription price is a complete figure",
+            "The risk that the price rises with inflation",
+          ],
+          answer: 0,
+          because: "You inherit someone else's model of the problem. That is usually a bargain, and occasionally a wall you cannot get through at any price.",
+        },
+        {
+          ask: "Which resource is actually scarcest here?",
+          options: [
+            "Engineering attention — what your team is not thinking about",
+            "Cash, since £30,000 a year compounds",
+            "Time to launch, since buying is available next week",
+            "Control over the data model",
+          ],
+          answer: 0,
+          because: "Money can be raised and deadlines can move. Focus cannot be bought, and the invoice for spending it on plumbing never arrives in a form anyone reviews.",
+        },
+        {
+          ask: "So when should you build?",
+          options: [
+            "Only when analytics is something your customers actually choose you for",
+            "Whenever the three-month estimate is cheaper than a year of licence fees",
+            "Whenever the team has spare capacity that quarter",
+            "Always — control over your own data is worth the cost",
+          ],
+          answer: 0,
+          because: "Build what differentiates you, buy what merely has to work. If nobody picks you because of your analytics, building it spends your scarcest resource on something invisible to the market.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "In build-versus-buy the engineer time is almost never the scarce resource — focus is. The comparison that matters is not price against price but what each option keeps costing after launch, and whether the thing is something customers choose you for.",
+      whereItMisleads: "The rule inverts once the bought thing becomes core. Plenty of companies correctly bought a tool early and were correctly strangled by it later, so the decision has an expiry date rather than a permanent answer.",
+    },
+  },
+  {
+    id: "gym-workout-11", format: "workout", track: "adversarial", difficulty: 3, xpBase: 50,
+    title: "One-Way and Two-Way Doors",
+    scenario: "You are choosing between a promotion at home and a bigger role abroad that requires relocating your family.",
+    frameworks: ["risk-assessment", "strategic-thinking", "decision-theory"],
+    emoji: "🚪",
+    hint: "Do not classify the whole decision. Break it into components and ask of each one separately: if this turns out wrong, can it be walked back?",
+    payload: {
+      problem: "Sort the decision into reversible and irreversible parts, then work out how that should change how you decide.",
+      steps: [
+        {
+          ask: "Which parts of moving abroad are reversible?",
+          options: [
+            "The role, the city, even the country — you can come back",
+            "None of it; emigrating is a single irreversible act",
+            "Only the role; location changes cannot be undone",
+            "All of it, including the family's side of the move",
+          ],
+          answer: 0,
+          because: "Most of what feels momentous here is a two-way door. Jobs end, leases end, people move home — and the bulk of the decision sits in that category.",
+        },
+        {
+          ask: "Which parts are genuinely irreversible?",
+          options: [
+            "A partner's career interruption, a child's schooling window, selling the house",
+            "The salary forgone by leaving the current role",
+            "The relationships with colleagues you leave behind",
+            "The relocation costs, which are unrecoverable",
+          ],
+          answer: 0,
+          because: "These have no undo: a career gap stays on the record, a school year cannot be re-run at the right age, and a sold house cannot be re-bought at that price. Sunk money is not the same as an irreversible outcome.",
+        },
+        {
+          ask: "Staying also carries an irreversible component. What is it?",
+          options: [
+            "The window for an international role may not reopen",
+            "The promotion at home cannot later be declined",
+            "Nothing — staying is by definition the reversible option",
+            "Your current salary becomes your permanent ceiling",
+          ],
+          answer: 0,
+          because: "Staying feels like the safe default, which is precisely why its one-way door goes unnoticed. Doors close on their own schedule whether or not you walked through one.",
+        },
+        {
+          ask: "How should reversibility change the way you decide?",
+          options: [
+            "Decide the reversible bulk fast at around 70% confidence, and spend the deliberation on the one-way parts",
+            "Require high confidence on the whole decision before moving",
+            "Treat the whole thing as reversible, since you can always return",
+            "Choose the option with fewer irreversible components",
+          ],
+          answer: 0,
+          because: "Confidence should be bought where it pays. Agonising over what you can undo wastes the scrutiny that the unrecoverable parts — the career gap, the school year — actually need.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Reversibility is a property of components, not of decisions. Once you split a choice up, most of it turns out to be a two-way door that deserves speed, and a small irreversible core turns out to deserve nearly all of the deliberation.",
+      whereItMisleads: "The heuristic's second application is the one people miss: because staying put feels safe, its one-way doors are invisible. Not deciding is a decision with its own irreversible parts, and no premortem ever gets run on it.",
+    },
+  },
 ];

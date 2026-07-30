@@ -17,6 +17,15 @@ const GYM = (() => {
     return h >>> 0;
   }
 
+  // Multiple-choice options are authored with the right answer in a fixed slot (it is
+  // almost always written first), so rendering them in authored order lets the whole
+  // game be beaten by always tapping the top choice. Shuffle the DISPLAY order and keep
+  // the authored index on the button, so scoring and answer keys stay untouched.
+  // Deterministic per challenge, so a re-render never reorders things mid-play.
+  function optionOrder(n, seedKey) {
+    return seededShuffle(Array.from({ length: n }, (_, i) => i), seedKey);
+  }
+
   // Deterministic shuffle: the same challenge always deals the same board, so a
   // re-render mid-play never reshuffles what the user is looking at.
   function seededShuffle(arr, seed) {
@@ -149,8 +158,8 @@ const GYM = (() => {
       <h2>One more thing</h2>
       <p>${e(m.question)}</p>
       <p class="subtle">Select every answer that applies.</p>
-      ${m.options.map((o, i) =>
-        `<button class="opt ${play.misleads.includes(i) ? "picked" : ""}" data-gym-mislead="${i}">${e(o)}</button>`).join("")}
+      ${optionOrder(m.options.length, ch.id + ":mis").map((oi) =>
+        `<button class="opt ${play.misleads.includes(oi) ? "picked" : ""}" data-gym-mislead="${oi}">${e(m.options[oi])}</button>`).join("")}
     </div>
     ${actionRowHTML("Finish", play.misleads.length > 0)}`;
   }
@@ -174,8 +183,8 @@ const GYM = (() => {
     return `<div class="panel">
       <h2>Name the error</h2>
       <p class="subtle">You found it: <i>${e(p.argument[p.flawIdx])}</i></p>
-      ${p.flawOptions.map((o, i) =>
-        `<button class="opt" data-gym-flaw="${i}">${e(o)}</button>`).join("")}
+      ${optionOrder(p.flawOptions.length, ch.id + ":flaw").map((oi) =>
+        `<button class="opt" data-gym-flaw="${oi}">${e(p.flawOptions[oi])}</button>`).join("")}
     </div>
     ${hintRowHTML()}`;
   }
@@ -251,9 +260,9 @@ const GYM = (() => {
     const live = step ? `<div class="panel">
         <span class="tag">Step ${play.stepIdx + 1} of ${p.steps.length}</span>
         <h2>${e(step.ask)}</h2>
-        ${step.options.map((o, i) => {
-          const wrong = play.lastWrong === i;
-          return `<button class="opt ${wrong ? "wrong" : ""}" data-gym-step="${i}">${e(o)}</button>`;
+        ${optionOrder(step.options.length, ch.id + ":step" + play.stepIdx).map((oi) => {
+          const wrong = play.lastWrong === oi;
+          return `<button class="opt ${wrong ? "wrong" : ""}" data-gym-step="${oi}">${e(step.options[oi])}</button>`;
         }).join("")}
         ${tries >= 1 && play.lastWrong !== null
           ? `<p class="subtle nudge">Not that one &mdash; one more try, for half marks on this step.</p>` : ""}
@@ -310,7 +319,9 @@ const GYM = (() => {
         </div>`;
       }).join("");
       const ans = ch.payload.misleads.answers;
-      const mis = ch.payload.misleads.options.map((o, i) => {
+      // same display order the player saw, so the review lines up with the board
+      const mis = optionOrder(ch.payload.misleads.options.length, ch.id + ":mis").map((i) => {
+        const o = ch.payload.misleads.options[i];
         const picked = play.misleads.includes(i);
         const right = ans.includes(i);
         if (!picked && !right) return "";
