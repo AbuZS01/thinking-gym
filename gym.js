@@ -58,6 +58,11 @@ const GYM = (() => {
     if (ch.format === "triage") {
       return Object.assign(base, { stage: "board", assign: {}, selectedCard: null });
     }
+    if (ch.format === "ask") {
+      // asked holds the indexes queried, in order; once the budget is spent every answer
+      // is revealed so the final call is fair even to someone who spent badly.
+      return Object.assign(base, { stage: "asking", asked: [], pickedDecision: null });
+    }
     if (ch.format === "workout") {
       // stepIdx is the step being worked; picks[i] is what was settled on (null = failed
       // out), tries[i] how many taps it took. Later steps stay hidden so the answer to
@@ -100,6 +105,17 @@ const GYM = (() => {
       const intruderUsed = play.order.includes(ch.payload.intruder);
       const points = Math.max(0, correct * 6 - (intruderUsed ? 6 : 0));
       return { points, max: steps.length * 6, correct, intruderUsed };
+    }
+    if (ch.format === "ask") {
+      const p = ch.payload;
+      const worth = p.questions.filter((q) => q.value === "high").length;
+      const goodAsked = play.asked.filter((i) => p.questions[i].value === "high").length;
+      const decisionPts = play.pickedDecision === p.decision.answer ? 20 : 0;
+      return {
+        points: goodAsked * 10 + decisionPts,
+        max: Math.min(p.budget, worth) * 10 + 20,
+        goodAsked, worth, decisionPts,
+      };
     }
     if (ch.format === "triage") {
       const items = ch.payload.items;
@@ -251,6 +267,49 @@ const GYM = (() => {
     ${actionRowHTML("Check my sorting", ready)}`;
   }
 
+  function askHTML(ch) {
+    const p = ch.payload;
+    const left = p.budget - play.asked.length;
+
+    if (play.stage === "asking") {
+      const rows = p.questions.map((q, i) => {
+        const done = play.asked.includes(i);
+        return `<button class="opt ${done ? "picked" : ""}" data-gym-ask="${i}" ${done ? "disabled" : ""}>
+          ${e(q.text)}
+          ${done ? `<div class="subtle" style="margin-top:7px"><b>&rarr;</b> ${e(q.answer)}</div>` : ""}
+        </button>`;
+      }).join("");
+      return `<div class="panel">
+        <span class="tag">${left} question${left === 1 ? "" : "s"} left</span>
+        <h2>${e(p.situation)}</h2>
+        <p class="subtle">Ask the ones whose answers would change what you do.</p>
+      </div>
+      <div class="panel">${rows}</div>
+      ${ideasHTML()}
+      ${hintRowHTML()}`;
+    }
+
+    // budget spent — reveal everything, then take the decision
+    const all = p.questions.map((q, i) => {
+      const asked = play.asked.includes(i);
+      return `<div class="review-row ${asked ? "ok" : ""}">
+        <div class="subtle">${asked ? "You asked" : "You did not ask"}</div>
+        ${e(q.text)}
+        <div class="subtle"><b>&rarr;</b> ${e(q.answer)}</div>
+      </div>`;
+    }).join("");
+    return `<div class="panel">
+      <span class="tag">Everything you could have asked</span>
+      ${all}
+    </div>
+    <div class="panel">
+      <h2>${e(p.decision.ask)}</h2>
+      ${optionOrder(p.decision.options.length, ch.id + ":dec").map((oi) =>
+        `<button class="opt" data-gym-decide="${oi}">${e(p.decision.options[oi])}</button>`).join("")}
+    </div>
+    ${hintRowHTML()}`;
+  }
+
   function triageHTML(ch) {
     const p = ch.payload;
     const label = (id) => (p.bands.find((b) => b.id === id) || {}).label || id;
@@ -390,6 +449,26 @@ const GYM = (() => {
         ? `<p class="subtle nudge">You included the card that does not belong: &ldquo;${e(p.intruder)}&rdquo;</p>`
         : `<p class="subtle">You correctly left out: &ldquo;${e(p.intruder)}&rdquo;</p>`);
     }
+    if (ch.format === "ask") {
+      const p = ch.payload;
+      const rows = p.questions.map((q, i) => {
+        const asked = play.asked.includes(i);
+        const worth = q.value === "high";
+        if (!asked && !worth) return ""; // an unasked low-value question is not a mistake
+        return `<div class="review-row ${asked === worth ? "ok" : "no"}">
+          ${asked === worth ? "&#10003;" : "&#10007;"} ${e(q.text)}
+          <div class="subtle">${asked ? (worth ? "Asked — and it moved the answer" : "Asked — interesting, but it changed nothing") : "Not asked — this was the one that mattered"}</div>
+          <div class="subtle">${e(q.because)}</div>
+        </div>`;
+      }).join("");
+      const d = p.decision;
+      const right = play.pickedDecision === d.answer;
+      return rows + `<div class="review-row ${right ? "ok" : "no"}">
+        ${right ? "&#10003;" : "&#10007;"} ${e(d.options[d.answer])}
+        ${right ? "" : `<div class="subtle">You chose: ${e(d.options[play.pickedDecision] || "nothing")}</div>`}
+        <div class="subtle">${e(d.because)}</div>
+      </div>`;
+    }
     if (ch.format === "triage") {
       const p = ch.payload;
       const label = (id) => (p.bands.find((b) => b.id === id) || {}).label || id;
@@ -433,7 +512,7 @@ const GYM = (() => {
     const tone = p >= 80 ? "" : p >= 50 ? " mid" : " low";
     // "Great connection!" only makes sense for Map It; the other three formats get
     // top marks for spotting, ordering and sorting, not for connecting.
-    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!", triage: "Sorted under pressure!" };
+    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!", triage: "Sorted under pressure!", ask: "You asked the right things!" };
     const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
       : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
     const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
@@ -499,6 +578,7 @@ const GYM = (() => {
     if (ch.format === "chain") return header + chainHTML(ch);
     if (ch.format === "workout") return header + workoutHTML(ch);
     if (ch.format === "triage") return header + triageHTML(ch);
+    if (ch.format === "ask") return header + askHTML(ch);
     return header + signalHTML(ch);
   }
 
@@ -578,6 +658,22 @@ const GYM = (() => {
     if (unord) {
       const i = Number(unord.dataset.gymUnorder);
       play.order = play.order.filter((_, idx) => idx !== i);
+      return true;
+    }
+
+    const askBtn = hit("data-gym-ask");
+    if (askBtn) {
+      const i = Number(askBtn.dataset.gymAsk);
+      if (play.asked.includes(i)) return false;
+      play.asked.push(i);
+      if (play.asked.length >= ch.payload.budget) play.stage = "deciding";
+      return true;
+    }
+
+    const decide = hit("data-gym-decide");
+    if (decide) {
+      play.pickedDecision = Number(decide.dataset.gymDecide);
+      play.result = score(ch);
       return true;
     }
 

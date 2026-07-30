@@ -26,7 +26,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**86 challenges** across six formats, each objectively scored:
+**94 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -51,6 +51,12 @@ Three challenges a day, about ten minutes, played by tapping rather than typing.
   the rule is written down, the answer follows from it rather than from taste — you
   are being scored on applying a protocol, not on having the same instincts as
   whoever wrote the challenge.
+- **Ask First** — a situation full of unknowns and a budget of three questions.
+  Tapping one reveals its answer. Marks go to the questions whose answers would
+  actually change what you do; the rest are interesting and cost you a slot. Once
+  the budget is spent everything is revealed, so the final call is fair even to
+  someone who spent badly — the score separates *what you asked* from *what you
+  concluded*.
 
 Multiple-choice options are shuffled at render (deterministically per challenge, so
 nothing reorders mid-play) while the authored answer key stays fixed. Without that,
@@ -67,12 +73,12 @@ rather than what it is about:
 | 🧩 **Connect** | Find patterns across unrelated domains | 13 |
 | 🔄 **Adapt** | Change the plan when reality changes | 15 |
 | 🎯 **Prioritise** | Choose under pressure | 12 |
-| 🔍 **Question** | Work out what's missing before you act | 7 |
+| 🔍 **Question** | Work out what's missing before you act | 15 |
 
-Those last two counts are why organising this way was worth doing: framework
-families hid the fact that almost nothing in the bank trained prioritising under
-pressure or working out what you'd need to know before acting. Prioritise has
-since been filled in; Question is next.
+Those last two are why organising this way was worth doing: framework families
+hid the fact that almost nothing in the bank trained prioritising under pressure
+or working out what you'd need to know before acting. Both have since been
+filled in — the Triage and Ask First formats exist because of that gap.
 
 A challenge's muscle and its framework tags are different axes — a Map It
 challenge about casinos trains *Connect* while its subject is probability — so
