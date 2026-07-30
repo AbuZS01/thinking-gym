@@ -26,8 +26,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**78 challenges** — five formats, twelve to fourteen in each of six tracks,
-difficulty 1–3 represented in every track — each objectively scored:
+**86 challenges** across six formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -45,6 +44,13 @@ difficulty 1–3 represented in every track — each objectively scored:
   reverse-engineered from the next question. This is where the deduction and
   arithmetic live — Monty Hall, the Wason selection task, base rates, expected
   value.
+- **Triage** — a rule is stated on the board and you sort items into priority bands
+  by applying it: START mass-casualty triage, which bugs block a launch, a risk
+  register where anything unrecoverable outranks anything likely, on-call severity,
+  urgent against important, where a production line's real bottleneck is. Because
+  the rule is written down, the answer follows from it rather than from taste — you
+  are being scored on applying a protocol, not on having the same instincts as
+  whoever wrote the challenge.
 
 Multiple-choice options are shuffled at render (deterministically per challenge, so
 nothing reorders mid-play) while the authored answer key stays fixed. Without that,
@@ -60,12 +66,13 @@ rather than what it is about:
 | ⚖️ **Judge** | Weigh conflicting evidence | 23 |
 | 🧩 **Connect** | Find patterns across unrelated domains | 13 |
 | 🔄 **Adapt** | Change the plan when reality changes | 15 |
+| 🎯 **Prioritise** | Choose under pressure | 12 |
 | 🔍 **Question** | Work out what's missing before you act | 7 |
-| 🎯 **Prioritise** | Choose under pressure | 4 |
 
-Those last two counts are the point of organising this way: framework families hid
-the fact that almost nothing in the bank trains prioritising under pressure or
-working out what you'd need to know before acting. Both are next to be written.
+Those last two counts are why organising this way was worth doing: framework
+families hid the fact that almost nothing in the bank trained prioritising under
+pressure or working out what you'd need to know before acting. Prioritise has
+since been filled in; Question is next.
 
 A challenge's muscle and its framework tags are different axes — a Map It
 challenge about casinos trains *Connect* while its subject is probability — so

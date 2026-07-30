@@ -55,6 +55,9 @@ const GYM = (() => {
       const cards = seededShuffle(ch.payload.steps.concat([ch.payload.intruder]), ch.id);
       return Object.assign(base, { stage: "board", cards, order: [] });
     }
+    if (ch.format === "triage") {
+      return Object.assign(base, { stage: "board", assign: {}, selectedCard: null });
+    }
     if (ch.format === "workout") {
       // stepIdx is the step being worked; picks[i] is what was settled on (null = failed
       // out), tries[i] how many taps it took. Later steps stay hidden so the answer to
@@ -97,6 +100,12 @@ const GYM = (() => {
       const intruderUsed = play.order.includes(ch.payload.intruder);
       const points = Math.max(0, correct * 6 - (intruderUsed ? 6 : 0));
       return { points, max: steps.length * 6, correct, intruderUsed };
+    }
+    if (ch.format === "triage") {
+      const items = ch.payload.items;
+      let correct = 0;
+      items.forEach((x, i) => { if (play.assign[i] === x.band) correct++; });
+      return { points: correct * 5, max: items.length * 5, correct };
     }
     if (ch.format === "workout") {
       // same 10 / 5 / 0 ladder per step that "flaw" uses for its two stages
@@ -242,6 +251,34 @@ const GYM = (() => {
     ${actionRowHTML("Check my sorting", ready)}`;
   }
 
+  function triageHTML(ch) {
+    const p = ch.payload;
+    const label = (id) => (p.bands.find((b) => b.id === id) || {}).label || id;
+    const cards = p.items.map((x, i) => {
+      const b = play.assign[i];
+      const sel = play.selectedCard === i;
+      return `<button class="gcard ${b ? "b-band" : ""} ${sel ? "selected" : ""}" data-gym-item="${i}">
+        ${e(x.text)}${b ? `<span class="bucket-tag">${e(label(b))}</span>` : ""}
+      </button>`;
+    }).join("");
+    const ready = p.items.every((_, i) => play.assign[i]);
+    return `<div class="panel">
+      <span class="tag">The rule</span>
+      <p>${e(p.protocol)}</p>
+    </div>
+    <div class="panel">
+      <h2>${e(p.boardTitle || "Sort these")}</h2>
+      <p class="subtle">${play.selectedCard === null ? "Tap an item." : "Now tap a band below."}</p>
+      <div class="gcards">${cards}</div>
+    </div>
+    <div class="panel buckets">
+      ${p.bands.map((b) =>
+        `<button class="btn secondary" data-gym-band="${b.id}" ${play.selectedCard === null ? "disabled" : ""}>${e(b.label)}</button>`).join("")}
+    </div>
+    ${ideasHTML()}
+    ${actionRowHTML("Check my sorting", ready)}`;
+  }
+
   function workoutHTML(ch) {
     const p = ch.payload;
     // steps already settled, shown as a worked trail above the live one
@@ -353,6 +390,19 @@ const GYM = (() => {
         ? `<p class="subtle nudge">You included the card that does not belong: &ldquo;${e(p.intruder)}&rdquo;</p>`
         : `<p class="subtle">You correctly left out: &ldquo;${e(p.intruder)}&rdquo;</p>`);
     }
+    if (ch.format === "triage") {
+      const p = ch.payload;
+      const label = (id) => (p.bands.find((b) => b.id === id) || {}).label || id;
+      return p.items.map((x, i) => {
+        const mine = play.assign[i];
+        const okRow = mine === x.band;
+        return `<div class="review-row ${okRow ? "ok" : "no"}">
+          ${okRow ? "&#10003;" : "&#10007;"} ${e(x.text)}
+          <div class="subtle">${okRow ? e(label(x.band)) : `You said ${e(label(mine))} &mdash; the rule puts it in ${e(label(x.band))}`}</div>
+          <div class="subtle">${e(x.because)}</div>
+        </div>`;
+      }).join("");
+    }
     if (ch.format === "workout") {
       return ch.payload.steps.map((s, i) => {
         const pick = play.picks[i];
@@ -383,7 +433,7 @@ const GYM = (() => {
     const tone = p >= 80 ? "" : p >= 50 ? " mid" : " low";
     // "Great connection!" only makes sense for Map It; the other three formats get
     // top marks for spotting, ordering and sorting, not for connecting.
-    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!" };
+    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!", triage: "Sorted under pressure!" };
     const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
       : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
     const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
@@ -448,6 +498,7 @@ const GYM = (() => {
     if (ch.format === "flaw") return header + flawHTML(ch);
     if (ch.format === "chain") return header + chainHTML(ch);
     if (ch.format === "workout") return header + workoutHTML(ch);
+    if (ch.format === "triage") return header + triageHTML(ch);
     return header + signalHTML(ch);
   }
 
@@ -527,6 +578,17 @@ const GYM = (() => {
     if (unord) {
       const i = Number(unord.dataset.gymUnorder);
       play.order = play.order.filter((_, idx) => idx !== i);
+      return true;
+    }
+
+    const item = hit("data-gym-item");
+    if (item) { play.selectedCard = Number(item.dataset.gymItem); return true; }
+
+    const band = hit("data-gym-band");
+    if (band) {
+      if (play.selectedCard === null) return false;
+      play.assign[play.selectedCard] = band.dataset.gymBand;
+      play.selectedCard = null;
       return true;
     }
 

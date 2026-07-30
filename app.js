@@ -164,7 +164,7 @@ function onboardingHTML() {
 
 // Muscle emoji come from the data now, so a new muscle needs no change here.
 const MUSCLE_ICONS = Object.fromEntries(MTC_MUSCLES.map((m) => [m.id, m.emoji]));
-const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}", workout: "\u{1F9EE}" };
+const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}", workout: "\u{1F9EE}", triage: "\u{1F6A6}" };
 
 function muscleIcon(id) { return MUSCLE_ICONS[id] || "\u{1F9E0}"; }
 const trackIcon = muscleIcon; // pre-muscle name, still called from gym.js

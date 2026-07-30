@@ -344,8 +344,13 @@ input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 8px; }
 .gcard.b-undermines .bucket-tag { color: var(--danger); background: var(--danger-soft); }
 .gcard.b-irrelevant { border-color: var(--text-soft); }
 
-.buckets { display: flex; gap: 9px; }
-.buckets .btn { flex: 1; padding: 13px 6px; font-size: 13px; }
+/* Triage bands are ordered by urgency rather than for/against, so there is no valence
+   to colour-code — a placed item just reads as placed. */
+.gcard.b-band { border-color: var(--accent); background: var(--accent-soft); }
+.gcard.b-band .bucket-tag { color: var(--accent); background: var(--panel); }
+
+.buckets { display: flex; gap: 9px; flex-wrap: wrap; }
+.buckets .btn { flex: 1 1 30%; min-width: 88px; padding: 13px 6px; font-size: 13px; }
 
 .opt {
   display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 9px;
