@@ -424,7 +424,7 @@ const GYM = (() => {
     if (!ch) return `<div class="panel">Challenge not found. <a class="btn" href="#/gym">Back to the Gym</a></div>`;
     if (!play || play.id !== challengeId) play = init(ch);
     const fmt = MTC_GYM_FORMATS[ch.format];
-    const track = MTC_SKILL_TRACKS.find((t) => t.id === ch.track) || {};
+    const muscle = MTC_MUSCLES.find((t) => t.id === ch.muscle) || {};
     const session = MTC.gymSession(STATE);
     const idx = session.findIndex((c) => c.id === ch.id);
     const progress = idx >= 0
@@ -436,8 +436,8 @@ const GYM = (() => {
       <div class="challenge-card">
         <span class="label">Challenge</span>
         <div class="head">
-          <div class="emoji-badge">${ch.emoji || (typeof trackIcon === "function" ? trackIcon(ch.track) : "\u{1F9E0}")}</div>
-          <div><h1>${e(ch.title)}</h1><p class="subtle">${e(track.name || ch.track)}</p></div>
+          <div class="emoji-badge">${ch.emoji || (typeof muscleIcon === "function" ? muscleIcon(ch.muscle) : "\u{1F9E0}")}</div>
+          <div><h1>${e(ch.title)}</h1><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
         </div>
         <p>${e(ch.scenario)}</p>
         ${play.result ? "" : `<p class="subtle" style="margin-top:10px">${e(fmt.how)}</p>`}

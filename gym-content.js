@@ -33,7 +33,7 @@ const MTC_GYM_FORMATS = {
 const MTC_GYM_CHALLENGES = [
   /* ---------------- MAP IT ---------------- */
   {
-    id: "gym-map-1", format: "map", track: "creative", difficulty: 1, xpBase: 60,
+    id: "gym-map-1", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
     title: "The Coffee Shop's Immune System",
     scenario: "A small coffee chain keeps getting burned: card skimmers on the terminals, every barista using one shared password, and a laptop full of customer data that walked out the back door. There is no budget for a security team. Solve it using how the human immune system defends a body.",
     frameworks: ["pattern-recognition", "lateral-thinking", "systems-thinking"],
@@ -70,7 +70,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-2", format: "map", track: "systems", difficulty: 2, xpBase: 60,
+    id: "gym-map-2", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "What Ants Know About Logistics",
     scenario: "A delivery network keeps re-planning routes from head office, and keeps being wrong: roadworks, weather and demand move faster than the plan. Redesign the routing using how an ant colony finds food.",
     frameworks: ["systems-thinking", "pattern-recognition", "feedback-loops"],
@@ -107,7 +107,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-3", format: "map", track: "creative", difficulty: 2, xpBase: 60,
+    id: "gym-map-3", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "If Pixar Ran the Outpatient Clinic",
     scenario: "An outpatient department has long waits, late discharges, and staff who have stopped suggesting improvements because the last three were cancelled after one complaint. Redesign how it improves itself, using how Pixar develops a film.",
     frameworks: ["design-thinking", "lateral-thinking", "systems-thinking"],
@@ -145,7 +145,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-map-4", format: "map", track: "probabilistic", difficulty: 1, xpBase: 60,
+    id: "gym-map-4", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
     title: "The Casino's Trick for Freelancers",
     scenario: "A freelance designer lurches between a £9,000 month and a £400 month, takes any work that appears, and panics every January. Rebuild how she runs her income using how a casino guarantees its profit.",
     frameworks: ["probabilistic-thinking", "decision-theory", "risk-assessment"],
@@ -182,7 +182,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-5", format: "map", track: "systems", difficulty: 2, xpBase: 60,
+    id: "gym-map-5", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "Blood Sugar and the Stockroom",
     scenario: "A hardware shop is always either drowning in stock nobody wants or out of the one item everyone is asking for. The owner reorders by feel, whenever a shelf looks empty. Redesign the ordering using how the body regulates blood sugar.",
     frameworks: ["systems-thinking", "feedback-loops", "second-order-thinking"],
@@ -219,7 +219,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-6", format: "map", track: "causal", difficulty: 3, xpBase: 60,
+    id: "gym-map-6", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "Cholera and the Crash Nobody Can Reproduce",
     scenario: "An app crashes for roughly one user in three hundred, never on a developer's machine, and the team has spent five weeks guessing. Rebuild the hunt using how John Snow traced a cholera outbreak to a single water pump.",
     frameworks: ["scientific-thinking", "abductive-reasoning", "root-cause-analysis"],
@@ -256,7 +256,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-7", format: "map", track: "adversarial", difficulty: 2, xpBase: 60,
+    id: "gym-map-7", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "The Corner Shop's Opening Move",
     scenario: "A supermarket has opened four hundred metres from a family grocer's. The grocer's plan is to cut prices and hope. Rebuild the plan using how a strong chess player handles a stronger opponent.",
     frameworks: ["strategic-thinking", "game-theory", "red-team-thinking"],
@@ -293,7 +293,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-8", format: "map", track: "metacognition", difficulty: 2, xpBase: 60,
+    id: "gym-map-8", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "Run Your Judgement Like an Airline",
     scenario: "You keep making the same category of mistake: confident decisions, late at night, from memory, that you would not have made in the morning. Rebuild how you manage your own thinking using how commercial aviation manages safety.",
     frameworks: ["meta-thinking", "cognitive-bias-detection", "postmortem"],
@@ -330,7 +330,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-9", format: "map", track: "creative", difficulty: 1, xpBase: 60,
+    id: "gym-map-9", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
     title: "Run the Meeting Like a Jazz Quartet",
     scenario: "The fortnightly ideas meeting has the same shape every time: the manager speaks first, two people agree, one person lists reasons it will not work, and nothing is decided. Redesign the meeting using how a jazz quartet improvises.",
     frameworks: ["divergent-thinking", "lateral-thinking", "design-thinking"],
@@ -368,7 +368,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-map-10", format: "map", track: "creative", difficulty: 2, xpBase: 60,
+    id: "gym-map-10", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "The Register Umar Built",
     scenario: "A company has grown from 20 people to 200. Pay is decided case by case, responsibilities live in people's heads, and two employees have just discovered they are paid very differently for the same work. Redesign how it keeps track, using the diwan — the formal register Caliph Umar ibn al-Khattab established to replace ad-hoc distribution from the treasury.",
     frameworks: ["systems-thinking", "first-principles-thinking", "design-thinking"],
@@ -405,7 +405,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-11", format: "map", track: "creative", difficulty: 3, xpBase: 60,
+    id: "gym-map-11", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "Fight Over the Wells",
     scenario: "A small company is being crushed by a competitor with fifty times its budget, and is currently trying to compete on price and range. Rebuild its strategy using the decision to secure the wells before the Battle of Badr — where a heavily outnumbered force took control of the water nearest the battlefield before the engagement.",
     frameworks: ["strategic-thinking", "lateral-thinking", "risk-assessment"],
@@ -442,7 +442,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-12", format: "map", track: "creative", difficulty: 3, xpBase: 60,
+    id: "gym-map-12", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "The Load-Bearing Wall",
     scenario: "At its peak Blockbuster earned hundreds of millions a year from late fees — a large share of its profit — while Netflix launched with none at all. Work out why matching Netflix was so hard, using what a load-bearing wall is in a building.",
     frameworks: ["systems-thinking", "first-principles-thinking", "strategic-thinking"],
@@ -479,7 +479,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-map-13", format: "map", track: "creative", difficulty: 3, xpBase: 60,
+    id: "gym-map-13", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "Paying in Visible Terms",
     scenario: "In 628 CE the Prophet Muhammad accepted terms at Hudaybiyyah that many of his companions read as one-sided: turning back from the pilgrimage that year, and a clause returning certain emigrants. Use the structure of that agreement to rebuild how a supplier negotiates with a customer far larger than itself.",
     frameworks: ["strategic-thinking", "game-theory", "second-order-thinking"],
@@ -518,7 +518,7 @@ const MTC_GYM_CHALLENGES = [
 
   /* ---------------- SPOT THE FLAW ---------------- */
   {
-    id: "gym-flaw-1", format: "flaw", track: "metacognition", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-1", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "The 5am Founders",
     scenario: "A bestselling productivity programme is built on the research below.",
     frameworks: ["survivorship-bias", "critical-thinking", "cognitive-bias-detection"],
@@ -547,7 +547,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-2", format: "flaw", track: "causal", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-2", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Hospital That Got Worse",
     scenario: "A hospital board is reading this summary before a vote.",
     frameworks: ["analytical-thinking", "critical-thinking", "scientific-thinking"],
@@ -576,7 +576,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-3", format: "flaw", track: "probabilistic", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-3", format: "flaw", muscle: "judge", difficulty: 2, xpBase: 45,
     title: "Three Hours of Data",
     scenario: "From a growth team's weekly write-up.",
     frameworks: ["scientific-thinking", "probabilistic-thinking", "base-rates"],
@@ -606,7 +606,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-flaw-4", format: "flaw", track: "probabilistic", difficulty: 3, xpBase: 45,
+    id: "gym-flaw-4", format: "flaw", muscle: "judge", difficulty: 3, xpBase: 45,
     title: "One in a Million",
     scenario: "From a prosecutor's closing argument.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
@@ -635,7 +635,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-5", format: "flaw", track: "systems", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-5", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Calls Are Down to Four Minutes",
     scenario: "From a support team's quarterly performance review.",
     frameworks: ["systems-thinking", "root-cause-analysis", "constraints"],
@@ -664,7 +664,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-6", format: "flaw", track: "causal", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-6", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Worst Branches Improved Most",
     scenario: "From an internal report recommending a company-wide rollout.",
     frameworks: ["regression-mean", "scientific-thinking", "analytical-thinking"],
@@ -693,7 +693,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-7", format: "flaw", track: "adversarial", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-7", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Zero Incidents",
     scenario: "From a security team's annual summary.",
     frameworks: ["red-team-thinking", "critical-thinking", "intelligence-analysis"],
@@ -722,7 +722,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-8", format: "flaw", track: "metacognition", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-8", format: "flaw", muscle: "question", difficulty: 2, xpBase: 45,
     title: "The Method That Cannot Be Wrong",
     scenario: "From the sales page of an investment newsletter.",
     frameworks: ["critical-thinking", "meta-thinking", "cognitive-bias-detection"],
@@ -751,7 +751,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-9", format: "flaw", track: "creative", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-9", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Nobody Else Does It This Way",
     scenario: "From a design review for a new banking app.",
     frameworks: ["first-principles-thinking", "critical-thinking", "convergent-thinking"],
@@ -781,7 +781,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-flaw-10", format: "flaw", track: "metacognition", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-10", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "The Opponent Who Doesn't Care",
     scenario: "From a party's campaign briefing.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "ethical-reasoning"],
@@ -810,7 +810,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-11", format: "flaw", track: "probabilistic", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-11", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Too Much Invested to Stop",
     scenario: "From the minutes of a project steering meeting.",
     frameworks: ["decision-theory", "cognitive-bias-detection", "opportunity-cost"],
@@ -839,7 +839,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-12", format: "flaw", track: "metacognition", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-12", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "More or Less Than Two Weeks?",
     scenario: "From a delivery planning thread.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
@@ -868,7 +868,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-13", format: "flaw", track: "metacognition", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-13", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "One Spectacular Deal",
     scenario: "From a completed annual performance review.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "analytical-thinking"],
@@ -897,7 +897,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-14", format: "flaw", track: "causal", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-14", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Two Ways to Say Twenty Per Cent",
     scenario: "Two internal write-ups of the same quarter, read side by side.",
     frameworks: ["analytical-thinking", "critical-thinking", "pattern-recognition"],
@@ -926,7 +926,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-15", format: "flaw", track: "adversarial", difficulty: 1, xpBase: 45,
+    id: "gym-flaw-15", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Rammed Through",
     scenario: "Two newspaper reports of the same committee vote.",
     frameworks: ["intelligence-analysis", "critical-thinking", "cognitive-bias-detection"],
@@ -955,7 +955,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-16", format: "flaw", track: "causal", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-16", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Profit Doubled",
     scenario: "A slide from a board presentation.",
     frameworks: ["analytical-thinking", "critical-thinking", "signal-noise"],
@@ -984,7 +984,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-17", format: "flaw", track: "probabilistic", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-17", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Deadlier State",
     scenario: "From a road safety campaign's supporting document.",
     frameworks: ["base-rates", "analytical-thinking", "probabilistic-thinking"],
@@ -1013,7 +1013,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-flaw-18", format: "flaw", track: "adversarial", difficulty: 2, xpBase: 45,
+    id: "gym-flaw-18", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Said, Claimed, Admitted",
     scenario: "Three outlets report the same sentence from the same interview.",
     frameworks: ["intelligence-analysis", "critical-thinking", "cognitive-bias-detection"],
@@ -1044,7 +1044,7 @@ const MTC_GYM_CHALLENGES = [
 
   /* ---------------- ORDER THE CHAIN ---------------- */
   {
-    id: "gym-chain-1", format: "chain", track: "systems", difficulty: 1, xpBase: 50,
+    id: "gym-chain-1", format: "chain", muscle: "adapt", difficulty: 1, xpBase: 50,
     title: "The Rent Cap",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["second-order-thinking", "systems-thinking"],
@@ -1067,7 +1067,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-2", format: "chain", track: "adversarial", difficulty: 2, xpBase: 50,
+    id: "gym-chain-2", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "Change Your Password Every 30 Days",
     scenario: "A security policy is introduced with good intentions. Order what actually follows.",
     frameworks: ["red-team-thinking", "systems-thinking", "second-order-thinking"],
@@ -1090,7 +1090,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-3", format: "chain", track: "causal", difficulty: 2, xpBase: 50,
+    id: "gym-chain-3", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "The Camera Kodak Buried",
     scenario: "Order the chain that ends a 130-year-old company.",
     frameworks: ["first-principles-thinking", "second-order-thinking", "strategic-thinking"],
@@ -1114,7 +1114,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-chain-4", format: "chain", track: "probabilistic", difficulty: 2, xpBase: 50,
+    id: "gym-chain-4", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "The Surgeon League Table",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["second-order-thinking", "risk-assessment", "probabilistic-thinking"],
@@ -1137,7 +1137,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-5", format: "chain", track: "systems", difficulty: 1, xpBase: 50,
+    id: "gym-chain-5", format: "chain", muscle: "adapt", difficulty: 1, xpBase: 50,
     title: "Four Lanes Instead of Two",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["systems-thinking", "second-order-thinking", "feedback-loops"],
@@ -1160,7 +1160,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-6", format: "chain", track: "adversarial", difficulty: 3, xpBase: 50,
+    id: "gym-chain-6", format: "chain", muscle: "adapt", difficulty: 3, xpBase: 50,
     title: "We'll Match Any Price",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["game-theory", "strategic-thinking", "second-order-thinking"],
@@ -1183,7 +1183,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-7", format: "chain", track: "metacognition", difficulty: 1, xpBase: 50,
+    id: "gym-chain-7", format: "chain", muscle: "adapt", difficulty: 1, xpBase: 50,
     title: "Only Sources You Trust",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
@@ -1206,7 +1206,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-8", format: "chain", track: "metacognition", difficulty: 2, xpBase: 50,
+    id: "gym-chain-8", format: "chain", muscle: "question", difficulty: 2, xpBase: 50,
     title: "Write the Number Down",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["probabilistic-thinking", "meta-thinking", "circle-of-competence"],
@@ -1229,7 +1229,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-9", format: "chain", track: "creative", difficulty: 2, xpBase: 50,
+    id: "gym-chain-9", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "Bring Me a Business Case",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["divergent-thinking", "design-thinking", "second-order-thinking"],
@@ -1253,7 +1253,7 @@ const MTC_GYM_CHALLENGES = [
   },
 
   {
-    id: "gym-chain-10", format: "chain", track: "metacognition", difficulty: 2, xpBase: 50,
+    id: "gym-chain-10", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "The Room That Agreed Too Fast",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
@@ -1276,7 +1276,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-11", format: "chain", track: "systems", difficulty: 2, xpBase: 50,
+    id: "gym-chain-11", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "The Subscription Cliff",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["second-order-thinking", "systems-thinking", "decision-theory"],
@@ -1299,7 +1299,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-12", format: "chain", track: "adversarial", difficulty: 2, xpBase: 50,
+    id: "gym-chain-12", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "Instant, Irreversible, Unconfirmed",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["red-team-thinking", "strategic-thinking", "risk-assessment"],
@@ -1322,7 +1322,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-13", format: "chain", track: "systems", difficulty: 2, xpBase: 50,
+    id: "gym-chain-13", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
     title: "Crippling the Free Tier",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["second-order-thinking", "systems-thinking", "strategic-thinking"],
@@ -1345,7 +1345,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-14", format: "chain", track: "systems", difficulty: 2, xpBase: 50,
+    id: "gym-chain-14", format: "chain", muscle: "question", difficulty: 2, xpBase: 50,
     title: "Sold Out by Nine",
     scenario: "Trace the causes upstream, in order — each card explains the one before it. One card describes something that is not true.",
     frameworks: ["root-cause-analysis", "analytical-thinking", "systems-thinking"],
@@ -1368,7 +1368,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-15", format: "chain", track: "adversarial", difficulty: 3, xpBase: 50,
+    id: "gym-chain-15", format: "chain", muscle: "adapt", difficulty: 3, xpBase: 50,
     title: "Around the Maginot Line",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["strategic-thinking", "scenario-planning", "red-team-thinking"],
@@ -1391,7 +1391,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-16", format: "chain", track: "probabilistic", difficulty: 3, xpBase: 50,
+    id: "gym-chain-16", format: "chain", muscle: "adapt", difficulty: 3, xpBase: 50,
     title: "Never Fallen Nationally",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["base-rates", "black-swan", "probabilistic-thinking"],
@@ -1414,7 +1414,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-17", format: "chain", track: "causal", difficulty: 3, xpBase: 50,
+    id: "gym-chain-17", format: "chain", muscle: "question", difficulty: 3, xpBase: 50,
     title: "Prove It Is Unsafe",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["scientific-thinking", "cognitive-bias-detection", "systems-thinking"],
@@ -1437,7 +1437,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-chain-18", format: "chain", track: "creative", difficulty: 3, xpBase: 50,
+    id: "gym-chain-18", format: "chain", muscle: "adapt", difficulty: 3, xpBase: 50,
     title: "A Hundred and Ninety Thousand Sips",
     scenario: "Trace what follows, in order. One card describes something that does not happen at all.",
     frameworks: ["design-thinking", "scientific-thinking", "pattern-recognition"],
@@ -1462,7 +1462,7 @@ const MTC_GYM_CHALLENGES = [
 
   /* ---------------- SORT THE SIGNAL ---------------- */
   {
-    id: "gym-signal-1", format: "signal", track: "causal", difficulty: 1, xpBase: 50,
+    id: "gym-signal-1", format: "signal", muscle: "judge", difficulty: 1, xpBase: 50,
     title: "Did the Coaching Work?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["scientific-thinking", "regression-mean", "critical-thinking"],
@@ -1486,7 +1486,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-2", format: "signal", track: "adversarial", difficulty: 2, xpBase: 50,
+    id: "gym-signal-2", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "Twelve Months of Runway",
     scenario: "You are deciding whether to join this startup. Sort what you have learned.",
     frameworks: ["intelligence-analysis", "risk-assessment", "critical-thinking"],
@@ -1511,7 +1511,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-3", format: "signal", track: "probabilistic", difficulty: 2, xpBase: 50,
+    id: "gym-signal-3", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Positive Screening Result",
     scenario: "A patient with no symptoms has just tested positive in a routine screen.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
@@ -1536,7 +1536,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-4", format: "signal", track: "probabilistic", difficulty: 3, xpBase: 50,
+    id: "gym-signal-4", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Skill or Luck?",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["probabilistic-thinking", "survivorship-bias", "base-rates"],
@@ -1561,7 +1561,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-5", format: "signal", track: "systems", difficulty: 3, xpBase: 50,
+    id: "gym-signal-5", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Did the Bus Lane Work?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["scientific-thinking", "counterfactual-thinking", "systems-thinking"],
@@ -1586,7 +1586,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-6", format: "signal", track: "causal", difficulty: 3, xpBase: 50,
+    id: "gym-signal-6", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "The Supplement Trial",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["scientific-thinking", "critical-thinking", "analytical-thinking"],
@@ -1611,7 +1611,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-7", format: "signal", track: "adversarial", difficulty: 3, xpBase: 50,
+    id: "gym-signal-7", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Is This Account a Real Person?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["intelligence-analysis", "red-team-thinking", "pattern-recognition"],
@@ -1636,7 +1636,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-8", format: "signal", track: "metacognition", difficulty: 3, xpBase: 50,
+    id: "gym-signal-8", format: "signal", muscle: "question", difficulty: 3, xpBase: 50,
     title: "Do You Actually Understand It?",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["circle-of-competence", "meta-thinking", "feynman"],
@@ -1661,7 +1661,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-9", format: "signal", track: "creative", difficulty: 3, xpBase: 50,
+    id: "gym-signal-9", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Is the Idea Worth Building?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["entrepreneurial-thinking", "design-thinking", "convergent-thinking"],
@@ -1688,7 +1688,7 @@ const MTC_GYM_CHALLENGES = [
 
   /* ---------------- WORK IT OUT ---------------- */
   {
-    id: "gym-workout-1", format: "workout", track: "causal", difficulty: 2, xpBase: 50,
+    id: "gym-workout-1", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "Knights and Knaves",
     scenario: "On an island, knights always tell the truth and knaves always lie. You meet two people, A and B. A says: \"At least one of us is a knave.\"",
     frameworks: ["deductive-reasoning", "critical-thinking"],
@@ -1749,7 +1749,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-2", format: "workout", track: "probabilistic", difficulty: 2, xpBase: 50,
+    id: "gym-workout-2", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "The Extended Warranty",
     scenario: "A £600 laptop comes with an offer: £90 for a two-year extended warranty. Repairs that the warranty would cover typically cost £250, and roughly 12% of these laptops need such a repair within two years.",
     frameworks: ["decision-theory", "expected-value", "risk-assessment"],
@@ -1805,7 +1805,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-3", format: "workout", track: "metacognition", difficulty: 2, xpBase: 50,
+    id: "gym-workout-3", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Valid-Sounding Syllogism",
     scenario: "From a startup advice column: “All successful startups moved fast. This startup moved fast. Therefore this startup will be successful.”",
     frameworks: ["deductive-reasoning", "critical-thinking", "survivorship-bias"],
@@ -1866,7 +1866,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-4", format: "workout", track: "probabilistic", difficulty: 3, xpBase: 50,
+    id: "gym-workout-4", format: "workout", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Three Doors",
     scenario: "A game show has three doors: one hides a prize, two are empty. You pick door 1. The host, who knows what is behind every door, opens door 3 to show it empty, then offers you the chance to switch to door 2.",
     frameworks: ["probabilistic-thinking", "bayesian-thinking", "counterfactual-thinking"],
@@ -1917,7 +1917,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-5", format: "workout", track: "metacognition", difficulty: 3, xpBase: 50,
+    id: "gym-workout-5", format: "workout", muscle: "question", difficulty: 3, xpBase: 50,
     title: "Four Cards, Then Four Drinkers",
     scenario: "Four cards lie on a table showing 3, 8, red and blue. Each has a number on one side and a colour on the other. The rule: if a card shows an even number, its other side is red.",
     frameworks: ["deductive-reasoning", "cognitive-bias-detection", "critical-thinking"],
@@ -1978,7 +1978,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-6", format: "workout", track: "adversarial", difficulty: 3, xpBase: 50,
+    id: "gym-workout-6", format: "workout", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Two Guards, Two Doors",
     scenario: "Two doors: one leads to freedom, one to a trap. Two guards: one always lies, one always tells the truth — and you cannot tell which is which. You may ask one guard one question.",
     frameworks: ["deductive-reasoning", "red-team-thinking", "critical-thinking"],
@@ -2039,7 +2039,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-7", format: "workout", track: "probabilistic", difficulty: 3, xpBase: 50,
+    id: "gym-workout-7", format: "workout", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "The Night Taxi",
     scenario: "In this city 85% of taxis are Green and 15% are Blue. A taxi is involved in a night-time hit-and-run. A witness says it was Blue, and testing shows this witness identifies taxi colours correctly at night 80% of the time.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
@@ -2080,7 +2080,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-8", format: "workout", track: "causal", difficulty: 2, xpBase: 50,
+    id: "gym-workout-8", format: "workout", muscle: "notice", difficulty: 2, xpBase: 50,
     title: "The Missing Pound",
     scenario: "Three guests pay £30 for a room, £10 each. The manager realises it should have been £25 and sends £5 back with the porter, who pockets £2 and returns £1 to each guest. So the guests paid £9 each, which is £27, plus the porter's £2 makes £29. Where is the missing pound?",
     frameworks: ["analytical-thinking", "critical-thinking", "deductive-reasoning"],
@@ -2136,7 +2136,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-9", format: "workout", track: "probabilistic", difficulty: 2, xpBase: 50,
+    id: "gym-workout-9", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "Two Job Offers",
     scenario: "Offer A: a stable role at £90,000, near-certain. Offer B: a startup role at £70,000 base plus equity — most likely worth nothing, but with roughly a 15% chance of being worth about £400,000 over four years.",
     frameworks: ["decision-theory", "expected-value", "risk-assessment"],
@@ -2192,7 +2192,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-10", format: "workout", track: "systems", difficulty: 2, xpBase: 50,
+    id: "gym-workout-10", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "Build or Buy",
     scenario: "Your startup needs internal analytics. Building it in-house takes roughly three engineer-months and gives full control. Buying costs £30,000 a year, works next week, and is less flexible.",
     frameworks: ["opportunity-cost", "systems-thinking", "strategic-thinking"],
@@ -2253,7 +2253,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-workout-11", format: "workout", track: "adversarial", difficulty: 3, xpBase: 50,
+    id: "gym-workout-11", format: "workout", muscle: "prioritise", difficulty: 3, xpBase: 50,
     title: "One-Way and Two-Way Doors",
     scenario: "You are choosing between a promotion at home and a bigger role abroad that requires relocating your family.",
     frameworks: ["risk-assessment", "strategic-thinking", "decision-theory"],
@@ -2314,7 +2314,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-10", format: "signal", track: "metacognition", difficulty: 2, xpBase: 50,
+    id: "gym-signal-10", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Hiring Panel",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
@@ -2339,7 +2339,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-11", format: "signal", track: "metacognition", difficulty: 2, xpBase: 50,
+    id: "gym-signal-11", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Dropout Narrative",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["survivorship-bias", "base-rates", "critical-thinking"],
@@ -2364,7 +2364,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-12", format: "signal", track: "causal", difficulty: 2, xpBase: 50,
+    id: "gym-signal-12", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "Five Thousand Signups",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["analytical-thinking", "base-rates", "critical-thinking"],
@@ -2389,7 +2389,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-13", format: "signal", track: "systems", difficulty: 2, xpBase: 50,
+    id: "gym-signal-13", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Improved Response Time",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["systems-thinking", "signal-noise", "root-cause-analysis"],
@@ -2414,7 +2414,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-14", format: "signal", track: "adversarial", difficulty: 2, xpBase: 50,
+    id: "gym-signal-14", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "This Offer Expires Friday",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["game-theory", "red-team-thinking", "intelligence-analysis"],
@@ -2439,7 +2439,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-15", format: "signal", track: "probabilistic", difficulty: 2, xpBase: 50,
+    id: "gym-signal-15", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Seller Opened at Eighteen",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["cognitive-bias-detection", "decision-theory", "base-rates"],
@@ -2464,7 +2464,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-16", format: "signal", track: "creative", difficulty: 3, xpBase: 50,
+    id: "gym-signal-16", format: "signal", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "The Side-Feature Nobody Asked For",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["entrepreneurial-thinking", "design-thinking", "convergent-thinking"],
@@ -2489,7 +2489,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-17", format: "signal", track: "adversarial", difficulty: 2, xpBase: 50,
+    id: "gym-signal-17", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Other Buyer",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["intelligence-analysis", "game-theory", "critical-thinking"],
@@ -2514,7 +2514,7 @@ const MTC_GYM_CHALLENGES = [
     },
   },
   {
-    id: "gym-signal-18", format: "signal", track: "systems", difficulty: 3, xpBase: 50,
+    id: "gym-signal-18", format: "signal", muscle: "question", difficulty: 3, xpBase: 50,
     title: "Premortem on the Perfect Hire",
     scenario: "It is twelve months from now and this senior hire has failed badly. Sort each imagined reason by whether it is something you could actually check before the offer goes out.",
     frameworks: ["premortem", "risk-assessment", "scenario-planning"],

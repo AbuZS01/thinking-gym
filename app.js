@@ -122,7 +122,7 @@ function chromeFor(r) {
   if (r === "progress") return ["Progress", null];
   if (r === "profile") return ["Profile", null];
   if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
-  if (r.startsWith("gym/track/")) return ["Track", "gym"];
+  if (r.startsWith("gym/muscle/") || r.startsWith("gym/track/")) return ["Muscle", "gym"];
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
@@ -162,18 +162,17 @@ function onboardingHTML() {
 
 /* ---------- Dashboard ---------- */
 
-const TRACK_ICONS = {
-  probabilistic: "\u{1F3B2}", systems: "\u{1F578}\uFE0F", causal: "\u{1F52C}",
-  adversarial: "\u265F\uFE0F", metacognition: "\u{1FA9E}", creative: "\u{1F4A1}",
-};
+// Muscle emoji come from the data now, so a new muscle needs no change here.
+const MUSCLE_ICONS = Object.fromEntries(MTC_MUSCLES.map((m) => [m.id, m.emoji]));
 const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}", workout: "\u{1F9EE}" };
 
-function trackIcon(id) { return TRACK_ICONS[id] || "\u{1F9E0}"; }
+function muscleIcon(id) { return MUSCLE_ICONS[id] || "\u{1F9E0}"; }
+const trackIcon = muscleIcon; // pre-muscle name, still called from gym.js
 
 function dashboardHTML() {
   const li = levelInfo();
   const session = MTC.gymSession(STATE);
-  const tracks = MTC.gymTrackProgress(STATE);
+  const muscles = MTC.muscleProgress(STATE);
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
   const next = session[0];
 
@@ -195,16 +194,16 @@ function dashboardHTML() {
   ${next ? `<a class="card wide" href="#/gym/play/${next.id}">
     <span class="tag">Today's challenge</span>
     <div class="challenge-card head" style="background:transparent;padding:0;margin:0">
-      <div class="emoji-badge">${next.emoji || trackIcon(next.track)}</div>
+      <div class="emoji-badge">${next.emoji || muscleIcon(next.muscle)}</div>
       <div><h2>${esc(next.title)}</h2><p class="subtle">${esc(MTC_GYM_FORMATS[next.format].tagline)}</p></div>
     </div>
     <span class="cta">Start &rarr;</span>
   </a>` : ""}
 
-  <div class="section-head"><h2>Your tracks</h2><a href="#/gym">View all</a></div>
+  <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
   <div class="grid tight">
-    ${tracks.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/track/${t.id}">
-      <div class="ico">${trackIcon(t.id)}</div>
+    ${muscles.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
+      <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
       <div class="meta">${t.mastered}/${t.total} clean</div>
     </a>`).join("")}
@@ -222,7 +221,7 @@ function dashboardHTML() {
 
 function challengesHTML() {
   const session = MTC.gymSession(STATE);
-  const tracks = MTC.gymTrackProgress(STATE);
+  const muscles = MTC.muscleProgress(STATE);
   const replays = MTC.dueGymReplays(STATE).length;
   const quest = MTC.getOrCreateDailyQuest(STATE);
   const battleState = MTC.getCurrentBossBattle(STATE);
@@ -246,10 +245,10 @@ function challengesHTML() {
   </div>
   ${replays ? `<p class="subtle" style="margin:10px 2px">${replays} challenge${replays === 1 ? " is" : "s are"} due for a replay &mdash; already queued.</p>` : ""}
 
-  <div class="section-head"><h2>Explore tracks</h2></div>
+  <div class="section-head"><h2>Explore the six muscles</h2></div>
   <div class="grid tight">
-    ${tracks.map((t, i) => `<a class="tile t${i % 6}" href="#/gym/track/${t.id}">
-      <div class="ico">${trackIcon(t.id)}</div>
+    ${muscles.map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
+      <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
       <div class="meta">${t.total} challenges &middot; ${t.mastered} clean</div>
     </a>`).join("")}
@@ -268,7 +267,7 @@ function challengesHTML() {
 
 function progressHTML() {
   const li = levelInfo();
-  const tracks = MTC.gymTrackProgress(STATE);
+  const muscles = MTC.muscleProgress(STATE);
   const weak = MTC.weaknessProfile(STATE).filter((w) => w.attempts > 0).slice(0, 5);
   const calStats = MTC.calibrationStats(STATE);
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
@@ -289,8 +288,8 @@ function progressHTML() {
 
   <div class="section-head"><h2>Track mastery</h2><a href="#/gym">Train</a></div>
   <div class="panel">
-    ${tracks.map((t) => `<a class="weak-row" href="#/gym/track/${t.id}">
-      <span class="name">${trackIcon(t.id)} ${esc(t.name)}</span>
+    ${muscles.map((t) => `<a class="weak-row" href="#/gym/muscle/${t.id}">
+      <span class="name">${muscleIcon(t.id)} ${esc(t.name)}</span>
       <div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div>
       <span class="subtle">${t.mastered}/${t.total}</span>
     </a>`).join("")}
@@ -808,14 +807,22 @@ function workbenchHTML(toolId) {
 
 /* ---------- The Gym ---------- */
 
-function gymTrackHTML(trackId) {
-  const track = MTC_SKILL_TRACKS.find((t) => t.id === trackId);
-  if (!track) return `<div class="panel">Track not found. <a class="btn" href="#/gym">The Gym</a></div>`;
-  const challenges = MTC.gymChallengesForTrack(trackId);
+function gymMuscleHTML(muscleId) {
+  const m = MTC_MUSCLES.find((t) => t.id === muscleId);
+  if (!m) return `<div class="panel">Muscle not found. <a class="btn" href="#/gym">The Gym</a></div>`;
+  const challenges = MTC.gymChallengesForMuscle(muscleId);
+  if (!challenges.length) {
+    return `<div class="panel">
+      <a class="crumb" href="#/gym">&larr; The Gym</a>
+      <h1>${muscleIcon(m.id)} ${esc(m.name)}</h1>
+      <p class="subtle">${esc(m.blurb)}</p>
+      <p style="margin-top:14px">No challenges here yet &mdash; this muscle is next to be written.</p>
+    </div>`;
+  }
   return `<div class="panel">
     <a class="crumb" href="#/gym">&larr; The Gym</a>
-    <h1>${esc(track.name)}</h1>
-    <p class="subtle">${challenges.length} challenge${challenges.length === 1 ? "" : "s"}. A track is clean when every challenge is at 80% or better.</p>
+    <h1>${muscleIcon(m.id)} ${esc(m.name)}</h1>
+    <p class="subtle">${esc(m.blurb)} &middot; ${challenges.length} challenge${challenges.length === 1 ? "" : "s"}, clean when every one is at 80% or better.</p>
   </div>
   <div class="grid">
     ${challenges.map((c) => {
@@ -929,7 +936,8 @@ function render() {
   else if (r === "quest") body = questHTML();
   else if (r.startsWith("exercise/")) body = exerciseHTML(r.split("/")[1]);
   else if (r === "gym") body = challengesHTML();
-  else if (r.startsWith("gym/track/")) body = gymTrackHTML(r.split("/")[2]);
+  else if (r.startsWith("gym/muscle/")) body = gymMuscleHTML(r.split("/")[2]);
+  else if (r.startsWith("gym/track/")) body = gymMuscleHTML(r.split("/")[2]); // pre-muscle links
   else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();

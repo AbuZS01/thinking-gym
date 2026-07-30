@@ -51,6 +51,26 @@ nothing reorders mid-play) while the authored answer key stays fixed. Without th
 every answer sits in the slot it was written in and the whole game falls to "always
 tap the top option".
 
+Challenges are filed by **mental muscle** — what the challenge makes you *do*,
+rather than what it is about:
+
+| | | |
+|---|---|---|
+| 🕵️ **Notice** | Spot what's easy to miss | 16 |
+| ⚖️ **Judge** | Weigh conflicting evidence | 23 |
+| 🧩 **Connect** | Find patterns across unrelated domains | 13 |
+| 🔄 **Adapt** | Change the plan when reality changes | 15 |
+| 🔍 **Question** | Work out what's missing before you act | 7 |
+| 🎯 **Prioritise** | Choose under pressure | 4 |
+
+Those last two counts are the point of organising this way: framework families hid
+the fact that almost nothing in the bank trains prioritising under pressure or
+working out what you'd need to know before acting. Both are next to be written.
+
+A challenge's muscle and its framework tags are different axes — a Map It
+challenge about casinos trains *Connect* while its subject is probability — so
+playing one credits both.
+
 Every challenge ends with a debrief split in two: **the principle** you just
 used, and **where it misleads you** — because a mental model you can't see the
 edges of is a liability. Challenges are graded 0–100%, replay themselves on a

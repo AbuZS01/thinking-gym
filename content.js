@@ -1360,16 +1360,53 @@ MTC_EXERCISES.push(
     expertNote: "This is Rubber Ducking pointed at fluency instead of debugging: verbalizing recruits a stronger retrieval pathway, and the transcript smuggles that strength onto the page." }
 );
 
-/* ---------- Skill tracks: independent progress lanes over the frameworks ---------- */
+/* ---------- Mental muscles: what a challenge makes you DO ----------
+   These replaced the old framework families (Probabilistic, Systems, Causal…), which
+   described what a challenge was ABOUT. Muscles describe what it trains, which is what
+   a learner actually picks from — and it lets a firefighter scenario and a fund-manager
+   scenario sit in the same lane when they train the same move.
 
-const MTC_SKILL_TRACKS = [
-  { id: "probabilistic", name: "Probabilistic", frameworks: ["probabilistic-thinking", "bayesian-thinking", "decision-theory", "risk-assessment"] },
-  { id: "systems", name: "Systems", frameworks: ["systems-thinking", "second-order-thinking", "root-cause-analysis", "scenario-planning"] },
-  { id: "causal", name: "Causal & Scientific", frameworks: ["scientific-thinking", "counterfactual-thinking", "abductive-reasoning", "deductive-reasoning", "inductive-reasoning", "analytical-thinking", "pattern-recognition"] },
-  { id: "adversarial", name: "Adversarial & Strategic", frameworks: ["red-team-thinking", "game-theory", "strategic-thinking", "intelligence-analysis", "entrepreneurial-thinking"] },
-  { id: "metacognition", name: "Metacognition", frameworks: ["meta-thinking", "cognitive-bias-detection", "critical-thinking", "survivorship-bias", "ethical-reasoning", "circle-of-competence"] },
-  { id: "creative", name: "Creative", frameworks: ["divergent-thinking", "convergent-thinking", "lateral-thinking", "design-thinking", "first-principles-thinking"] },
+   `frameworks` here does a second, separate job: it is matched against a challenge's own
+   framework tags to credit muscle XP (see applyAttempt in engine.js). Membership overlaps
+   ON PURPOSE — cognitive-bias-detection is honestly both Notice and Judge — and an attempt
+   credits every muscle it intersects, which is how the old tracks already behaved. */
+
+const MTC_MUSCLES = [
+  {
+    id: "notice", name: "Notice", emoji: "\u{1F575}️",
+    blurb: "Spot what's easy to miss.",
+    frameworks: ["pattern-recognition", "cognitive-bias-detection", "critical-thinking", "analytical-thinking", "signal-noise", "survivorship-bias"],
+  },
+  {
+    id: "judge", name: "Judge", emoji: "⚖️",
+    blurb: "Weigh conflicting evidence.",
+    frameworks: ["probabilistic-thinking", "bayesian-thinking", "base-rates", "scientific-thinking", "deductive-reasoning", "inductive-reasoning", "abductive-reasoning", "intelligence-analysis", "critical-thinking", "regression-mean", "expected-value"],
+  },
+  {
+    id: "connect", name: "Connect", emoji: "\u{1F9E9}",
+    blurb: "Find patterns across unrelated domains.",
+    frameworks: ["lateral-thinking", "design-thinking", "first-principles-thinking", "divergent-thinking", "pattern-recognition", "systems-thinking"],
+  },
+  {
+    id: "prioritise", name: "Prioritise", emoji: "\u{1F3AF}",
+    blurb: "Choose under pressure.",
+    frameworks: ["decision-theory", "risk-assessment", "opportunity-cost", "convergent-thinking", "eisenhower", "constraints", "pareto"],
+  },
+  {
+    id: "question", name: "Question", emoji: "\u{1F50D}",
+    blurb: "Work out what's missing before you act.",
+    frameworks: ["meta-thinking", "root-cause-analysis", "five-whys", "circle-of-competence", "counterfactual-thinking", "premortem"],
+  },
+  {
+    id: "adapt", name: "Adapt", emoji: "\u{1F504}",
+    blurb: "Change the plan when reality changes.",
+    frameworks: ["second-order-thinking", "systems-thinking", "scenario-planning", "strategic-thinking", "game-theory", "red-team-thinking", "feedback-loops", "ooda"],
+  },
 ];
+
+// Older code, saved state and deep links still say "track". Keep the name pointing at the
+// same array rather than renaming every call site at once.
+const MTC_SKILL_TRACKS = MTC_MUSCLES;
 
 /* ---------- Workbench templates: apply a tool to your own problem ---------- */
 

@@ -62,7 +62,8 @@ const MTC = (() => {
       calibration: { answers: [], asked: [] },
       reviews: {}, // cardId -> {ease, interval, reps, due}
       reviewCount: 0,
-      trackXp: {}, // skillTrackId -> lifetime XP earned on that track
+      schema: 2, // bumped when saved state needs migrating (see migrateToMuscles)
+      trackXp: {}, // muscleId -> lifetime XP earned on that muscle
       gym: {}, // challengeId -> {plays, bestScore, lastScore, lastPlayed}
       newIntro: null, // {date, count} — caps new review cards introduced per day
       weaknessScores: {}, // frameworkId -> {attempts, totalScore}
@@ -72,14 +73,50 @@ const MTC = (() => {
     };
   }
 
+  const SCHEMA = 2; // 2: skill tracks became mental muscles
+
+  // trackXp used to be keyed by framework-family ids (probabilistic, systems, causal…);
+  // it is now keyed by muscle. There is no honest 1:1 mapping between the two — muscles
+  // are behavioural, families were epistemic — so rebuild the totals from history rather
+  // than guessing one. Every entry carries exerciseId and xp, so the frameworks behind it
+  // are recoverable and the result is exactly what applyAttempt would have accumulated.
+  // The old totals are kept, so the step can be undone.
+  function migrateToMuscles(state) {
+    if (state.schema >= SCHEMA) return state;
+    state.legacyTrackXp = state.trackXp || {};
+    const rebuilt = {};
+    for (const h of state.history || []) {
+      const src = getGymChallenge(h.exerciseId) || getExercise(h.exerciseId)
+        || MTC_BOSS_BATTLES.find((b) => b.id === h.exerciseId);
+      if (!src || !src.frameworks) continue;
+      const credited = new Set();
+      for (const m of MTC_MUSCLES) {
+        if (src.frameworks.some((f) => m.frameworks.includes(f))) credited.add(m.id);
+      }
+      if (src.muscle) credited.add(src.muscle); // same rule applyAttempt uses
+      for (const id of credited) rebuilt[id] = (rebuilt[id] || 0) + (h.xp || 0);
+    }
+    state.trackXp = rebuilt;
+    state.schema = SCHEMA;
+    return state;
+  }
+
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return defaultState();
+      if (!raw) return Object.assign(defaultState(), { schema: SCHEMA });
       const parsed = JSON.parse(raw);
-      return Object.assign(defaultState(), parsed);
+      const merged = Object.assign(defaultState(), parsed);
+      // Trust the SAVE's schema, not defaultState's — otherwise Object.assign hands every
+      // pre-migration save the current number and the migration silently never runs.
+      merged.schema = parsed.schema || 0;
+      if (merged.schema < SCHEMA) {
+        migrateToMuscles(merged);
+        saveState(merged); // persist, so the rebuild is not redone on every load
+      }
+      return merged;
     } catch (e) {
-      return defaultState();
+      return Object.assign(defaultState(), { schema: SCHEMA });
     }
   }
 
@@ -239,11 +276,19 @@ const MTC = (() => {
 
   // Shared bookkeeping for every scored attempt (exercise or boss battle):
   // framework stats, history, streak, XP, level-ups, achievements, persistence.
-  function applyAttempt(state, frameworks, historyEntry) {
-    for (const t of MTC_SKILL_TRACKS) {
-      if (frameworks.some((f) => t.frameworks.includes(f))) {
-        state.trackXp[t.id] = (state.trackXp[t.id] || 0) + historyEntry.xp;
-      }
+  // `muscleId` is the move a gym challenge trains, which is a different axis from the
+  // frameworks it is tagged with: a Map It challenge about casinos trains Connect while
+  // its subject is probability. Credit both, or a challenge shows progress on a muscle
+  // tile it never actually feeds. Written exercises pass no muscle and credit by
+  // framework alone, as before.
+  function applyAttempt(state, frameworks, historyEntry, muscleId) {
+    const credited = new Set();
+    for (const t of MTC_MUSCLES) {
+      if (frameworks.some((f) => t.frameworks.includes(f))) credited.add(t.id);
+    }
+    if (muscleId) credited.add(muscleId);
+    for (const id of credited) {
+      state.trackXp[id] = (state.trackXp[id] || 0) + historyEntry.xp;
     }
     for (const fw of frameworks) {
       state.frameworkCounts[fw] = (state.frameworkCounts[fw] || 0) + 1;
@@ -478,8 +523,8 @@ const MTC = (() => {
     });
   }
 
-  function skillTracks(state) {
-    return MTC_SKILL_TRACKS.map((t) => {
+  function muscleXp(state) {
+    return MTC_MUSCLES.map((t) => {
       const xp = state.trackXp[t.id] || 0;
       return { id: t.id, name: t.name, xp, level: 1 + Math.floor(xp / 120), pct: Math.round(((xp % 120) / 120) * 100) };
     });
@@ -546,9 +591,10 @@ const MTC = (() => {
     return MTC_GYM_CHALLENGES.find((c) => c.id === id);
   }
 
-  function gymChallengesForTrack(trackId) {
-    return MTC_GYM_CHALLENGES.filter((c) => c.track === trackId);
+  function gymChallengesForMuscle(muscleId) {
+    return MTC_GYM_CHALLENGES.filter((c) => c.muscle === muscleId);
   }
+  const gymChallengesForTrack = gymChallengesForMuscle; // old name, still used by deep links
 
   // Today's session: due replays first, then never-played, then weakest scores.
   // Ties break on a date-seeded key so the trio is stable through the day but
@@ -593,9 +639,9 @@ const MTC = (() => {
     return picked;
   }
 
-  function gymTrackProgress(state) {
-    return MTC_SKILL_TRACKS.map((t) => {
-      const all = gymChallengesForTrack(t.id);
+  function muscleProgress(state) {
+    return MTC_MUSCLES.map((t) => {
+      const all = gymChallengesForMuscle(t.id);
       const played = all.filter((c) => state.gym[c.id]);
       const mastered = all.filter((c) => (state.gym[c.id] || {}).bestScore >= 80);
       const avg = played.length
@@ -642,7 +688,7 @@ const MTC = (() => {
       xp,
       hintsUsed: 0,
       answer: trimAnswer(note),
-    });
+    }, ch.muscle);
     result.nextDue = state.gym[challengeId].due;
     return result;
   }
@@ -699,11 +745,15 @@ const MTC = (() => {
     lastRecordFor,
     exportStateJSON,
     importState,
-    skillTracks,
+    migrateToMuscles,
+    muscleXp,
+    skillTracks: muscleXp,               // pre-muscle name
     getGymChallenge,
-    gymChallengesForTrack,
+    gymChallengesForMuscle,
+    gymChallengesForTrack,               // pre-muscle name
     gymSession,
-    gymTrackProgress,
+    muscleProgress,
+    gymTrackProgress: muscleProgress,    // pre-muscle name
     submitGymChallenge,
     dueGymReplays,
     submitWorkbench,
