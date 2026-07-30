@@ -26,8 +26,8 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**36 challenges** — nine in each of four formats, six in each of six tracks,
-spread across difficulty 1–3 — each objectively scored:
+**78 challenges** — five formats, twelve to fourteen in each of six tracks,
+difficulty 1–3 represented in every track — each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -39,6 +39,17 @@ spread across difficulty 1–3 — each objectively scored:
   unfold; one card doesn't belong in the chain at all.
 - **Sort the Signal** — file each piece of evidence as supporting, undermining,
   or neither.
+- **Work It Out** — a problem worked one step at a time, each stage a tap: compute
+  the expected cost, then judge the offer, then name what the average hides. Later
+  steps stay hidden until the current one is settled, so an answer can't be
+  reverse-engineered from the next question. This is where the deduction and
+  arithmetic live — Monty Hall, the Wason selection task, base rates, expected
+  value.
+
+Multiple-choice options are shuffled at render (deterministically per challenge, so
+nothing reorders mid-play) while the authored answer key stays fixed. Without that,
+every answer sits in the slot it was written in and the whole game falls to "always
+tap the top option".
 
 Every challenge ends with a debrief split in two: **the principle** you just
 used, and **where it misleads you** — because a mental model you can't see the
@@ -58,8 +69,14 @@ doesn't reshuffle your session.
 
 - **Deep Work** — the long-form written bank: 10 exercises a day (warm-up,
   challenge, real-world case, reflection, creativity, logic puzzle, decision
-  scenario, bias detection, observation, fluency) drawn from 80 hand-written
+  scenario, bias detection, observation, fluency) drawn from 77 hand-written
   exercises, weighted toward whichever thinking frameworks you're weakest in.
+  Most of these now have a Gym twin — the same reasoning move, objectively scored —
+  and keep their written form alongside it, since a model answer and three
+  progressive Socratic hints are worth having even when a tap version exists.
+  Reflection, fluency and divergent creativity stay written only: there is no
+  honest answer key for "describe a belief you changed", and scoring a
+  fifteen-ideas exercise for correctness would destroy what it trains.
 - **Weekly Boss Battle** — a multi-stage, no-perfect-answer scenario (business,
   history, cybersecurity, AI, ethics, economics) that rotates weekly across 9
   battles.
@@ -164,6 +181,13 @@ copies pick up the update.
   Each needs `id, format, track, difficulty, xpBase, title, scenario,
   frameworks, emoji, hint, payload, debrief`; `frameworks` entries must be real
   ids from `MTC_FRAMEWORKS` or `MTC_TOOLBOX`, and each format has its own
-  `payload` shape (see the four existing groups). Nothing else needs changing —
+  `payload` shape (see the five existing groups). Nothing else needs changing —
   new challenges enter rotation, the tracks, and the replay schedule on their
-  own.
+  own, and option order is shuffled for you, so write the answer wherever reads
+  most clearly.
+- Adding a **format** means: an entry in `MTC_GYM_FORMATS`, a board renderer and
+  a branch in `score()`, `reviewHTML()` and the `playHTML` dispatch in `gym.js`,
+  a click case in `handleClick`, an icon in `FORMAT_ICONS` (`app.js`), and a
+  headline in the `nailedIt` map. `engine.js` needs nothing — `submitGymChallenge`
+  works off `xpBase`, `frameworks` and the score, and `gymSession` picks on rank
+  plus format diversity, so a new format enters rotation unaided.

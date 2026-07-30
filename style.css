@@ -355,6 +355,8 @@ input[type=range] { width: 100%; accent-color: var(--accent); margin-top: 8px; }
 }
 .opt:hover { border-color: var(--accent-2); }
 .opt.picked { border-color: var(--accent); background: var(--accent-soft); }
+/* matches .sentence.wrong — a rejected pick has to look rejected, not selected */
+.opt.wrong { border-color: var(--danger); background: var(--danger-soft); opacity: 0.75; }
 
 .sentence {
   display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 7px;
