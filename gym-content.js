@@ -23,6 +23,11 @@ const MTC_GYM_FORMATS = {
     tagline: "What does this evidence actually do?",
     how: "For each piece of evidence, tap the card then tap the bucket: does it support the claim, undermine it, or neither?",
   },
+  workout: {
+    name: "Work It Out",
+    tagline: "One step at a time, to the answer",
+    how: "Work the problem one step at a time. Tap the right move at each stage — a wrong tap costs half the marks for that step, and the next step only appears once you have settled this one.",
+  },
 };
 
 const MTC_GYM_CHALLENGES = [
@@ -1059,6 +1064,125 @@ const MTC_GYM_CHALLENGES = [
     debrief: {
       principle: "The evidence that counts is behaviour that cost someone something — money, time, or the effort of describing the problem before you mentioned your solution. Stated intention is free, and free evidence is almost uncorrelated with what people go on to do.",
       whereItMisleads: "Three funded competitors pivoting away is the item most founders reframe as an opportunity. Sometimes it is: they may have been early, or wrong. But you have to name what you know that they discovered and dismissed, and 'we care more' is not an answer.",
+    },
+  },
+
+  /* ---------------- WORK IT OUT ---------------- */
+  {
+    id: "gym-workout-1", format: "workout", track: "causal", difficulty: 2, xpBase: 50,
+    title: "Knights and Knaves",
+    scenario: "On an island, knights always tell the truth and knaves always lie. You meet two people, A and B. A says: \"At least one of us is a knave.\"",
+    frameworks: ["deductive-reasoning", "critical-thinking"],
+    emoji: "🗝️",
+    hint: "You cannot start from B — nothing was said about B directly. Start by assuming something about A and see whether the assumption survives its own consequences.",
+    payload: {
+      problem: "Work out who is the knight and who is the knave — or establish that it cannot be determined.",
+      steps: [
+        {
+          ask: "Which assumption should you test first?",
+          options: [
+            "Assume A is a knave, and check whether that is self-consistent",
+            "Assume B is a knight, and work backwards to A",
+            "Assume both are knaves, since the statement mentions knaves",
+            "Count how many statements each person made",
+          ],
+          answer: 0,
+          because: "A is the only one who spoke, so A's statement is the only thing that can contradict itself. Testing B first gives you nothing to check against.",
+        },
+        {
+          ask: "If A were a knave, A's statement would be false. What would that mean?",
+          options: [
+            "It would mean neither of them is a knave — so both are knights",
+            "It would mean both of them are knaves",
+            "It would mean B is a knave and A is a knight",
+            "Nothing follows; a false statement carries no information",
+          ],
+          answer: 0,
+          because: "The negation of \"at least one of us is a knave\" is \"neither of us is a knave\" — that is, both are knights.",
+        },
+        {
+          ask: "So what has assuming A is a knave produced?",
+          options: [
+            "A contradiction — A would have to be a knight and a knave at once",
+            "A consistent picture, so A really is a knave",
+            "Two equally valid answers, so the puzzle is undetermined",
+            "A result that depends on what B says next",
+          ],
+          answer: 0,
+          because: "The assumption \"A is a knave\" forces the conclusion \"both are knights\", which contradicts the assumption itself. So it must be false.",
+        },
+        {
+          ask: "A is therefore a knight, and A's statement is true. Who is the knave?",
+          options: [
+            "B — the true statement needs at least one knave, and it is not A",
+            "Neither of them; the statement can be true with two knights",
+            "A, because only a knave would mention knaves",
+            "It cannot be determined from the information given",
+          ],
+          answer: 0,
+          because: "A is a knight, so \"at least one of us is a knave\" is true. Since A is not the knave, B must be.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Testing a hypothesis by following it to a contradiction — reductio ad absurdum — settles questions that no amount of pattern-matching will. The move is always the same: assume the thing, push it through its own consequences, and see whether it survives.",
+      whereItMisleads: "It only works when the options are genuinely exhaustive. Here everyone is exactly a knight or a knave, so eliminating one settles it. In the real world there is usually a third possibility — mistaken, joking, partly informed — and ruling out one explanation does not establish the other.",
+    },
+  },
+  {
+    id: "gym-workout-2", format: "workout", track: "probabilistic", difficulty: 2, xpBase: 50,
+    title: "The Extended Warranty",
+    scenario: "A £600 laptop comes with an offer: £90 for a two-year extended warranty. Repairs that the warranty would cover typically cost £250, and roughly 12% of these laptops need such a repair within two years.",
+    frameworks: ["decision-theory", "expected-value", "risk-assessment"],
+    emoji: "🧮",
+    hint: "Expected value is probability times consequence — not the repair cost on its own, and not the warranty price. Work that number out before you judge the offer.",
+    payload: {
+      problem: "Decide whether the warranty is worth buying, and then work out what that calculation leaves out.",
+      steps: [
+        {
+          ask: "What is the expected repair cost over two years if you do NOT buy the warranty?",
+          options: ["£30", "£250", "£90", "£108"],
+          answer: 0,
+          because: "0.12 × £250 = £30. Expected value multiplies the probability by the cost — £250 is the cost if it happens, not the expected cost.",
+        },
+        {
+          ask: "So on expected value alone, what does the £90 warranty look like?",
+          options: [
+            "A bad deal — you would pay £90 to avoid an average cost of £30",
+            "A good deal — £90 is less than the £250 repair it covers",
+            "Exactly break-even, so it makes no difference",
+            "Impossible to say without knowing the laptop's resale value",
+          ],
+          answer: 0,
+          because: "You are paying £90 for something worth £30 on average. Comparing the price against the £250 worst case rather than the £30 expected cost is the mistake the offer is designed to invite.",
+        },
+        {
+          ask: "Expected value assumes something about the bet. What?",
+          options: [
+            "That you can repeat it many times, so the average is what you actually experience",
+            "That the probability is known exactly rather than estimated",
+            "That both outcomes are equally likely",
+            "That the amounts involved are small",
+          ],
+          answer: 0,
+          because: "An average is what emerges over many repetitions. You buy one laptop — you get either a £0 outcome or a £250 one, never £30.",
+        },
+        {
+          ask: "For whom might buying the warranty still be rational?",
+          options: [
+            "Someone who genuinely could not absorb a surprise £250 bill",
+            "Someone who buys a lot of laptops",
+            "Nobody — the maths settles it",
+            "Someone who expects to use the laptop heavily",
+          ],
+          answer: 0,
+          because: "If a single £250 hit would mean missed rent rather than an annoyance, you are not buying an average — you are buying protection against the one outcome you cannot absorb. Someone buying many laptops is exactly who SHOULD self-insure, because for them the average does arrive.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "Expected value is the right tool for bets you make repeatedly, where the average is what you actually live. For one-off exposures the question is different: can you survive the bad branch? That is why insurance is a bad deal on average and still worth buying on the things that would ruin you.",
+      whereItMisleads: "The 12% and the £250 are estimates, presented with the same confidence as the £90 price — which is a real number. Precise-looking arithmetic on soft inputs can make a decision feel settled when the inputs are the actual uncertainty.",
     },
   },
 ];

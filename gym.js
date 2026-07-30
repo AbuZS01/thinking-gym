@@ -46,6 +46,12 @@ const GYM = (() => {
       const cards = seededShuffle(ch.payload.steps.concat([ch.payload.intruder]), ch.id);
       return Object.assign(base, { stage: "board", cards, order: [] });
     }
+    if (ch.format === "workout") {
+      // stepIdx is the step being worked; picks[i] is what was settled on (null = failed
+      // out), tries[i] how many taps it took. Later steps stay hidden so the answer to
+      // one cannot be reverse-engineered from the next.
+      return Object.assign(base, { stage: "board", stepIdx: 0, picks: {}, tries: {}, lastWrong: null });
+    }
     return Object.assign(base, { stage: "board", assign: {}, selectedCard: null });
   }
 
@@ -82,6 +88,17 @@ const GYM = (() => {
       const intruderUsed = play.order.includes(ch.payload.intruder);
       const points = Math.max(0, correct * 6 - (intruderUsed ? 6 : 0));
       return { points, max: steps.length * 6, correct, intruderUsed };
+    }
+    if (ch.format === "workout") {
+      // same 10 / 5 / 0 ladder per step that "flaw" uses for its two stages
+      const steps = ch.payload.steps;
+      let points = 0, firstTry = 0, secondTry = 0, missed = 0;
+      steps.forEach((s, i) => {
+        if (play.picks[i] !== s.answer) { missed++; return; }
+        if ((play.tries[i] || 1) <= 1) { points += 10; firstTry++; }
+        else { points += 5; secondTry++; }
+      });
+      return { points, max: steps.length * 10, firstTry, secondTry, missed };
     }
     const ev = ch.payload.evidence;
     let correct = 0;
@@ -216,6 +233,42 @@ const GYM = (() => {
     ${actionRowHTML("Check my sorting", ready)}`;
   }
 
+  function workoutHTML(ch) {
+    const p = ch.payload;
+    // steps already settled, shown as a worked trail above the live one
+    const done = p.steps.slice(0, play.stepIdx).map((s, i) => {
+      const pick = play.picks[i];
+      const right = pick === s.answer;
+      return `<div class="review-row ${right ? "ok" : "no"}">
+        <div class="subtle">${e(s.ask)}</div>
+        <div>${right ? "&#10003;" : "&#10007;"} ${e(pick === null || pick === undefined ? "Moved on without it" : s.options[pick])}</div>
+        <div class="subtle">${e(s.because)}</div>
+      </div>`;
+    }).join("");
+
+    const step = p.steps[play.stepIdx];
+    const tries = play.tries[play.stepIdx] || 0;
+    const live = step ? `<div class="panel">
+        <span class="tag">Step ${play.stepIdx + 1} of ${p.steps.length}</span>
+        <h2>${e(step.ask)}</h2>
+        ${step.options.map((o, i) => {
+          const wrong = play.lastWrong === i;
+          return `<button class="opt ${wrong ? "wrong" : ""}" data-gym-step="${i}">${e(o)}</button>`;
+        }).join("")}
+        ${tries >= 1 && play.lastWrong !== null
+          ? `<p class="subtle nudge">Not that one &mdash; one more try, for half marks on this step.</p>` : ""}
+      </div>` : "";
+
+    return `<div class="panel">
+      <h2>${e(p.problem)}</h2>
+      <p class="subtle">${play.stepIdx} of ${p.steps.length} steps settled.</p>
+    </div>
+    ${done ? `<div class="panel"><span class="tag">Working</span>${done}</div>` : ""}
+    ${live}
+    ${ideasHTML()}
+    ${hintRowHTML()}`;
+  }
+
   // the reference's free-text box: optional, never graded, saved to the journal
   function ideasHTML() {
     return `<div class="panel">
@@ -289,6 +342,20 @@ const GYM = (() => {
         ? `<p class="subtle nudge">You included the card that does not belong: &ldquo;${e(p.intruder)}&rdquo;</p>`
         : `<p class="subtle">You correctly left out: &ldquo;${e(p.intruder)}&rdquo;</p>`);
     }
+    if (ch.format === "workout") {
+      return ch.payload.steps.map((s, i) => {
+        const pick = play.picks[i];
+        const right = pick === s.answer;
+        const label = pick === null || pick === undefined ? "nothing" : s.options[pick];
+        return `<div class="review-row ${right ? "ok" : "no"}">
+          ${right ? "&#10003;" : "&#10007;"} <b>${i + 1}.</b> ${e(s.ask)}
+          ${right
+            ? `<div class="subtle">${e(s.options[s.answer])}${(play.tries[i] || 1) > 1 ? " (second try)" : ""}</div>`
+            : `<div class="subtle">You chose: ${e(label)}<br>Answer: ${e(s.options[s.answer])}</div>`}
+          <div class="subtle">${e(s.because)}</div>
+        </div>`;
+      }).join("");
+    }
     return ch.payload.evidence.map((x, i) => {
       const mine = play.assign[i];
       const ok = mine === x.bucket;
@@ -305,7 +372,7 @@ const GYM = (() => {
     const tone = p >= 80 ? "" : p >= 50 ? " mid" : " low";
     // "Great connection!" only makes sense for Map It; the other three formats get
     // top marks for spotting, ordering and sorting, not for connecting.
-    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!" };
+    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!" };
     const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
       : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
     const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
@@ -369,6 +436,7 @@ const GYM = (() => {
     if (ch.format === "map") return header + (play.stage === "board" ? mapBoardHTML(ch) : mapMisleadsHTML(ch));
     if (ch.format === "flaw") return header + flawHTML(ch);
     if (ch.format === "chain") return header + chainHTML(ch);
+    if (ch.format === "workout") return header + workoutHTML(ch);
     return header + signalHTML(ch);
   }
 
@@ -417,6 +485,27 @@ const GYM = (() => {
     if (flaw) {
       play.pickedFlaw = Number(flaw.dataset.gymFlaw);
       play.result = score(ch);
+      return true;
+    }
+
+    const stepBtn = hit("data-gym-step");
+    if (stepBtn) {
+      const i = play.stepIdx;
+      const step = ch.payload.steps[i];
+      const choice = Number(stepBtn.dataset.gymStep);
+      play.tries[i] = (play.tries[i] || 0) + 1;
+      if (choice === step.answer) {
+        play.picks[i] = choice;          // right: settle it and move on
+        play.lastWrong = null;
+        play.stepIdx++;
+      } else if (play.tries[i] >= 2) {
+        play.picks[i] = choice;          // out of tries: record what they settled on, 0 marks
+        play.lastWrong = null;
+        play.stepIdx++;
+      } else {
+        play.lastWrong = choice;         // first miss: flag it and let them retry for half
+      }
+      if (play.stepIdx >= ch.payload.steps.length) play.result = score(ch);
       return true;
     }
 

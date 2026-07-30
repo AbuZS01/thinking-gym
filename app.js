@@ -166,7 +166,7 @@ const TRACK_ICONS = {
   probabilistic: "\u{1F3B2}", systems: "\u{1F578}\uFE0F", causal: "\u{1F52C}",
   adversarial: "\u265F\uFE0F", metacognition: "\u{1FA9E}", creative: "\u{1F4A1}",
 };
-const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}" };
+const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F", signal: "\u{1F4CA}", workout: "\u{1F9EE}" };
 
 function trackIcon(id) { return TRACK_ICONS[id] || "\u{1F9E0}"; }
 
@@ -371,13 +371,17 @@ const TYPE_LABELS = {
 
 function questHTML() {
   const quest = MTC.getOrCreateDailyQuest(STATE);
-  const hasCore = quest.items.some((i) => i.core);
+  // The quest is cached in localStorage for the day, so after an update it can still
+  // name an exercise that has since been retired. Drop those rather than throwing on
+  // ex.id below — tomorrow's quest is generated fresh from the current bank.
+  const items = quest.items.filter((item) => MTC.getExercise(item.exerciseId));
+  const hasCore = items.some((i) => i.core);
   return `<div class="panel">
     <h1>Daily Quest</h1>
-    <p class="subtle">One of each type &middot; 20&ndash;30 min &middot; ${quest.completed.length}/${quest.items.length} done.${hasCore ? ` Short on time? Do the <span style="color:var(--accent)">&#9733; core</span> three.` : ""}</p>
+    <p class="subtle">One of each type &middot; 20&ndash;30 min &middot; ${quest.completed.length}/${items.length} done.${hasCore ? ` Short on time? Do the <span style="color:var(--accent)">&#9733; core</span> three.` : ""}</p>
   </div>
   <div class="grid">
-    ${quest.items.map((item) => {
+    ${items.map((item) => {
       const ex = MTC.getExercise(item.exerciseId);
       const done = quest.completed.includes(item.exerciseId);
       return `<a class="card ${done ? "done" : ""}" href="#/exercise/${ex.id}">

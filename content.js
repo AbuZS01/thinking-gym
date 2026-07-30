@@ -429,14 +429,6 @@ const MTC_EXERCISES = [
     expertNote: "'Peeking' at a test and stopping when it looks good is one of the most common ways rigorous-looking experiments produce false winners — the fix is deciding the stopping rule in advance." },
 
   // CASE
-  { id: "case-1", type: "case", difficulty: 3, xpBase: 35, frameworks: ["first-principles-thinking", "second-order-thinking"],
-    title: "Kodak and the Digital Camera",
-    prompt: "Kodak's own engineer invented the first digital camera in 1975. Kodak shelved it, fearing it would cannibalize film sales, and filed for bankruptcy in 2012 as digital photography took over. Analyze: what would first-principles thinking have suggested Kodak do differently, and what second-order consequence did they fail to trace from protecting film sales?",
-    hints: ["First principles: what was Kodak's business actually about — selling film, or capturing memories?", "If they define their business around the film format, protecting film sales looks rational; if around 'capturing memories,' digital is an opportunity, not a threat.", "Second-order: protecting film sales today meant leaving digital camera innovation to competitors, who then owned the format that eventually killed film anyway."],
-    rubric: ["I redefined Kodak's real business as 'capturing memories', not 'selling film'", "I explained why protecting film profits looked sensible at the time", "I traced the knock-on effect: rivals got to own digital because Kodak wouldn't touch it", "I wrote a lesson that applies beyond Kodak"],
-    modelAnswer: "From first principles, Kodak's actual business was helping people capture and keep memories — film was just the current technology for doing that, not the goal itself. Defining the business as 'film' made protecting film sales look like the obviously rational first-order move. But the second-order consequence: by not developing digital, Kodak ceded the emerging format to competitors (and later, phone makers) who then defined the future of the category Kodak once owned — the very thing they were trying to protect (their market position) was lost precisely because they protected the wrong thing (the format instead of the customer need).",
-    expertNote: "Companies rarely die from failing to see a technology coming — Kodak invented it. They die from defining their business around the current format instead of the underlying need." },
-
   { id: "case-2", type: "case", difficulty: 3, xpBase: 35, frameworks: ["scenario-planning", "pattern-recognition"],
     title: "The Maginot Line",
     prompt: "France built the Maginot Line — a heavily fortified defensive line — based on the trench-warfare lessons of WWI. In 1940, Germany simply went around it through the Ardennes forest. What pattern-recognition error does this illustrate, and what would scenario planning have added?",
@@ -904,14 +896,6 @@ MTC_EXERCISES.push(
     modelAnswer: "The facts support many stories: an accident, a family emergency, a dead phone, a calendar error, or being stuck in a prior meeting. If your first instinct was about disrespect or unreliability, note that for a habitually punctual person, mundane logistics failures are vastly more common than sudden character changes.",
     expertNote: "Hanlon's Razor generalizes here: before attributing to intent, exhaust the explanations that require nothing unusual about the person at all." },
 
-  { id: "warmup-6", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["analytical-thinking", "critical-thinking"],
-    title: "The Worsening Hospital",
-    prompt: "A hospital's average recovery time got worse in the year after it hired top specialists and upgraded its ICU. A journalist writes that care quality is declining. What's the alternative explanation, in 2-3 sentences?",
-    hints: ["What kind of patients would start choosing (or being referred to) a hospital after it adds top specialists?", "Better facilities attract harder cases — the patient mix changed, not necessarily the care quality.", "To compare fairly you'd need severity-adjusted outcomes: how does each category of patient fare now vs before?"],
-    rubric: ["I spotted the alternative: sicker patients started coming, so averages worsened", "I explained why better hospitals attract the hardest cases", "I said a fair test compares similar patients before vs after", "I refused to judge the hospital without that fairer comparison"],
-    modelAnswer: "Upgrading attracts sicker, more complex patients — referrals send the hardest cases to the best-equipped hospital. Average recovery time can worsen even while every category of patient does better than before. A fair judgment requires severity-adjusted outcomes, not raw averages.",
-    expertNote: "This is a selection effect wearing the mask of a trend — whenever the population being measured changes, the metric can move in the opposite direction of the underlying reality." },
-
   { id: "warmup-7", type: "warmup", difficulty: 1, xpBase: 10, frameworks: ["second-order-thinking", "strategic-thinking"],
     title: "Free Shipping",
     prompt: "An online store announces 'free shipping on all orders, forever.' Nothing is free. List two places the cost likely reappears, and one second-order effect on customer behavior.",
@@ -929,14 +913,6 @@ MTC_EXERCISES.push(
     expertNote: "You don't understand a position until you can state it so well its holders would applaud — only then does your disagreement carry information." },
 
   // CHALLENGE
-  { id: "challenge-5", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["systems-thinking", "second-order-thinking", "red-team-thinking"],
-    title: "The Password Policy Backfire",
-    prompt: "A company mandates password changes every 30 days with strict complexity rules. A year later, security incidents have risen. Explain the mechanism by which a well-intentioned security policy can reduce security, and propose a better policy.",
-    hints: ["Think about what real humans do when forced to invent and memorize a new complex secret every month.", "Predictable mutations (Password1! becomes Password2!), sticky notes, and password reuse across systems are adaptations the policy itself creates.", "Modern guidance (e.g. NIST) dropped forced periodic rotation in favor of long passphrases, breach-triggered resets, and multi-factor authentication."],
-    rubric: ["I explained the core: people can't memorise new complex passwords monthly, so they work around the rule", "I named two of the workarounds (Password1 becomes Password2, sticky notes, reuse)", "I proposed better rules (long passphrases, two-factor login, reset only after a breach)", "I drew the bigger lesson: a rule people dodge isn't really your rule"],
-    modelAnswer: "The policy exceeds human memory capacity, so users adapt: incremental mutations an attacker can guess, written-down passwords, and reuse across accounts. The system's real behavior is set by the adaptation, not the rule. Better: long memorable passphrases, multi-factor authentication, and forced resets only after suspected compromise — which is where security guidance has actually moved.",
-    expertNote: "Any policy that ignores the adaptive response of the people inside the system is describing an imaginary system — the workaround is the policy." },
-
   { id: "challenge-6", type: "challenge", difficulty: 2, xpBase: 20, frameworks: ["second-order-thinking", "strategic-thinking"],
     title: "Crippling the Free Tier",
     prompt: "A freemium product converts 2% of free users to paid. An executive proposes sharply degrading the free tier to 'force upgrades.' Map the first-order effect, then at least two second-order effects that could make revenue fall.",
