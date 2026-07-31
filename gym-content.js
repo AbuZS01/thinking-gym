@@ -5,38 +5,38 @@
 const MTC_GYM_FORMATS = {
   map: {
     name: "Map It",
-    tagline: "Connect two unrelated worlds",
-    how: "Each slot is a mechanism from one domain. Tap a slot, then tap the action from the other domain that does the same job. Two cards belong nowhere.",
+    tagline: "Find the same idea in two different places",
+    how: "Each box shows how something works in one setting. Tap a box, then tap the choice that does the same job in the other setting. Two choices do not match anything.",
   },
   flaw: {
     name: "Spot the Flaw",
-    tagline: "Find the broken step, then name it",
-    how: "Tap the sentence where the reasoning breaks, then name the error.",
+    tagline: "Find where the thinking goes wrong",
+    how: "Tap the sentence where the thinking goes wrong. Then choose what the mistake is.",
   },
   chain: {
     name: "Order the Chain",
     tagline: "And then what happens?",
-    how: "Tap the consequences in the order they unfold. One card doesn't belong at all.",
+    how: "Tap what happens first, then what happens next. One card does not belong in the chain.",
   },
   signal: {
     name: "Sort the Signal",
-    tagline: "What does this evidence actually do?",
-    how: "For each piece of evidence, tap the card then tap the bucket: does it support the claim, undermine it, or neither?",
+    tagline: "Does each fact help or hurt the claim?",
+    how: "Tap each fact, then sort it. Does it make the claim stronger, make it weaker, or do neither?",
   },
   workout: {
     name: "Work It Out",
     tagline: "One step at a time, to the answer",
-    how: "Work the problem one step at a time. Tap the right move at each stage — a wrong tap costs half the marks for that step, and the next step only appears once you have settled this one.",
+    how: "Solve the problem one step at a time. Choose the best answer at each step. A wrong choice loses half the points for that step. The next step appears after you finish this one.",
   },
   ask: {
     name: "Ask First",
-    tagline: "Find out what you'd need to know",
-    how: "You may ask a limited number of questions before deciding. Tap one and its answer appears. Marks go to the questions whose answers would actually change what you do — the rest are interesting and cost you a slot.",
+    tagline: "Ask what matters before you decide",
+    how: "You can ask only a few questions before you decide. Tap a question to see its answer. You earn points for questions that could change your choice. Questions that are only interesting still use one of your turns.",
   },
   triage: {
-    name: "Triage",
-    tagline: "Sort by priority, under a stated rule",
-    how: "The rule is written above the board, so you are applying it rather than guessing at it. Tap an item, then tap the band it belongs in. Everything has to be placed before you can check.",
+    name: "Sort by Priority",
+    tagline: "Use a clear rule to decide what comes first",
+    how: "Read the rule above the board. Tap an item, then choose the group it belongs in. Sort every item before you check your answer.",
   },
 };
 
@@ -44,45 +44,45 @@ const MTC_GYM_CHALLENGES = [
   /* ---------------- MAP IT ---------------- */
   {
     id: "gym-map-1", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
-    title: "The Coffee Shop's Immune System",
-    scenario: "A small coffee chain keeps getting burned: card skimmers on the terminals, every barista using one shared password, and a laptop full of customer data that walked out the back door. There is no budget for a security team. Solve it using how the human immune system defends a body.",
+    title: "Protect the Coffee Shop",
+    scenario: "A small coffee shop has three problems. Someone has tampered with its card machines. Every worker uses the same password. A laptop holding customer details has been stolen. The shop cannot afford a security team. Use the way our bodies fight illness to help protect the shop.",
     frameworks: ["pattern-recognition", "lateral-thinking", "systems-thinking"],
     emoji: "🦠",
-    hint: "Ask what each defence DOES, stripped of biology: what blocks, what watches, what remembers, what contains, what escalates.",
+    hint: "Think about the job of each defence: block danger, watch for it, remember it, keep it in one place, or call for a bigger response.",
     payload: {
       sourceDomain: "The human immune system",
       targetDomain: "A coffee shop's security",
       pairs: [
-        { prompt: "Barrier defence — skin and mucus block most threats before they are ever inside", match: "Lock the back office and mount the card terminals so tampering leaves a visible mark" },
-        { prompt: "Patrolling cells — cheap, constant surveillance that flags anything unfamiliar", match: "A five-second opening checklist: does anything on the till look different from yesterday?" },
-        { prompt: "Immune memory — after one infection the body recognises that invader instantly", match: "Log every incident and what it looked like, so the next person spots the same trick in seconds" },
-        { prompt: "Compartments — an infection in one tissue does not get free run of every organ", match: "Give each member of staff their own login, so one leaked password does not open everything" },
-        { prompt: "Fever — an expensive whole-body response, reserved for genuine invasions", match: "A pre-agreed rule: if a terminal looks tampered with, it goes offline that day and you eat the lost sales" },
+        { prompt: "Skin and mucus — they block most danger before it gets inside", match: "Lock the back office and fix the card machines in place, so anyone touching them leaves a clear sign" },
+        { prompt: "Watch cells — they keep looking for anything that seems strange", match: "Use a five-second opening check: does anything on the till look different from yesterday?" },
+        { prompt: "Body memory — after one illness, the body knows that danger when it sees it again", match: "Write down each problem and what it looked like, so the next worker can spot the same trick quickly" },
+        { prompt: "Separate areas — an illness in one part of the body cannot reach every other part", match: "Give each worker their own login, so one stolen password does not open everything" },
+        { prompt: "Fever — a costly full-body response used only for real danger", match: "Make a rule now: if a card machine looks changed, stop using it that day even if the shop loses sales" },
       ],
       decoys: [
         "Put up a sign saying the premises are monitored by CCTV",
         "Ask customers to choose a longer PIN at the terminal",
       ],
       misleads: {
-        question: "The immune system is a strong model here. Where does it actively mislead you?",
+        question: "The body's defences give us useful ideas. Where does the comparison stop working?",
         options: [
-          "Immune systems evolved against attackers that cannot read the defence and adapt to it within a week — card fraudsters can, and do",
+          "Germs cannot study the shop's safety steps and quickly plan around them, but thieves can",
           "Immune systems have no barrier layer, so the door lock has no biological counterpart",
-          "An immune system can overreact and attack the body itself; the business version is security so strict that staff invent workarounds around it",
+          "The body can overreact and harm itself. In the same way, shop rules can become so strict that workers start going around them",
           "Immune responses are instant, whereas businesses are always slow",
         ],
         answers: [0, 2],
       },
     },
     debrief: {
-      principle: "You just did structural transfer: strip a system down to what it DOES — block, patrol, remember, compartmentalise, escalate — and those five jobs have counterparts in anything that has to defend itself, alive or commercial.",
-      whereItMisleads: "Analogies smuggle in assumptions along with the useful structure. Biology's attackers do not study your defences and change tactics next month; human ones do. Use the analogy to generate the options, then test each one against the differences.",
+      principle: "You looked past what things are called and focused on the job they do: block, watch, remember, separate and call for help. The same jobs can protect a body, a shop or many other things.",
+      whereItMisleads: "A comparison can give you ideas, but it is never a perfect match. Germs do not study your rules and plan a new trick. People do. Use the comparison to find ideas, then check where the two settings differ.",
     },
   },
   {
     id: "gym-map-2", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
-    title: "What Ants Know About Logistics",
-    scenario: "A delivery network keeps re-planning routes from head office, and keeps being wrong: roadworks, weather and demand move faster than the plan. Redesign the routing using how an ant colony finds food.",
+    title: "How Ants Can Help Delivery Drivers",
+    scenario: "A delivery company plans every route at its main office. The plans soon go wrong because roads close, weather changes and new orders arrive. Use the way ants find food to build a better system.",
     frameworks: ["systems-thinking", "pattern-recognition", "feedback-loops"],
     emoji: "🐜",
     hint: "No ant holds the map. Look for the three moving parts: reinforce what worked, let old information fade, keep a few explorers out there.",
@@ -118,8 +118,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-map-3", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
-    title: "If Pixar Ran the Outpatient Clinic",
-    scenario: "An outpatient department has long waits, late discharges, and staff who have stopped suggesting improvements because the last three were cancelled after one complaint. Redesign how it improves itself, using how Pixar develops a film.",
+    title: "If Pixar Ran a Hospital Clinic",
+    scenario: "A hospital clinic has long waits and often sends patients home late. Staff have stopped sharing ideas because past changes were dropped after one complaint. Use the way Pixar makes films to help the clinic improve.",
     frameworks: ["design-thinking", "lateral-thinking", "systems-thinking"],
     emoji: "🎬",
     hint: "Pixar's real machinery isn't talent, it's rules that make criticism cheap and early failure survivable.",
@@ -157,7 +157,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-map-4", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
     title: "The Casino's Trick for Freelancers",
-    scenario: "A freelance designer lurches between a £9,000 month and a £400 month, takes any work that appears, and panics every January. Rebuild how she runs her income using how a casino guarantees its profit.",
+    scenario: "A self-employed designer earns £9,000 in one month and only £400 in another. She takes any job she can get and worries whenever work is quiet. Use the way a casino protects its money to help her build a steadier income.",
     frameworks: ["probabilistic-thinking", "decision-theory", "risk-assessment"],
     emoji: "🎰",
     hint: "A casino does not win any single hand. Look for the four things that make the long run actually arrive: the edge, the volume, the reserve, and the cap on any one bet.",
@@ -194,7 +194,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-map-5", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
     title: "Blood Sugar and the Stockroom",
-    scenario: "A hardware shop is always either drowning in stock nobody wants or out of the one item everyone is asking for. The owner reorders by feel, whenever a shelf looks empty. Redesign the ordering using how the body regulates blood sugar.",
+    scenario: "A hardware shop has too much of what nobody wants and none of what people need. The owner orders more only when a shelf looks empty. Use the way the body keeps blood sugar steady to build a better ordering system.",
     frameworks: ["systems-thinking", "feedback-loops", "second-order-thinking"],
     emoji: "🩸",
     hint: "The body does not order glucose when it feels low. Look for the set point, the two opposing signals, the buffer store, and the lag between signal and effect.",
@@ -230,8 +230,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-map-6", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
-    title: "Cholera and the Crash Nobody Can Reproduce",
-    scenario: "An app crashes for roughly one user in three hundred, never on a developer's machine, and the team has spent five weeks guessing. Rebuild the hunt using how John Snow traced a cholera outbreak to a single water pump.",
+    title: "Finding the Cause of a Mystery Crash",
+    scenario: "An app stops working for about one person in every 300. It works fine when the people who made it test it, so they have spent five weeks guessing. Use the way John Snow traced a deadly illness to one water pump to find the cause.",
     frameworks: ["scientific-thinking", "abductive-reasoning", "root-cause-analysis"],
     emoji: "🚰",
     hint: "Snow's advantage was not a theory of germs — he did not have one. It was defining a case precisely, plotting where the cases were, and finding people who should have been ill and were not.",
@@ -304,7 +304,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-map-8", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
-    title: "Run Your Judgement Like an Airline",
+    title: "What Airlines Can Teach Us About Mistakes",
     scenario: "You keep making the same category of mistake: confident decisions, late at night, from memory, that you would not have made in the morning. Rebuild how you manage your own thinking using how commercial aviation manages safety.",
     frameworks: ["meta-thinking", "cognitive-bias-detection", "postmortem"],
     emoji: "✈️",
@@ -342,7 +342,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-map-9", format: "map", muscle: "connect", difficulty: 1, xpBase: 60,
     title: "Run the Meeting Like a Jazz Quartet",
-    scenario: "The fortnightly ideas meeting has the same shape every time: the manager speaks first, two people agree, one person lists reasons it will not work, and nothing is decided. Redesign the meeting using how a jazz quartet improvises.",
+    scenario: "The ideas meeting goes the same way every two weeks. The manager speaks first. Two people agree. One person says why every idea will fail. Nothing gets decided. Use the way a jazz group plays together to improve the meeting.",
     frameworks: ["divergent-thinking", "lateral-thinking", "design-thinking"],
     emoji: "🎷",
     hint: "Improvisation is not the absence of rules. Look for the agreed structure, whose turn it is, what the others do while someone solos, and who is listening.",
@@ -379,8 +379,8 @@ const MTC_GYM_CHALLENGES = [
 
   {
     id: "gym-map-10", format: "map", muscle: "connect", difficulty: 2, xpBase: 60,
-    title: "The Register Umar Built",
-    scenario: "A company has grown from 20 people to 200. Pay is decided case by case, responsibilities live in people's heads, and two employees have just discovered they are paid very differently for the same work. Redesign how it keeps track, using the diwan — the formal register Caliph Umar ibn al-Khattab established to replace ad-hoc distribution from the treasury.",
+    title: "Umar's List of What People Own",
+    scenario: "A company has grown from 20 workers to 200. Pay is decided one person at a time. No one has written down who is meant to do what. Two workers have found that they get very different pay for the same job. Use Umar's clear public list of roles and payments to build a fairer system.",
     frameworks: ["systems-thinking", "first-principles-thinking", "design-thinking"],
     emoji: "📜",
     hint: "Ask what a written register does that memory and goodwill cannot: hold more than one mind can, apply a stated rule, be checked by someone who was not there.",
@@ -417,7 +417,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-map-11", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "Fight Over the Wells",
-    scenario: "A small company is being crushed by a competitor with fifty times its budget, and is currently trying to compete on price and range. Rebuild its strategy using the decision to secure the wells before the Battle of Badr — where a heavily outnumbered force took control of the water nearest the battlefield before the engagement.",
+    scenario: "A small company is losing to a rival with fifty times more money. It cannot offer lower prices or more choice. At the Battle of Badr, the smaller side first took control of the nearby wells. Use that move to help the company choose where it can still win.",
     frameworks: ["strategic-thinking", "lateral-thinking", "risk-assessment"],
     emoji: "🏜️",
     hint: "The outnumbered side did not find a way to win the fight it was offered. It changed what the fight would be over, before the fight started.",
@@ -454,7 +454,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-map-12", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
     title: "The Load-Bearing Wall",
-    scenario: "At its peak Blockbuster earned hundreds of millions a year from late fees — a large share of its profit — while Netflix launched with none at all. Work out why matching Netflix was so hard, using what a load-bearing wall is in a building.",
+    scenario: "Blockbuster made a large share of its money from fees when people returned films late. Netflix arrived without late fees. Use the idea of a wall that holds up a building to work out why Blockbuster found it so hard to copy Netflix.",
     frameworks: ["systems-thinking", "first-principles-thinking", "strategic-thinking"],
     emoji: "🧱",
     hint: "Nothing on the surface distinguishes a load-bearing wall from a partition. Ask what rests on it, what happens during removal, and what a new building never has to deal with.",
@@ -490,8 +490,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-map-13", format: "map", muscle: "connect", difficulty: 3, xpBase: 60,
-    title: "Paying in Visible Terms",
-    scenario: "In 628 CE the Prophet Muhammad accepted terms at Hudaybiyyah that many of his companions read as one-sided: turning back from the pilgrimage that year, and a clause returning certain emigrants. Use the structure of that agreement to rebuild how a supplier negotiates with a customer far larger than itself.",
+    title: "When the Real Cost Is Hidden",
+    scenario: "At Hudaybiyyah, the Prophet Muhammad accepted terms that looked unfair at first, but the agreement created peace and made later gains possible. Use the shape of that agreement to help a small supplier deal with a much larger customer.",
     frameworks: ["strategic-thinking", "game-theory", "second-order-thinking"],
     emoji: "🤝",
     hint: "Separate what a deal costs from what it buys. The costly terms here were the countable ones; the purchase was something that does not appear as a number.",
@@ -530,7 +530,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-1", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "The 5am Founders",
-    scenario: "A bestselling productivity programme is built on the research below.",
+    scenario: "A popular course says waking at 5am makes people more successful. Read the facts below and find the weak step in its argument.",
     frameworks: ["survivorship-bias", "critical-thinking", "cognitive-bias-detection"],
     emoji: "🌅",
     hint: "Ask who was never interviewed. The claim is about what separates two groups — how many groups were studied?",
@@ -559,7 +559,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-2", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Hospital That Got Worse",
-    scenario: "A hospital board is reading this summary before a vote.",
+    scenario: "Hospital leaders are about to vote on a change. Read the short report and find where its thinking goes wrong.",
     frameworks: ["analytical-thinking", "critical-thinking", "scientific-thinking"],
     emoji: "🏥",
     hint: "Nothing here is false. Ask whether the patients being measured this year are the same kind of patients as last year.",
@@ -588,7 +588,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-3", format: "flaw", muscle: "judge", difficulty: 2, xpBase: 45,
     title: "Three Hours of Data",
-    scenario: "From a growth team's weekly write-up.",
+    scenario: "A company report says a new advert brought in more customers. Find the weak step in the report.",
     frameworks: ["scientific-thinking", "probabilistic-thinking", "base-rates"],
     emoji: "⏱️",
     hint: "A randomised split test really can prove cause — so the flaw isn't about causation. Look at how long it ran and when they stopped.",
@@ -618,7 +618,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-4", format: "flaw", muscle: "judge", difficulty: 3, xpBase: 45,
     title: "One in a Million",
-    scenario: "From a prosecutor's closing argument.",
+    scenario: "A lawyer is telling a jury why someone must be guilty. Find the weak step in the argument.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
     emoji: "⚖️",
     hint: "The statistic is true. Ask what it is the probability OF — and then notice how the defendant was found in the first place.",
@@ -647,7 +647,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-5", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Calls Are Down to Four Minutes",
-    scenario: "From a support team's quarterly performance review.",
+    scenario: "A customer-service team says shorter calls prove its service is better. Find the weak step.",
     frameworks: ["systems-thinking", "root-cause-analysis", "constraints"],
     emoji: "☎️",
     hint: "Every number quoted here is real. Ask whether the work disappeared, or just moved somewhere nobody is being measured.",
@@ -676,7 +676,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-6", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Worst Branches Improved Most",
-    scenario: "From an internal report recommending a company-wide rollout.",
+    scenario: "A report says one successful test should now be used across the whole company. Find the weak step.",
     frameworks: ["regression-mean", "scientific-thinking", "analytical-thinking"],
     emoji: "📉",
     hint: "The branches were chosen BECAUSE their result was extreme. Ask what usually happens to extreme results next quarter, training or no training.",
@@ -705,7 +705,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-7", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Zero Incidents",
-    scenario: "From a security team's annual summary.",
+    scenario: "A safety report says no problems were reported this year. Find the weak step in its claim that everything is safe.",
     frameworks: ["red-team-thinking", "critical-thinking", "intelligence-analysis"],
     emoji: "🛡️",
     hint: "Two very different situations both produce the number zero. One is that nothing happened. What is the other one?",
@@ -734,7 +734,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-8", format: "flaw", muscle: "question", difficulty: 2, xpBase: 45,
     title: "The Method That Cannot Be Wrong",
-    scenario: "From the sales page of an investment newsletter.",
+    scenario: "A paid money newsletter says its method can never lose. Find the weak step in that promise.",
     frameworks: ["critical-thinking", "meta-thinking", "cognitive-bias-detection"],
     emoji: "🔮",
     hint: "Run through every possible outcome for one of their picks, and ask which of them the method would have to count as a failure.",
@@ -763,7 +763,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-9", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Nobody Else Does It This Way",
-    scenario: "From a design review for a new banking app.",
+    scenario: "A team is checking a new banking app before people use it. Find the weak step in the plan.",
     frameworks: ["first-principles-thinking", "critical-thinking", "convergent-thinking"],
     emoji: "🧭",
     hint: "The team is right that a convention can be an accident. Does it follow that this particular convention is one?",
@@ -793,7 +793,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-10", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "The Opponent Who Doesn't Care",
-    scenario: "From a party's campaign briefing.",
+    scenario: "A political group is planning how to win an election. Find the weak step in its thinking.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "ethical-reasoning"],
     emoji: "🗳️",
     hint: "Read each line and ask what it is actually about. One of them stops being about the pension proposal at all.",
@@ -822,7 +822,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-11", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Too Much Invested to Stop",
-    scenario: "From the minutes of a project steering meeting.",
+    scenario: "A team keeps spending money on a project because it has already spent so much. Find the weak step.",
     frameworks: ["decision-theory", "cognitive-bias-detection", "opportunity-cost"],
     emoji: "🕳️",
     hint: "One line treats money already spent as a reason to spend more. Find it, and ask whether that money is recoverable either way.",
@@ -851,7 +851,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-12", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "More or Less Than Two Weeks?",
-    scenario: "From a delivery planning thread.",
+    scenario: "A delivery team is guessing how long a job will take. Find the weak step in its estimate.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "meta-thinking"],
     emoji: "📅",
     hint: "Look at who first said “two weeks”. Then ask whether the estimate that came back was built from the task or adjusted from that number.",
@@ -880,7 +880,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-13", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "One Spectacular Deal",
-    scenario: "From a completed annual performance review.",
+    scenario: "A manager says one big success proves a worker had a great year. Find the weak step.",
     frameworks: ["cognitive-bias-detection", "critical-thinking", "analytical-thinking"],
     emoji: "🌟",
     hint: "Three of the ratings have something in common that the deal does not supply. Look for the line that treats the deal as evidence for all of them.",
@@ -909,7 +909,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-14", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Two Ways to Say Twenty Per Cent",
-    scenario: "Two internal write-ups of the same quarter, read side by side.",
+    scenario: "Two reports describe the same three months in very different ways. Compare how their wording changes the story.",
     frameworks: ["analytical-thinking", "critical-thinking", "pattern-recognition"],
     emoji: "📄",
     hint: "The percentages match. Read what each write-up says the growth came FROM, and ask whether next quarter looks the same in both.",
@@ -938,7 +938,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-15", format: "flaw", muscle: "notice", difficulty: 1, xpBase: 45,
     title: "Rammed Through",
-    scenario: "Two newspaper reports of the same committee vote.",
+    scenario: "Two news reports describe the same vote in very different ways. Compare how their wording changes the story.",
     frameworks: ["intelligence-analysis", "critical-thinking", "cognitive-bias-detection"],
     emoji: "📰",
     hint: "List what each report actually asserts as fact. Then ask which words are doing work that no stated fact supports.",
@@ -967,7 +967,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-16", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Profit Doubled",
-    scenario: "A slide from a board presentation.",
+    scenario: "A company slide says profit doubled. Look closely at the numbers and find what that statement hides.",
     frameworks: ["analytical-thinking", "critical-thinking", "signal-noise"],
     emoji: "📊",
     hint: "Read the axis before the bars. Then work out what the actual change was, and compare it with what the picture communicates.",
@@ -996,7 +996,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-17", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "The Deadlier State",
-    scenario: "From a road safety campaign's supporting document.",
+    scenario: "A road-safety campaign compares two places. Look closely and find what makes the comparison unfair.",
     frameworks: ["base-rates", "analytical-thinking", "probabilistic-thinking"],
     emoji: "🛑",
     hint: "Both numbers are correct. Ask what else differs between two states that would change the count without changing the danger.",
@@ -1025,7 +1025,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-flaw-18", format: "flaw", muscle: "notice", difficulty: 2, xpBase: 45,
     title: "Said, Claimed, Admitted",
-    scenario: "Three outlets report the same sentence from the same interview.",
+    scenario: "Three news outlets describe the same interview using different words. Notice how the words change what readers may believe.",
     frameworks: ["intelligence-analysis", "critical-thinking", "cognitive-bias-detection"],
     emoji: "🎙️",
     hint: "Nobody adds an adjective or an opinion. Look at the verb each outlet chose to introduce the quote, and what each verb implies about whether to believe it.",
@@ -1523,7 +1523,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-signal-3", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "The Positive Screening Result",
-    scenario: "A patient with no symptoms has just tested positive in a routine screen.",
+    scenario: "A person feels well but gets a positive result from a routine health test. Sort the facts to work out what that result really means.",
     frameworks: ["bayesian-thinking", "base-rates", "probabilistic-thinking"],
     emoji: "🩺",
     hint: "Two numbers decide this: how rare the disease is, and how often the test cries wolf. Accuracy on the sick is the seductive one.",
@@ -1700,7 +1700,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-1", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "Knights and Knaves",
-    scenario: "On an island, knights always tell the truth and knaves always lie. You meet two people, A and B. A says: \"At least one of us is a knave.\"",
+    scenario: "On an island, honest people always tell the truth and liars always lie. You meet two people, A and B. A says, \"At least one of us is a liar.\" Work out who is honest.",
     frameworks: ["deductive-reasoning", "critical-thinking"],
     emoji: "🗝️",
     hint: "You cannot start from B — nothing was said about B directly. Start by assuming something about A and see whether the assumption survives its own consequences.",
@@ -1816,8 +1816,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-workout-3", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
-    title: "The Valid-Sounding Syllogism",
-    scenario: "From a startup advice column: “All successful startups moved fast. This startup moved fast. Therefore this startup will be successful.”",
+    title: "The Argument That Sounds Right",
+    scenario: "Someone says, “Every successful new business moved fast. This new business moved fast. So it will be successful.” Work out what is wrong with that argument.",
     frameworks: ["deductive-reasoning", "critical-thinking", "survivorship-bias"],
     emoji: "🏃",
     hint: "Strip the words out and write the shape: All A are B, this is B, therefore this is A. Then ask whether that shape is ever reliable.",
@@ -2148,7 +2148,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-9", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "Two Job Offers",
-    scenario: "Offer A: a stable role at £90,000, near-certain. Offer B: a startup role at £70,000 base plus equity — most likely worth nothing, but with roughly a 15% chance of being worth about £400,000 over four years.",
+    scenario: "Job A pays £90,000 a year and is very secure. Job B pays £70,000 and includes a small share of a new company. That share will most likely be worth nothing, but has about a 15% chance of being worth £400,000 after four years.",
     frameworks: ["decision-theory", "expected-value", "risk-assessment"],
     emoji: "💼",
     hint: "Put the equity on the same annual footing as the salaries before comparing anything. Then ask what the expected value is quietly assuming about your finances.",
@@ -2204,7 +2204,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-10", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "Build or Buy",
-    scenario: "Your startup needs internal analytics. Building it in-house takes roughly three engineer-months and gives full control. Buying costs £30,000 a year, works next week, and is less flexible.",
+    scenario: "A new company needs a tool that shows how customers use its service. Making the tool would take three workers about a month and give full control. Buying one costs £30,000 a year, works next week and is harder to change.",
     frameworks: ["opportunity-cost", "systems-thinking", "strategic-thinking"],
     emoji: "🔧",
     hint: "Both price tags are incomplete. Ask what each option keeps costing you after the first month, and which resource you actually have least of.",
@@ -2265,7 +2265,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-11", format: "workout", muscle: "prioritise", difficulty: 3, xpBase: 50,
     title: "One-Way and Two-Way Doors",
-    scenario: "You are choosing between a promotion at home and a bigger role abroad that requires relocating your family.",
+    scenario: "You can take a better job near home or a bigger job in another country. The second choice means moving your family. Break the choice into parts you can undo and parts you cannot.",
     frameworks: ["risk-assessment", "strategic-thinking", "decision-theory"],
     emoji: "🚪",
     hint: "Do not classify the whole decision. Break it into components and ask of each one separately: if this turns out wrong, can it be walked back?",
@@ -2350,7 +2350,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-signal-11", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
-    title: "The Dropout Narrative",
+    title: "Does Leaving University Lead to Success?",
     scenario: "Sort each fact by what it does to the claim.",
     frameworks: ["survivorship-bias", "base-rates", "critical-thinking"],
     emoji: "🎓",
@@ -2375,7 +2375,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-signal-12", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
-    title: "Five Thousand Signups",
+    title: "Five Thousand People Joined — Was It a Success?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["analytical-thinking", "base-rates", "critical-thinking"],
     emoji: "📈",
@@ -2400,7 +2400,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-signal-13", format: "signal", muscle: "judge", difficulty: 2, xpBase: 50,
-    title: "The Improved Response Time",
+    title: "Did Customer Service Really Get Faster?",
     scenario: "Sort each finding by what it does to the claim.",
     frameworks: ["systems-thinking", "signal-noise", "root-cause-analysis"],
     emoji: "⏱️",
@@ -2525,8 +2525,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-signal-18", format: "signal", muscle: "question", difficulty: 3, xpBase: 50,
-    title: "Premortem on the Perfect Hire",
-    scenario: "It is twelve months from now and this senior hire has failed badly. Sort each imagined reason by whether it is something you could actually check before the offer goes out.",
+    title: "How the Perfect New Worker Could Fail",
+    scenario: "Imagine it is one year from now and the new manager has failed badly. Sort each possible reason by whether you could check it before giving them the job.",
     frameworks: ["premortem", "risk-assessment", "scenario-planning"],
     emoji: "🔎",
     hint: "A premortem is only worth running for the failures you can still act on. Ask of each risk: is there a question I could ask this week that would move my estimate of it?",
@@ -2552,8 +2552,8 @@ const MTC_GYM_CHALLENGES = [
   /* ---------------- TRIAGE ---------------- */
   {
     id: "gym-triage-1", format: "triage", muscle: "prioritise", difficulty: 2, xpBase: 50,
-    title: "Eight Casualties, One Ambulance",
-    scenario: "A coach has come off the road. You are first on scene, alone, and the next crew is eleven minutes out. You are not treating anyone yet — you are sorting everyone so the arriving crews know where to go.",
+    title: "Eight Injured People, One Ambulance",
+    scenario: "A coach has crashed. You arrive first and are alone. The next ambulance crew is eleven minutes away. Your job is not to treat people yet. Use the rule to sort who needs help first.",
     frameworks: ["decision-theory", "risk-assessment", "analytical-thinking"],
     emoji: "🚑",
     hint: "Work the rule in its written order for each casualty and stop at the first band it gives you. The rule never asks how bad an injury looks.",
@@ -2592,8 +2592,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-triage-2", format: "triage", muscle: "prioritise", difficulty: 2, xpBase: 50,
-    title: "Which Bugs Block the Launch",
-    scenario: "You ship at nine tomorrow morning. There are seven open bugs and time to fix perhaps two of them.",
+    title: "Which App Problems Must Be Fixed First?",
+    scenario: "A new app goes live at nine tomorrow morning. It has seven known problems, but there is only time to fix two. Use the rule to decide which problems must come first.",
     frameworks: ["decision-theory", "risk-assessment", "opportunity-cost"],
     emoji: "🐞",
     hint: "Apply the written rule, not your instinct about which bug is most embarrassing. Ask of each: does it lose data, and can the user get out of it?",
@@ -2669,8 +2669,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-triage-4", format: "triage", muscle: "prioritise", difficulty: 3, xpBase: 50,
-    title: "The Risk Register",
-    scenario: "You are reviewing the risk register before signing off a product launch. Everything on it is real; the question is what gets attention.",
+    title: "Which Risks Matter Most?",
+    scenario: "A new product goes on sale soon. Seven things could go wrong. Every risk is real, but the team cannot fix everything at once. Use the rule to decide what needs attention first.",
     frameworks: ["risk-assessment", "black-swan", "decision-theory"],
     emoji: "📋",
     hint: "Score likelihood and impact separately — then check the third question the matrix does not ask. One item is low-probability and still belongs at the top.",
@@ -2709,8 +2709,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-triage-5", format: "triage", muscle: "prioritise", difficulty: 2, xpBase: 50,
-    title: "Paged at Three in the Morning",
-    scenario: "You are on call. Six alerts have fired in four minutes and the dashboard is a wall of red.",
+    title: "A Work Call at Three in the Morning",
+    scenario: "You are the worker who handles urgent problems tonight. Six warnings arrive in four minutes. Use the rule to decide which one to deal with first.",
     frameworks: ["risk-assessment", "signal-noise", "systems-thinking"],
     emoji: "🚨",
     hint: "Severity is about what users can no longer do, not about how loud the alert is or how many fired. Several of these are the same failure seen from different angles.",
@@ -2745,8 +2745,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-triage-6", format: "triage", muscle: "prioritise", difficulty: 3, xpBase: 50,
-    title: "Where the Queue Actually Is",
-    scenario: "A print shop takes 40 orders a day and delivers 25. Design takes 2 hours per order with three designers, printing takes 30 minutes with one machine, and finishing takes 20 minutes with four staff. Six improvements are proposed.",
+    title: "Find What Is Holding Up the Work",
+    scenario: "A print shop receives 40 orders a day but finishes only 25. Three designers each need two hours per order. One printer needs 30 minutes per order. Four finishing workers each need 20 minutes. Use the rule to find what is holding up the work.",
     frameworks: ["constraints", "systems-thinking", "analytical-thinking"],
     emoji: "🏭",
     hint: "Work out capacity per stage first, and find the one stage that caps the whole line. Any improvement anywhere else cannot raise output, however good it is.",
@@ -2816,8 +2816,8 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-triage-8", format: "triage", muscle: "prioritise", difficulty: 2, xpBase: 50,
-    title: "Six Weeks of Runway",
-    scenario: "Cash runs out in six weeks. Seven pieces of spending are on the table and you can keep about half.",
+    title: "The Business Has Six Weeks of Money Left",
+    scenario: "A small business will run out of money in six weeks. It has seven costs and can afford to keep only about half. Use the rule to decide what stays.",
     frameworks: ["opportunity-cost", "decision-theory", "risk-assessment"],
     emoji: "✂️",
     hint: "Ask of each: does stopping this stop money coming in, or stop the company existing? Everything else is a preference, however good it is.",
@@ -2906,7 +2906,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-2", format: "ask", muscle: "question", difficulty: 2, xpBase: 50,
     title: "Sales Are Down Eighteen Per Cent",
-    scenario: "A retail chain\u2019s sales fell 18% last month. The board wants an explanation by Friday and everyone in the room already has one.",
+    scenario: "A group of shops sold 18% less last month. The leaders want to know why by Friday, and everyone already has a different guess. Choose the questions that will best test those guesses.",
     frameworks: ["analytical-thinking", "root-cause-analysis", "signal-noise"],
     emoji: "\u{1F4C9}",
     hint: "Before explaining a number, establish that the number means what you think. Ask what would tell you whether this is real, and whether it is everywhere.",
@@ -2953,7 +2953,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-3", format: "ask", muscle: "question", difficulty: 1, xpBase: 50,
     title: "The Candidate Everyone Liked",
-    scenario: "The panel has just finished interviewing and everyone is enthusiastic. You have time for a few checks before the offer goes out.",
+    scenario: "A group has finished interviewing someone for a job and everyone likes them. You have time for only a few checks before offering the job. Choose the questions that matter most.",
     frameworks: ["premortem", "cognitive-bias-detection", "circle-of-competence"],
     emoji: "\u{1F4DE}",
     hint: "Enthusiasm is already in the room. Spend the questions on what would change the decision, which means looking for what a good interview cannot show you.",
@@ -3000,7 +3000,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-4", format: "ask", muscle: "question", difficulty: 3, xpBase: 50,
     title: "The Server Is Slow",
-    scenario: "\u201cThe site is slow.\u201d That is the whole ticket. It is 9am and the support queue is filling up.",
+    scenario: "A message says only, \u201cThe website is slow.\u201d It is 9am and more people are asking for help. Choose the questions that will find the real problem fastest.",
     frameworks: ["root-cause-analysis", "analytical-thinking", "five-whys"],
     emoji: "\u{1F40C}",
     hint: "Every question should cut the search space roughly in half. Ask what separates whole classes of cause, not what confirms the first one you thought of.",
@@ -3047,7 +3047,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-5", format: "ask", muscle: "question", difficulty: 2, xpBase: 50,
     title: "They Want to Buy the Company",
-    scenario: "An acquirer has made an unsolicited offer. Your co-founder is already talking about what they will do afterwards.",
+    scenario: "Another company has offered to buy your small business, even though you did not ask to sell it. Your business partner is already planning what to do with the money. Choose what you need to ask before deciding.",
     frameworks: ["intelligence-analysis", "strategic-thinking", "risk-assessment"],
     emoji: "\u{1F91D}",
     hint: "The number is the least informative thing on the table. Ask what tells you whether this is a real process and what happens to it after the headline.",
@@ -3094,7 +3094,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-6", format: "ask", muscle: "question", difficulty: 3, xpBase: 50,
     title: "The Study Says It Works",
-    scenario: "A colleague sends you a paper showing a workplace intervention improved productivity 22%, with the subject line \u201cshould we roll this out?\u201d",
+    scenario: "A co-worker sends you a study saying one change made people work 22% faster. They ask whether everyone at your workplace should use it. Choose what you need to know before deciding.",
     frameworks: ["scientific-thinking", "critical-thinking", "base-rates"],
     emoji: "\u{1F4C4}",
     hint: "Ask what would make the effect disappear. Design questions beat result questions, because a result is only as good as the design that produced it.",
@@ -3141,7 +3141,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-7", format: "ask", muscle: "question", difficulty: 2, xpBase: 50,
     title: "Our Biggest Customer Is Unhappy",
-    scenario: "An account manager forwards an angry email from the customer who accounts for a fifth of revenue, with \u201cwe need to fix this today\u201d on top.",
+    scenario: "A worker forwards an angry email from a customer who brings in one fifth of the company's money. They write, \u201cWe need to fix this today.\u201d Choose what you need to know before acting.",
     frameworks: ["intelligence-analysis", "root-cause-analysis", "critical-thinking"],
     emoji: "\u{1F4E7}",
     hint: "One angry email is one person\u2019s Tuesday. Ask what tells you whether this represents the account, and whether the complaint is even about what it says.",
@@ -3188,7 +3188,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-ask-8", format: "ask", muscle: "question", difficulty: 3, xpBase: 50,
     title: "The Estimate Is Six Weeks",
-    scenario: "A team has estimated six weeks for a piece of work you need in eight. Everyone seems comfortable, and you have been here before.",
+    scenario: "A team says a job will take six weeks, and you need it within eight. Everyone seems sure, but past jobs have run late. Choose the questions that will reveal what the estimate may have missed.",
     frameworks: ["premortem", "scenario-planning", "risk-assessment"],
     emoji: "\u{1F4CF}",
     hint: "Do not ask whether they are confident \u2014 they are. Ask about the parts of the estimate that are not work: waiting, unknowns, and who else has to say yes.",
@@ -3233,3 +3233,107 @@ const MTC_GYM_CHALLENGES = [
     },
   },
 ];
+
+/*
+ * Plain-language safety net.
+ *
+ * The challenges cover many kinds of work and life, but understanding the
+ * wording must never require specialist training. These replacements only
+ * touch text shown to the player. IDs, answer keys, buckets and framework
+ * tags stay unchanged, so scoring cannot move when wording is simplified.
+ * Longer phrases come first because they give a clearer, more natural result
+ * than replacing one word at a time.
+ */
+const MTC_GYM_PLAIN_PHRASES = [
+  ["prior probability", "how likely it was before the new clue"],
+  ["base rates", "how common each outcome was to begin with"],
+  ["base rate", "how common it was to begin with"],
+  ["expected values", "average results over many tries"],
+  ["expected value", "average result over many tries"],
+  ["confidence interval", "range you are fairly sure contains the answer"],
+  ["counterfactual", "what would have happened without the change"],
+  ["reversible and irreversible parts", "parts you can undo and parts you cannot"],
+  ["irreversible components", "parts that cannot be undone"],
+  ["irreversible component", "part that cannot be undone"],
+  ["irreversible parts", "parts that cannot be undone"],
+  ["irreversible core", "small part that cannot be undone"],
+  ["one-way door", "choice that cannot be undone"],
+  ["two-way door", "choice you can undo"],
+  ["premortem", "look ahead at how it could fail"],
+  ["90th percentile", "slowest 10% of results"],
+  ["the median", "the middle result"],
+  ["median", "middle result"],
+  ["external dependencies", "tasks that depend on people outside the team"],
+  ["external dependency", "work that depends on someone outside the team"],
+  ["data migration", "move of the live data"],
+  ["the migration", "moving the live data"],
+  ["engineering time", "work time"],
+  ["re-estimate", "estimate again"],
+  ["root cause", "main cause"],
+  ["causal link", "cause-and-effect link"],
+  ["causal", "about cause and effect"],
+  ["correlation", "link between two things"],
+  ["hypotheses", "possible answers"],
+  ["hypothesis", "possible answer"],
+  ["falsifiable", "able to be proved wrong"],
+  ["falsification", "a fair test that could prove it wrong"],
+  ["mechanisms", "ways things work"],
+  ["mechanism", "way it works"],
+  ["undermines", "makes weaker"],
+  ["undermine", "make weaker"],
+  ["irreversible", "hard to undo"],
+  ["reversible", "easy to undo"],
+  ["runway", "time before the money runs out"],
+  ["variance", "big swings in the results"],
+  ["incentives", "rewards"],
+  ["incentive", "reward"],
+  ["stakeholders", "people affected"],
+  ["stakeholder", "person affected"],
+  ["protocol", "rule"],
+  ["triage", "priority sorting"],
+  ["throughput", "total work finished"],
+  ["decentralised", "spread across many people"],
+  ["optimising", "improving"],
+  ["optimise", "improve"],
+  ["iteration", "test version"],
+  ["scrutiny", "close review"],
+  ["intervention", "change"],
+  ["distribution", "spread of results"],
+  ["syllogism", "step-by-step argument"],
+  ["negation", "opposite"],
+  ["conflating", "mixing up"],
+  ["artefact", "false result"],
+  ["physiology", "body signs"],
+  ["asymmetry", "uneven risk"],
+  ["escalate", "raise the problem"],
+  ["provisioned for", "built to support"],
+  ["roadmap", "future work plan"],
+  ["overrun", "delay"],
+];
+
+function mtcPlainGymText(text) {
+  let out = text;
+  for (const [hard, plain] of MTC_GYM_PLAIN_PHRASES) {
+    const escaped = hard.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(new RegExp(`\\b${escaped}\\b`, "gi"), (found) =>
+      found[0] === found[0].toUpperCase()
+        ? plain[0].toUpperCase() + plain.slice(1)
+        : plain
+    );
+  }
+  return out;
+}
+
+function mtcSimplifyGymContent(value, parentKey = "") {
+  const structural = new Set(["id", "format", "muscle", "frameworks", "emoji", "bucket", "value"]);
+  if (structural.has(parentKey)) return value;
+  if (typeof value === "string") return mtcPlainGymText(value);
+  if (Array.isArray(value)) return value.map((item) => mtcSimplifyGymContent(item, parentKey));
+  if (value && typeof value === "object") {
+    for (const key of Object.keys(value)) value[key] = mtcSimplifyGymContent(value[key], key);
+  }
+  return value;
+}
+
+mtcSimplifyGymContent(MTC_GYM_FORMATS);
+mtcSimplifyGymContent(MTC_GYM_CHALLENGES);

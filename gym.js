@@ -165,7 +165,7 @@ const GYM = (() => {
     const ready = p.pairs.every((_, i) => play.placed[i]);
     return `<div class="panel">
       <h2>${e(p.sourceDomain)} &rarr; ${e(p.targetDomain)}</h2>
-      <p class="subtle">${play.selectedSlot === null ? "Tap a mechanism, then tap the action that does the same job." : "Now tap the action that matches."}</p>
+      <p class="subtle">${play.selectedSlot === null ? "Tap one idea, then tap the action that does the same job." : "Now tap the action that matches."}</p>
       ${slots}
     </div>
     <div class="panel">
@@ -260,7 +260,7 @@ const GYM = (() => {
     </div>
     <div class="panel buckets">
       <button class="btn secondary" data-gym-bucket="supports" ${play.selectedCard === null ? "disabled" : ""}>Supports</button>
-      <button class="btn secondary" data-gym-bucket="undermines" ${play.selectedCard === null ? "disabled" : ""}>Undermines</button>
+      <button class="btn secondary" data-gym-bucket="undermines" ${play.selectedCard === null ? "disabled" : ""}>Makes weaker</button>
       <button class="btn secondary" data-gym-bucket="irrelevant" ${play.selectedCard === null ? "disabled" : ""}>Neither</button>
     </div>
     ${ideasHTML()}
@@ -423,7 +423,7 @@ const GYM = (() => {
         if (!picked && !right) return "";
         return `<div class="review-row ${picked === right ? "ok" : "no"}">${picked === right ? "&#10003;" : "&#10007;"} ${e(o)}${!picked && right ? ` <span class="subtle">(missed)</span>` : ""}</div>`;
       }).join("");
-      return rows + (sc.decoysUsed ? `<p class="subtle nudge">${sc.decoysUsed} decoy card${sc.decoysUsed === 1 ? "" : "s"} used &mdash; those actions sound sensible but match none of the mechanisms.</p>` : "") + mis;
+      return rows + (sc.decoysUsed ? `<p class="subtle nudge">${sc.decoysUsed} extra card${sc.decoysUsed === 1 ? "" : "s"} used &mdash; those actions sound sensible but do not match any of the ideas.</p>` : "") + mis;
     }
     if (ch.format === "flaw") {
       const p = ch.payload;
