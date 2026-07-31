@@ -205,6 +205,34 @@ h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
 .stat-strip .stat .num { font-size: 21px; font-weight: 800; margin: 3px 0 1px; }
 .stat-strip .stat .lbl { font-size: 10.5px; color: #A5A0BE; line-height: 1.3; }
 
+/* ---------- Daily workout ---------- */
+
+.daily-session {
+  background: linear-gradient(145deg, #211937 0%, #171126 100%);
+  border-radius: 20px; padding: 20px; margin-bottom: 14px; color: #fff;
+  box-shadow: 0 12px 32px rgba(30, 27, 46, 0.18);
+}
+.daily-session .tag { display: inline-block; margin-bottom: 6px; color: #C4B5FD; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.daily-session-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.daily-session-head h2 { font-size: 20px; }
+.session-count { font-size: 28px; font-weight: 800; color: #fff; }
+.session-count span { font-size: 15px; color: #8F87A8; }
+.session-progress { height: 5px; margin: 14px 0 10px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+.session-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #A78BFA, #F0ABFC); }
+.session-list { margin-bottom: 15px; }
+.session-item { display: flex; align-items: center; gap: 11px; min-height: 58px; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.08); }
+.session-item:last-child { border-bottom: 0; }
+.session-step { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; background: rgba(255,255,255,.09); color: #A9A3C7; font-size: 12px; font-weight: 800; }
+.session-item.next .session-step { background: #8B5CF6; color: #fff; }
+.session-item.done { opacity: .62; }
+.session-item.done .session-step { background: rgba(16,185,129,.2); color: #6EE7B7; }
+.session-copy { min-width: 0; flex: 1; }
+.session-copy b, .session-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-copy b { font-size: 13.5px; }
+.session-copy small { margin-top: 2px; color: #9F98B8; font-size: 11.5px; }
+.session-arrow { color: #B8B2D4; font-size: 12px; font-weight: 700; }
+.daily-cta { margin-top: 2px; box-shadow: 0 6px 20px rgba(124,58,237,.35); }
+
 /* ---------- Progress bars ---------- */
 
 .progress { height: 8px; border-radius: 999px; background: var(--hairline); overflow: hidden; }
@@ -485,18 +513,24 @@ details.past-answer summary { cursor: pointer; font-weight: 600; }
 body.landing { background: #150F26; }
 body.landing #app { padding-bottom: 0; }
 .onboarding {
-  min-height: 100vh; margin: 0 -16px; padding: 56px 26px 40px;
+  min-height: 100vh; margin: 0 -16px; padding: 48px 26px 40px;
   background: linear-gradient(165deg, #241C3D 0%, #1A1430 45%, #150F26 100%);
   color: #fff;
 }
-.onboarding .logo { font-size: 19px; font-weight: 800; margin-bottom: 40px; }
+.onboarding .logo { font-size: 19px; font-weight: 800; margin-bottom: 34px; }
 .onboarding .logo .mark { color: var(--accent-2); }
+.onboarding .eyebrow { color: #A78BFA; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
 .onboarding h1 { font-size: 34px; line-height: 1.15; letter-spacing: -0.03em; }
 .onboarding h1 .grad {
   background: linear-gradient(90deg, #A78BFA, #F0ABFC);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.onboarding p.lede { color: #B8B2D4; font-size: 15px; margin: 14px 0 26px; }
+.onboarding p.lede { color: #C6C0DA; font-size: 15px; margin: 14px 0 18px; }
+.onboarding .trust-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 25px; }
+.onboarding .trust-row span { padding: 5px 9px; border: 1px solid rgba(196,181,253,.16); border-radius: 999px; color: #BDB6D4; background: rgba(255,255,255,.035); font-size: 10.5px; font-weight: 650; }
+.onboard-label { display: flex; justify-content: space-between; margin: 0 2px 7px; color: #E9E5F4; font-size: 12.5px; font-weight: 650; }
+.onboard-label span { color: #8880A8; font-weight: 500; }
+.onboarding .form-note { margin: 10px 2px 0; text-align: center; color: #81799D; font-size: 10.5px; }
 .onboarding .feat { display: flex; gap: 13px; align-items: flex-start; margin-bottom: 18px; }
 .onboarding .feat .ico {
   width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
@@ -509,7 +543,13 @@ body.landing #app { padding-bottom: 0; }
   background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.14); color: #fff;
 }
 .onboarding input::placeholder { color: #8880A8; }
-.onboarding .btn { margin-top: 6px; }
+.onboarding .btn { margin-top: 6px; min-height: 48px; }
+
+@media (max-height: 700px) {
+  .onboarding { padding-top: 30px; }
+  .onboarding .logo { margin-bottom: 22px; }
+  .onboarding .feat { margin-bottom: 12px; }
+}
 
 /* ---------- Focus & motion ---------- */
 

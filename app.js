@@ -16,7 +16,7 @@ let activeRec = null;
 const OUTLINES = {
   warmup: "First instinct:\n\nAlternative explanations:\n- ",
   challenge: "First-order effect:\n\nSecond-order effects:\n- \n\nWhat would change my mind:\n",
-  case: "What actually happened (mechanism):\n\nWhy it seemed rational at the time:\n\nGeneral lesson:\n",
+  case: "What happened, step by step:\n\nWhy it seemed sensible at the time:\n\nWhat I can learn from it:\n",
   reflection: "The specific case:\n\nWhat it shows about my thinking:\n\nWhat I'd do differently:\n",
   creativity: "Ideas (no judging yet):\n1. \n2. \n3. \n\nBest one and why:\n",
   logic_puzzle: "Given facts:\n\nStep by step:\n\nAnswer:\n",
@@ -49,7 +49,7 @@ function checkVague(text) {
   if (!tip) return;
   const m = text.match(VAGUE_RE);
   if (m) {
-    tip.textContent = `"${m[0]}" is an outcome, not a mechanism — can you say who does what differently?`;
+    tip.textContent = `"${m[0]}" tells us the result, but not how it happened. Can you say who did what differently?`;
     tip.style.display = "";
   } else {
     tip.style.display = "none";
@@ -142,17 +142,23 @@ function chromeFor(r) {
 
 function onboardingHTML() {
   const feats = [
-    ["\u{1F9E9}", "Daily challenges", "New thought-provoking challenges every day"],
-    ["\u{1F517}", "Learn by connecting", "Link ideas from different domains and build your mental models"],
-    ["\u{1F4C8}", "Track your growth", "See your progress and become a better thinker over time"],
+    ["\u{1F9E9}", "Tap, decide, learn", "Short challenges with instant, objective feedback"],
+    ["\u{1F517}", "Build transferable thinking", "Practice noticing, judging, connecting and adapting"],
+    ["\u{1F4C8}", "See what is improving", "Track your strongest muscles and what to train next"],
   ];
   return `<div class="onboarding">
     <div class="logo"><span class="mark">&#9670;</span> The Thinking Gym</div>
-    <h1>Connect ideas.<br><span class="grad">Expand your mind.</span></h1>
-    <p class="lede">Daily challenges that help you see patterns, make connections and think like a creator.</p>
+    <div class="eyebrow">Your daily reasoning workout</div>
+    <h1>Think sharper.<br><span class="grad">Ten minutes a day.</span></h1>
+    <p class="lede">Practice the mental moves behind better decisions through short, playable challenges.</p>
+    <div class="trust-row" aria-label="App benefits">
+      <span>94 challenges</span><span>Works offline</span><span>Private by design</span>
+    </div>
     <form data-onboard-form>
-      <input type="text" name="playerName" placeholder="Your name" maxlength="40" autofocus />
-      <div class="field"><button class="btn block" type="submit">Start Today</button></div>
+      <label class="onboard-label" for="player-name">What should we call you? <span>Optional</span></label>
+      <input id="player-name" type="text" name="playerName" placeholder="Your name" maxlength="40" autocomplete="name" />
+      <div class="field"><button class="btn block" type="submit">Start my first challenge <span aria-hidden="true">&rarr;</span></button></div>
+      <p class="form-note">No account. No AI grading. Your progress stays on this device.</p>
     </form>
     <div style="margin-top:32px">
       ${feats.map(([i, h, p]) => `<div class="feat"><div class="ico">${i}</div><div><h3>${h}</h3><p>${p}</p></div></div>`).join("")}
@@ -174,7 +180,9 @@ function dashboardHTML() {
   const session = MTC.gymSession(STATE);
   const muscles = MTC.muscleProgress(STATE);
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
-  const next = session[0];
+  const today = MTC.todayStr();
+  const completedToday = session.filter((c) => STATE.gym[c.id] && STATE.gym[c.id].lastPlayed === today).length;
+  const next = session.find((c) => !STATE.gym[c.id] || STATE.gym[c.id].lastPlayed !== today) || session[0];
 
   return `
   <div class="stat-strip">
@@ -191,14 +199,24 @@ function dashboardHTML() {
       ${STATE.graceShields > 0 ? "&middot; &#128737;&#65039; grace day ready" : ""}</p>
   </div>
 
-  ${next ? `<a class="card wide" href="#/gym/play/${next.id}">
-    <span class="tag">Today's challenge</span>
-    <div class="challenge-card head" style="background:transparent;padding:0;margin:0">
-      <div class="emoji-badge">${next.emoji || muscleIcon(next.muscle)}</div>
-      <div><h2>${esc(next.title)}</h2><p class="subtle">${esc(MTC_GYM_FORMATS[next.format].tagline)}</p></div>
+  ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
+    <div class="daily-session-head">
+      <div><span class="tag">Today's workout</span><h2 id="daily-session-title">${completedToday === session.length ? "Workout complete" : `${session.length - completedToday} challenge${session.length - completedToday === 1 ? "" : "s"} left`}</h2></div>
+      <div class="session-count" aria-label="${completedToday} of ${session.length} complete">${completedToday}<span>/${session.length}</span></div>
     </div>
-    <span class="cta">Start &rarr;</span>
-  </a>` : ""}
+    <div class="session-progress"><span style="width:${session.length ? Math.round(completedToday / session.length * 100) : 0}%"></span></div>
+    <div class="session-list">
+      ${session.map((challenge, index) => {
+        const played = STATE.gym[challenge.id] && STATE.gym[challenge.id].lastPlayed === today;
+        return `<a href="#/gym/play/${challenge.id}" class="session-item ${played ? "done" : challenge.id === next.id ? "next" : ""}">
+          <span class="session-step">${played ? "&#10003;" : index + 1}</span>
+          <span class="session-copy"><b>${esc(challenge.title)}</b><small>${esc(MTC_GYM_FORMATS[challenge.format].name)} &middot; ${challenge.xpBase} XP</small></span>
+          <span class="session-arrow">${played ? "Done" : challenge.id === next.id ? "Start" : "&#8250;"}</span>
+        </a>`;
+      }).join("")}
+    </div>
+    <a class="btn block daily-cta" href="#/gym/play/${next.id}">${completedToday === session.length ? "Practice again" : completedToday ? "Continue workout" : "Start today's workout"} <span aria-hidden="true">&rarr;</span></a>
+  </section>` : ""}
 
   <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
   <div class="grid tight">
@@ -1282,7 +1300,9 @@ document.addEventListener("submit", (e) => {
     const name = new FormData(e.target).get("playerName");
     STATE.name = (name && name.trim()) || "Thinker";
     MTC.saveState(STATE);
-    render();
+    const first = MTC.gymSession(STATE)[0];
+    if (first) navigate(`gym/play/${first.id}`);
+    else render();
   }
 });
 
