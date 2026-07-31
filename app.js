@@ -1161,20 +1161,28 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("[data-export-journal]")) {
     const blob = new Blob([journalMarkdown()], { type: "text/markdown" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    a.href = url;
     a.download = `thinking-coach-journal-${MTC.todayStr()}.md`;
+    a.hidden = true;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     return;
   }
 
   if (e.target.closest("[data-export-progress]")) {
     const blob = new Blob([MTC.exportStateJSON()], { type: "application/json" });
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
+    a.href = url;
     a.download = `thinking-coach-progress-${MTC.todayStr()}.json`;
+    a.hidden = true;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     return;
   }
 

@@ -94,7 +94,7 @@ const MTC_GYM_CHALLENGES = [
         { prompt: "Pheromone trails — routes that worked get chemically reinforced by each ant that uses them", match: "Score every route after each run, and bias tomorrow's assignments toward the ones that went cleanly" },
         { prompt: "Evaporation — a trail fades unless ants keep using it", match: "Let old route preferences decay, so a road that was closed six months ago stops shaping today's plan" },
         { prompt: "Wasteful explorers — a fraction of ants keep wandering down paths that turn out worse", match: "Deliberately send a small share of deliveries down non-optimal routes to keep discovering what has changed" },
-        { prompt: "Colony-level goal — no individual ant is optimising the whole system, and none needs to", match: "Judge the network on total throughput, not on whether each driver took their own shortest run" },
+        { prompt: "The whole colony succeeds even though each ant follows only simple local clues", match: "Judge how many deliveries the whole network finishes, not whether each driver took their own shortest route" },
       ],
       decoys: [
         "Add analysts at head office to plan every route the night before",
@@ -105,7 +105,7 @@ const MTC_GYM_CHALLENGES = [
         options: [
           "Ant terrain barely changes hour to hour, while traffic and weather change constantly — a reinforce-and-decay system can end up chasing noise",
           "Ants have no exploration behaviour, so trying new routes has no basis in the analogy",
-          "A colony tolerates individual ants dying; a delivery network cannot treat drivers as expendable, so any mechanism relying on high failure rates transfers badly",
+          "A colony can lose individual ants. A delivery company must protect every driver, so it cannot copy any method that depends on frequent dangerous failures",
           "Ant colonies are directed by the queen, which makes them a poor model for decentralised routing",
         ],
         answers: [0, 2],
@@ -166,8 +166,8 @@ const MTC_GYM_CHALLENGES = [
       targetDomain: "How a freelancer runs her income",
       pairs: [
         { prompt: "House edge — every game is priced so the house wins slightly more than it loses, on average", match: "Price each project above what it genuinely costs her, including the unpaid hours she currently absorbs" },
-        { prompt: "Law of large numbers — the edge only shows up over thousands of hands, never in one", match: "Judge her rates on a full year of work, not on whether this particular month felt good" },
-        { prompt: "Bankroll — the house can absorb a huge win because it holds far more cash than any single payout", match: "Hold six months of expenses in a separate account, so one late invoice is not an emergency" },
+        { prompt: "One result proves little — the casino's small advantage appears only after many games", match: "Judge her prices across a full year of work, not by whether one month felt good" },
+        { prompt: "A large cash reserve lets the casino survive an unusually big payout", match: "Hold six months of expenses in a separate account, so one late payment is not an emergency" },
         { prompt: "Table limits — no single bet is allowed to be large enough to hurt the house", match: "Cap any one client at a third of her income, however good the money looks" },
         { prompt: "Losing nights are budgeted for — the house never confuses one night with the game", match: "Expect some months to lose money and plan for them, rather than treating each bad month as a verdict on her career" },
       ],
@@ -203,10 +203,10 @@ const MTC_GYM_CHALLENGES = [
       targetDomain: "How a shop manages its stock",
       pairs: [
         { prompt: "A set point — the body defends a narrow target range rather than reacting to each meal", match: "Fix a target stock level for each line, and order against the target instead of against how the shelf looks today" },
-        { prompt: "Two opposing signals — insulin stores the excess, glucagon releases the shortfall", match: "Two standing rules: above target, stop ordering and discount; below target, reorder automatically" },
-        { prompt: "Glycogen in the liver — a buffer that absorbs the gap between intake and demand", match: "Hold a deliberate reserve on the fast-moving lines, sized to cover the gap between deliveries" },
-        { prompt: "Signalling delay — glucose peaks before insulin can act, so the system always corrects late", match: "Order against the supplier's lead time, so today's order is aimed at demand three weeks from now" },
-        { prompt: "Insulin resistance — constant oversupply makes the system stop responding to the signal at all", match: "Notice when repeated panic orders have turned the reorder alert into something staff routinely ignore" },
+        { prompt: "The body has one response when blood sugar is too high and another when it is too low", match: "Use two standing rules: above target, stop ordering and reduce the price. Below target, order more automatically" },
+        { prompt: "The body stores some sugar for the gap between eating and needing energy", match: "Keep a planned reserve of fast-selling products to cover the time between deliveries" },
+        { prompt: "The body's response starts only after blood sugar rises, so it always corrects late", match: "Order against the supplier's lead time, so today's order is aimed at demand three weeks from now" },
+        { prompt: "When one warning happens too often, the body may stop responding to it properly", match: "Notice when repeated panic orders have made staff routinely ignore the reorder warning" },
       ],
       decoys: [
         "Negotiate a bulk discount with the supplier",
@@ -217,7 +217,7 @@ const MTC_GYM_CHALLENGES = [
         options: [
           "The body defends one set point that barely moves, while retail demand shifts with season, fashion and a competitor's promotion — so a fixed target quietly goes stale",
           "The body holds no buffer store, so the stock reserve has no biological counterpart",
-          "Holding glycogen costs the body almost nothing, whereas stock ties up cash and can spoil or go out of date",
+          "The body can store sugar cheaply, but shop stock uses cash and may spoil or go out of date",
           "The body corrects instantly, whereas suppliers are always slow",
         ],
         answers: [0, 2],
@@ -239,11 +239,11 @@ const MTC_GYM_CHALLENGES = [
       sourceDomain: "How Snow traced the cholera outbreak",
       targetDomain: "How a team finds an intermittent crash",
       pairs: [
-        { prompt: "A case definition — deciding exactly what counts as a case before counting anything", match: "Write down precisely which crash signature you are hunting, so unrelated errors stop polluting the count" },
-        { prompt: "The spot map — plotting every case geographically until the cluster becomes obvious", match: "Plot every crash against device, app version, network and locale, and look for where they pile up" },
+        { prompt: "Decide exactly which signs count as the illness before counting cases", match: "Write down exactly which kind of app failure you are studying, so different problems do not get mixed together" },
+        { prompt: "Mark every case on a map and look for a place where many cases gather", match: "Group each failure by phone type, app version, internet connection and country, then look for a shared detail" },
         { prompt: "The negative cases — brewery workers beside the pump who drank beer and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
-        { prompt: "Dose-response — households drawing more water from that pump fell ill more often", match: "Check whether users who hit the suspect code path more often crash proportionally more" },
-        { prompt: "Remove the handle, then watch — intervene on the suspected cause and see whether cases stop", match: "Ship the suspected fix to a slice of users and compare their crash rate against everyone else's" },
+        { prompt: "Homes using more water from the pump had more illness", match: "Check whether people who use the suspected feature more often also see more failures" },
+        { prompt: "Close the pump, then watch whether new cases stop", match: "Give the possible fix to a small group and compare its failure rate with everyone else's" },
       ],
       decoys: [
         "Rewrite the crash-prone screen from scratch with cleaner code",
@@ -278,9 +278,9 @@ const MTC_GYM_CHALLENGES = [
       pairs: [
         { prompt: "Do not contest the centre against a stronger opponent — fight on the part of the board that suits you", match: "Stop competing on price and pack size, and compete on what a lorry-based supply chain cannot do at all" },
         { prompt: "Assume the opponent plays their best reply, not the reply you hope for", match: "Plan for the chain matching any discount within a week, because it can afford to and you cannot" },
-        { prompt: "Tempo — a move that forces a response is worth more than one that merely improves your position", match: "Do the things that force a local response, like same-day delivery to the flats nearby, rather than quietly tidying the shelves" },
+        { prompt: "A move that forces the opponent to respond can matter more than a quiet improvement", match: "Offer something that forces a local response, such as same-day delivery nearby, instead of only tidying the shelves" },
         { prompt: "Give something up when doing so improves your overall position", match: "Drop products that make little profit and are cheaper at the supermarket. Use that shelf space for things only you stock" },
-        { prompt: "Choose the endgame you want, and steer toward it from the first move", match: "Decide now that you want to be the shop people walk to twice a week, and make every decision serve that" },
+        { prompt: "Choose the final position you want and work towards it from the first move", match: "Decide that you want to be the shop people visit twice a week, then make every choice support that goal" },
       ],
       decoys: [
         "Match the supermarket's price on the twenty most popular items",
@@ -298,7 +298,7 @@ const MTC_GYM_CHALLENGES = [
       },
     },
     debrief: {
-      principle: "The weaker side does not win by playing the same game more cheaply. It wins by changing the kind of position: fight where the opponent's advantage does not apply, assume their best reply, and pick the endgame before the first move.",
+      principle: "The weaker side does not win by playing the same game more cheaply. It changes the situation, avoids the opponent's advantage, expects their best reply and decides what a successful finish looks like before starting.",
       whereItMisleads: "Chess flatters you with a symmetric opponent who is thinking about you. A regional manager may never notice your shop at all, so some anticipated responses never come — and others, aimed at a different rival entirely, hit you anyway.",
     },
   },
@@ -308,7 +308,7 @@ const MTC_GYM_CHALLENGES = [
     scenario: "You keep making the same category of mistake: confident decisions, late at night, from memory, that you would not have made in the morning. Rebuild how you manage your own thinking using how commercial aviation manages safety.",
     frameworks: ["meta-thinking", "cognitive-bias-detection", "postmortem"],
     emoji: "✈️",
-    hint: "Aviation assumes the expert will fail. Every mechanism exists to catch a competent person on a bad day, not to catch an idiot.",
+    hint: "Airlines assume that even a skilled person can make a mistake. Each safety step is designed to catch an ordinary bad day.",
     payload: {
       sourceDomain: "How aviation manages safety",
       targetDomain: "How you manage your own judgement",
@@ -328,7 +328,7 @@ const MTC_GYM_CHALLENGES = [
         options: [
           "Aviation learns from thousands of flights a day, while you make few enough big decisions that your personal incident data will always be thin",
           "Aviation has no equivalent of rehearsing failure, so the simulator pair does not hold",
-          "A crash is unmistakable and immediate, whereas a bad life decision often has no clear moment of failure — so you can run every mechanism and still never learn what went wrong",
+          "A plane crash is immediate and clear. A poor life decision may have no clear moment of failure, so the same safety steps may never reveal what went wrong",
           "Pilots are never fatigued, unlike ordinary people",
         ],
         answers: [0, 2],
@@ -350,9 +350,9 @@ const MTC_GYM_CHALLENGES = [
       sourceDomain: "How a jazz quartet improvises",
       targetDomain: "How a team runs an ideas meeting",
       pairs: [
-        { prompt: "An agreed key, tempo and form — the freedom exists because the frame is fixed and shared", match: "Fix the question, the length and the format before the meeting, so the freedom sits in the answers" },
+        { prompt: "The group agrees the tune, speed and structure before anyone begins", match: "Fix the question, length and format before the meeting, so people are free to explore the answers" },
         { prompt: "Trading solos — everyone gets an uninterrupted turn, and the order is known in advance", match: "Give each person two uninterrupted minutes, in a set order, before any discussion begins" },
-        { prompt: "Comping — while one player solos, the others support rather than compete", match: "While someone is proposing, everyone else's job is to extend the idea, not to test it" },
+        { prompt: "While one musician takes the lead, the others support instead of competing", match: "While someone presents an idea, everyone else tries to extend it instead of testing it immediately" },
         { prompt: "'Yes, and' — a strange note from one player is treated as the new material to build on", match: "When an idea sounds wrong, the next person's job is to find the version of it that works" },
         { prompt: "Listening outweighs playing — the best players spend most of the tune not soloing", match: "Whoever runs the meeting speaks last, and least" },
       ],
@@ -426,7 +426,7 @@ const MTC_GYM_CHALLENGES = [
       targetDomain: "A small company against a far larger rival",
       pairs: [
         { prompt: "Refuse the contest the larger force wants — a direct clash decided by raw numbers", match: "Stop competing on the dimension the incumbent has already won, like price or breadth of range" },
-        { prompt: "Identify the resource the engagement will actually turn on", match: "Find the constraint your rival cannot simply buy: a distribution channel, a licence, a community's trust" },
+        { prompt: "Identify the resource that will decide the contest", match: "Find something the rival cannot simply buy, such as exclusive access to customers, a licence or a community's trust" },
         { prompt: "Take that resource beforehand, while it is still uncontested and cheap", match: "Secure it while it still looks unimportant, not once the rival has noticed it matters" },
         { prompt: "Position converts a disadvantage in numbers into an advantage in terms", match: "Make the terms of trade something you set, so scale stops being the deciding factor" },
         { prompt: "Commit fully once the ground is chosen, rather than hedging across both plans", match: "Put the whole team behind the chosen ground instead of half-funding two strategies" },
@@ -462,8 +462,8 @@ const MTC_GYM_CHALLENGES = [
       sourceDomain: "A load-bearing wall in a building",
       targetDomain: "A profit line a business has been built around",
       pairs: [
-        { prompt: "It looks like an ordinary wall — nothing on the surface marks it as structural", match: "Late fees appear on the income statement as one revenue line among several" },
-        { prompt: "Everything above rests on it, so taking it out is not a local change", match: "Store economics, staffing levels and shareholder expectations were all sized around that income" },
+        { prompt: "It looks like an ordinary wall, but it supports the building", match: "Late fees look like only one source of income among several" },
+        { prompt: "Everything above depends on it, so removing it changes the whole building", match: "Shop costs, staffing and promises to owners were all based on receiving that income" },
         { prompt: "You cannot remove it to see what happens; the experiment is the collapse", match: "You cannot abolish late fees for one quarter and quietly reinstate them if the numbers look bad" },
         { prompt: "Removing it safely means building the replacement support first", match: "Dropping the fee requires the new revenue structure to be standing before the old one goes" },
         { prompt: "A rival putting up a new building has no such wall to remove", match: "A competitor starting from scratch never had the fee, so pays nothing at all to not have it" },
@@ -501,9 +501,9 @@ const MTC_GYM_CHALLENGES = [
       pairs: [
         { prompt: "Concede the terms that are visible and countable", match: "Give ground on the numbers the other side will quote back to their own people" },
         { prompt: "Buy the term that changes your standing rather than your position", match: "Trade price for recognition — named as an approved supplier, or given a seat in the planning meeting" },
-        { prompt: "Convert a blocked standoff into open competition on ground that favours you", match: "Swap a stalled confrontation for a level field you expect to win on over several years" },
+        { prompt: "Replace a blocked argument with fair competition on terms that suit you", match: "End a stalled argument and create a fair chance to prove your value over several years" },
         { prompt: "Accept that your own side will read the agreement as a defeat", match: "Expect your team to see the discount and not the access, and explain the trade before you sign it" },
-        { prompt: "The clause that reads worst is often the one with the shortest life", match: "Time-limit the painful term, so the durable gain outlasts it" },
+        { prompt: "The term that looks worst may last for the shortest time", match: "Put an end date on the painful term, so the longer-lasting benefit remains after it ends" },
       ],
       decoys: [
         "Insist on a joint public statement describing the agreement as mutual",
@@ -545,7 +545,7 @@ const MTC_GYM_CHALLENGES = [
       flawIdx: 3,
       flawOptions: [
         "Survivorship bias — only successful founders were studied, so nothing at all is known about the early risers who failed",
-        "Ad hominem — the argument attacks the founders personally instead of their reasoning",
+        "Personal attack — the argument attacks the founders instead of examining the evidence",
         "Money already spent — the programme has already been built, so it must continue",
         "Circular reasoning — the conclusion simply restates the first sentence",
       ],
@@ -691,7 +691,7 @@ const MTC_GYM_CHALLENGES = [
       flawIdx: 3,
       flawOptions: [
         "A move back towards normal — unusually bad results often improve next time through luck alone. Compare the trained shops with equally weak shops that received no training",
-        "Ad hominem — the report criticises the managers rather than the sales process",
+        "Personal attack — the report criticises the managers instead of examining the sales process",
         "Circular reasoning — the conclusion simply assumes the coaching works",
         "Money already spent — the course has already been paid for, so it must be extended",
       ],
@@ -748,7 +748,7 @@ const MTC_GYM_CHALLENGES = [
       ],
       flawIdx: 3,
       flawOptions: [
-        "The claim is unfalsifiable — every possible outcome is scored as confirmation, so 'never been wrong' describes the scoring rule rather than the method",
+        "The claim cannot be tested — every possible result is called a success, so 'never been wrong' describes the scoring rule rather than the method",
         "Survivorship bias — only the picks that succeeded were reported",
         "Correlation mistaken for causation — rising prices are merely correlated with the method",
         "Straw man — the argument misrepresents what critics of the newsletter actually claim",
@@ -809,7 +809,7 @@ const MTC_GYM_CHALLENGES = [
       flawOptions: [
         "False dilemma — only two possible futures for the pension system are considered",
         "Hasty generalisation — one proposal is generalised to her whole record",
-        "Ad hominem through a strawman — an invented motive is substituted for the actual proposal, so nothing about the reform is addressed at all",
+        "A personal attack replaces the real proposal — the argument invents a bad motive instead of explaining what is wrong with the proposed change",
         "Appeal to authority — the argument leans on the party's endorsement",
       ],
       flawAnswer: 2,
@@ -837,7 +837,7 @@ const MTC_GYM_CHALLENGES = [
       flawIdx: 2,
       flawOptions: [
         "Money already spent — the eight months and £200,000 are gone whichever way you decide, so they should not decide what happens next",
-        "Ad hominem — the argument attacks the team rather than engaging with the data",
+        "Personal attack — the argument attacks the team instead of examining the data",
         "Circular reasoning — the conclusion simply restates the first premise",
         "Base-rate neglect — the success rate of comparable projects was never consulted",
       ],
@@ -918,12 +918,12 @@ const MTC_GYM_CHALLENGES = [
         "The first reads: sales grew 20% this quarter, driven by strong performance in our core enterprise segment.",
         "The second reads: revenue grew 20% this quarter, driven by one large one-time enterprise contract.",
         "Both report the same headline figure of 20%.",
-        "So the two are describing the same quarter's performance in different words.",
+        "So both reports show the same kind of growth and give the same picture of the quarter.",
         "The board has taken the 20% as the baseline for next quarter's forecast.",
       ],
       flawIdx: 3,
       flawOptions: [
-        "Ad hominem — the argument questions the authors rather than their numbers",
+        "Personal attack — the argument questions the authors instead of examining their numbers",
         "Circular reasoning — the conclusion assumes the two reports agree",
         "The identical figure is wrapped around opposite realities — a repeatable trend against a one-off contract — so the framing sentence carries more information than the statistic does",
         "False dilemma — only two readings of the quarter are considered",
@@ -1041,7 +1041,7 @@ const MTC_GYM_CHALLENGES = [
       flawOptions: [
         "Hasty generalisation — three outlets are generalised to the whole press",
         "False dilemma — only three possible framings are considered",
-        "Ad hominem — the reports attack the chief executive's character rather than her reasoning",
+        "Personal attack — the reports attack the chief executive's character instead of examining her reasoning",
         "The reporting word carries a judgement. “Explained” suggests truth, “claimed” adds doubt and “admitted” suggests a reluctant confession",
       ],
       flawAnswer: 3,
@@ -1560,7 +1560,7 @@ const MTC_GYM_CHALLENGES = [
         { text: "Her results did not depend on the small number of shares that caused most of the market's growth", bucket: "supports" },
         { text: "Her firm launched forty funds in that period and quietly closed the thirty-one that did worst", bucket: "undermines" },
         { text: "Almost all of the better-than-market result came from one investment in one year", bucket: "undermines" },
-        { text: "The strong years were all before her strategy became widely copied", bucket: "undermines" },
+        { text: "She wrote down her current method only after looking back at which of her old investments had worked", bucket: "undermines" },
         { text: "Financial newspapers quote her more often than any other investment manager", bucket: "irrelevant" },
         { text: "Her fees are well above the industry average", bucket: "irrelevant" },
       ],
@@ -1700,7 +1700,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-1", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
     title: "Knights and Knaves",
-    scenario: "On an island, honest people always tell the truth and liars always lie. You meet two people, A and B. A says, \"At least one of us is a liar.\" Work out who is honest.",
+    scenario: "On an island, a 'knight' always tells the truth and a 'knave' always lies. You meet A and B. A says, \"At least one of us is a knave.\" Work out who is telling the truth.",
     frameworks: ["deductive-reasoning", "critical-thinking"],
     emoji: "🗝️",
     hint: "You cannot start from B — nothing was said about B directly. Start by assuming something about A and see whether the assumption survives its own consequences.",
@@ -1754,7 +1754,7 @@ const MTC_GYM_CHALLENGES = [
       ],
     },
     debrief: {
-      principle: "Testing a hypothesis by following it to a contradiction — reductio ad absurdum — settles questions that no amount of pattern-matching will. The move is always the same: assume the thing, push it through its own consequences, and see whether it survives.",
+      principle: "Test an idea by assuming it is true and following what must happen next. If it forces two things that cannot both be true, the original idea must be wrong.",
       whereItMisleads: "It only works when the options are genuinely exhaustive. Here everyone is exactly a knight or a knave, so eliminating one settles it. In the real world there is usually a third possibility — mistaken, joking, partly informed — and ruling out one explanation does not establish the other.",
     },
   },
@@ -1764,7 +1764,7 @@ const MTC_GYM_CHALLENGES = [
     scenario: "A £600 laptop comes with an offer: £90 for a two-year extended warranty. Repairs that the warranty would cover typically cost £250, and roughly 12% of these laptops need such a repair within two years.",
     frameworks: ["decision-theory", "expected-value", "risk-assessment"],
     emoji: "🧮",
-    hint: "Expected value is probability times consequence — not the repair cost on its own, and not the warranty price. Work that number out before you judge the offer.",
+    hint: "Multiply the 12% chance of repair by the £250 repair cost. Then compare that average cost with the £90 warranty price.",
     payload: {
       problem: "Decide whether the warranty is worth buying, and then work out what that calculation leaves out.",
       steps: [
@@ -1786,15 +1786,15 @@ const MTC_GYM_CHALLENGES = [
           because: "You are paying £90 for something worth £30 on average. Comparing the price against the £250 worst case rather than the £30 expected cost is the mistake the offer is designed to invite.",
         },
         {
-          ask: "Expected value assumes something about the bet. What?",
+          ask: "What does the £30 average leave out for one laptop owner?",
           options: [
-            "That you can repeat it many times, so the average is what you actually experience",
-            "That the probability is known exactly rather than estimated",
-            "That both outcomes are equally likely",
-            "That the amounts involved are small",
+            "They will pay either £0 or £250 for a covered repair, never £30",
+            "The 12% repair chance must be exactly correct",
+            "The repair and no-repair outcomes are equally likely",
+            "The laptop may lose value as it gets older",
           ],
           answer: 0,
-          because: "An average is what emerges over many repetitions. You buy one laptop — you get either a £0 outcome or a £250 one, never £30.",
+          because: "The £30 average is useful for comparing prices, but it is not an outcome this buyer will receive. They need to consider whether the possible £250 bill is affordable.",
         },
         {
           ask: "For whom might buying the warranty still be rational?",
@@ -1810,7 +1810,7 @@ const MTC_GYM_CHALLENGES = [
       ],
     },
     debrief: {
-      principle: "Expected value is the right tool for bets you make repeatedly, where the average is what you actually live. For one-off exposures the question is different: can you survive the bad branch? That is why insurance is a bad deal on average and still worth buying on the things that would ruin you.",
+      principle: "Average cost helps compare the warranty with the repair risk. It does not show how painful a £250 bill would be for this buyer. A warranty can cost more on average and still protect someone from a bill they cannot afford.",
       whereItMisleads: "The 12% and the £250 are estimates, presented with the same confidence as the £90 price — which is a real number. Precise-looking arithmetic on soft inputs can make a decision feel settled when the inputs are the actual uncertainty.",
     },
   },
@@ -1838,7 +1838,7 @@ const MTC_GYM_CHALLENGES = [
         {
           ask: "Is that form valid?",
           options: [
-            "No — it is affirming the consequent",
+            "No — it treats one possible result of success as proof of success",
             "Yes — it follows the same shape as a valid syllogism",
             "Only if the first premise was established by a large enough study",
             "It cannot be assessed without knowing the new business",
@@ -1849,7 +1849,7 @@ const MTC_GYM_CHALLENGES = [
         {
           ask: "What concretely goes wrong?",
           options: [
-            "Plenty of failed startups also moved fast, so moving fast cannot imply success",
+            "Plenty of failed new businesses also moved fast, so moving fast cannot imply success",
             "Not every successful new business actually moved fast",
             "“Moving fast” is too vague a phrase to reason about",
             "Nothing goes wrong; the conclusion is probably true anyway",
@@ -1863,10 +1863,10 @@ const MTC_GYM_CHALLENGES = [
             "Still invalid — validity is about the form, not whether the conclusion turns out true",
             "Yes — a correct conclusion shows the reasoning worked",
             "Partly — it becomes valid once the outcome is known",
-            "The question cannot be answered until more startups are observed",
+            "The question cannot be answered until more new businesses are observed",
           ],
           answer: 0,
-          because: "An invalid argument can reach a true conclusion by luck. Being right is not the same as having reasoned correctly, and conflating them is how bad reasoning survives.",
+          because: "An invalid argument can reach a true conclusion by luck. Being right is not the same as reasoning correctly. Mixing up those two things lets bad reasoning survive.",
         },
       ],
     },
@@ -1878,7 +1878,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-4", format: "workout", muscle: "judge", difficulty: 3, xpBase: 50,
     title: "Three Doors",
-    scenario: "A game show has three doors: one hides a prize and two are empty. You pick door 1. The host knows what is behind every door. They open empty door 3 and offer you the chance to switch to door 2.",
+    scenario: "A game show has three doors: one hides a prize and two are empty. You pick door 1. The host knows every door and always opens an empty door you did not choose. They open door 3 and offer you door 2 instead.",
     frameworks: ["probabilistic-thinking", "bayesian-thinking", "counterfactual-thinking"],
     emoji: "🚪",
     hint: "Do not start at the end. Start with the chance your very first pick was right, before the host did anything — and notice that the host could always have opened an empty door.",
@@ -2095,7 +2095,7 @@ const MTC_GYM_CHALLENGES = [
     scenario: "Three guests pay £30 for a room, £10 each. The manager realises it should have been £25 and sends £5 back with the porter, who pockets £2 and returns £1 to each guest. So the guests paid £9 each, which is £27, plus the porter's £2 makes £29. Where is the missing pound?",
     frameworks: ["analytical-thinking", "critical-thinking", "deductive-reasoning"],
     emoji: "🧾",
-    hint: "The puzzle performs an invalid addition for you, confidently, and then asks you to explain its result. Check whether those two numbers belong on the same side of the ledger before you accept the £29.",
+    hint: "The puzzle adds two numbers that should not be added, then asks you to explain the result. Check what each number means before accepting the £29.",
     payload: {
       problem: "Work out where the pound went — or establish that the question is malformed.",
       steps: [
@@ -2136,7 +2136,7 @@ const MTC_GYM_CHALLENGES = [
             "It cannot be determined from the information given",
           ],
           answer: 0,
-          because: "The books balance both ways: £27 = £25 + £2, and £27 + £3 = £30. The missing pound is an artefact of the question, not of the transaction.",
+          because: "The books balance both ways: £27 = £25 + £2, and £27 + £3 = £30. The wording creates the missing pound. No money is actually missing.",
         },
       ],
     },
@@ -2173,26 +2173,26 @@ const MTC_GYM_CHALLENGES = [
           because: "£70,000 + £15,000 = £85,000. Close enough to A that the expected value is not really deciding anything.",
         },
         {
-          ask: "The two are close. What should actually settle it?",
+          ask: "The two averages are close. What important risk question should you ask next?",
           options: [
-            "Whether you can absorb the 85%-likely outcome of £70,000",
+            "Could I live comfortably on £70,000 if the ownership share becomes worthless?",
             "Whether the new company's founders seem impressive",
             "Which number is larger once you recompute more precisely",
             "How much you would regret missing the upside",
           ],
           answer: 0,
-          because: "You will live one branch, not the average, and the overwhelmingly likely branch is £70,000. Whether that branch is comfortable or ruinous is the real question.",
+          because: "The ownership share is most likely to be worth nothing. The buyer should judge Job B using its £70,000 salary first, then treat the possible extra payment as uncertain.",
         },
         {
-          ask: "So who should take Offer B?",
+          ask: "Who might reasonably prefer Offer B?",
           options: [
-            "Someone with enough savings to live the likely £70,000 outcome without strain",
+            "Someone who prefers the work and can live comfortably on £70,000 without relying on the ownership share",
             "Anyone, since the expected values are close",
             "Someone who needs the higher income immediately",
             "Nobody — A dominates on expected value",
           ],
           answer: 0,
-          because: "A lottery ticket is only rational if you can afford the ticket. The equity is worth taking when the likely outcome is survivable, not when the average looks acceptable.",
+          because: "The calculation does not choose a job for you. Job B can make sense when you prefer its work and its guaranteed salary already meets your needs.",
         },
       ],
     },
@@ -2204,7 +2204,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-workout-10", format: "workout", muscle: "prioritise", difficulty: 2, xpBase: 50,
     title: "Build or Buy",
-    scenario: "A new company needs a tool that shows how customers use its service. Making the tool would take three workers about a month and give full control. Buying one costs £30,000 a year, works next week and is harder to change.",
+    scenario: "A new company needs a tool that shows how customers use its service. Its workers already have more customer improvements than they can finish this year. Building takes three workers for a month. Buying costs £30,000 a year and works next week.",
     frameworks: ["opportunity-cost", "systems-thinking", "strategic-thinking"],
     emoji: "🔧",
     hint: "Both price tags are incomplete. Ask what each option keeps costing you after the first month, and which resource you actually have least of.",
@@ -2223,18 +2223,18 @@ const MTC_GYM_CHALLENGES = [
           because: "Building is not a one-off payment. Someone owns that tool forever, and the three months came out of the roadmap — which is the larger and less visible cost.",
         },
         {
-          ask: "What does the £30,000 leave out?",
+          ask: "What important costs does the £30,000 price leave out?",
           options: [
-            "Lock-in, and inflexibility on the cases the vendor did not anticipate",
-            "The cost of the engineers who will integrate it",
+            "Setup work, future price changes and limits when the bought tool cannot do something you need",
+            "The salaries of every worker at the company",
             "Nothing — a subscription price is a complete figure",
-            "The risk that the price rises with inflation",
+            "Only the risk that general prices rise",
           ],
           answer: 0,
-          because: "You inherit someone else's model of the problem. That is usually a bargain, and occasionally a wall you cannot get through at any price.",
+          because: "Buying still needs setup work. The seller may later raise the price, and its tool may not support an important need. Those costs belong in the comparison.",
         },
         {
-          ask: "Which resource is actually scarcest here?",
+          ask: "Which resource does the scenario say is already scarce?",
           options: [
             "Engineering attention — what your team is not thinking about",
             "Cash, since £30,000 a year compounds",
@@ -2242,29 +2242,29 @@ const MTC_GYM_CHALLENGES = [
             "Control over the data model",
           ],
           answer: 0,
-          because: "Money can be raised and deadlines can move. Focus cannot be bought, and the invoice for spending it on plumbing never arrives in a form anyone reviews.",
+          because: "The team already has more customer work than it can finish. Building this tool would delay some of that work, so worker attention is the stated limit.",
         },
         {
-          ask: "So when should you build?",
+          ask: "Which situation gives the strongest reason to build instead?",
           options: [
-            "Only when analytics is something your customers actually choose you for",
+            "When bought tools cannot meet an essential need, especially if this tool helps customers choose your service",
             "Whenever the three-month estimate is cheaper than a year of licence fees",
             "Whenever the team has spare capacity that quarter",
             "Always — control over your own data is worth the cost",
           ],
           answer: 0,
-          because: "Build what differentiates you, buy what merely has to work. If nobody picks you because of your analytics, building it spends your scarcest resource on something invisible to the market.",
+          because: "Building makes more sense when no bought tool can meet an essential need or when this ability helps the company stand out. Price alone does not decide it.",
         },
       ],
     },
     debrief: {
-      principle: "In build-versus-buy the engineer time is almost never the scarce resource — focus is. The comparison that matters is not price against price but what each option keeps costing after launch, and whether the thing is something customers choose you for.",
+      principle: "Compare more than the first price. Building brings future upkeep and delays other work. Buying brings setup work, dependence on a seller and limits on changes. The better answer depends on which costs matter here.",
       whereItMisleads: "The rule inverts once the bought thing becomes core. Plenty of companies correctly bought a tool early and were correctly strangled by it later, so the decision has an expiry date rather than a permanent answer.",
     },
   },
   {
     id: "gym-workout-11", format: "workout", muscle: "prioritise", difficulty: 3, xpBase: 50,
-    title: "One-Way and Two-Way Doors",
+    title: "Choices You Can and Cannot Undo",
     scenario: "You can take a better job near home or a bigger job in another country. The second choice means moving your family. Break the choice into parts you can undo and parts you cannot.",
     frameworks: ["risk-assessment", "strategic-thinking", "decision-theory"],
     emoji: "🚪",
@@ -2273,15 +2273,15 @@ const MTC_GYM_CHALLENGES = [
       problem: "Sort the decision into reversible and irreversible parts, then work out how that should change how you decide.",
       steps: [
         {
-          ask: "Which parts of moving abroad are reversible?",
+          ask: "Which parts could be changed back later, although doing so may cost time and money?",
           options: [
-            "The role, the city, even the country — you can come back",
+            "The role, the rented home and the country — the family could return later",
             "None of it; emigrating is a single irreversible act",
             "Only the role; location changes cannot be undone",
             "All of it, including the family's side of the move",
           ],
           answer: 0,
-          because: "Most of what feels momentous here is a two-way door. Jobs end, leases end, people move home — and the bulk of the decision sits in that category.",
+          because: "These choices are costly to change, but changing them is possible. A job can end, a rental can finish and a family can move home.",
         },
         {
           ask: "Which parts are genuinely irreversible?",
@@ -2295,7 +2295,7 @@ const MTC_GYM_CHALLENGES = [
           because: "These have no undo: a career gap stays on the record, a school year cannot be re-run at the right age, and a sold house cannot be re-bought at that price. Sunk money is not the same as an irreversible outcome.",
         },
         {
-          ask: "Staying also carries an irreversible component. What is it?",
+          ask: "Staying also has a part that may be hard to recover later. What is it?",
           options: [
             "The window for an international role may not reopen",
             "The promotion at home cannot later be declined",
@@ -2306,21 +2306,21 @@ const MTC_GYM_CHALLENGES = [
           because: "Staying feels like the safe default, which is precisely why its one-way door goes unnoticed. Doors close on their own schedule whether or not you walked through one.",
         },
         {
-          ask: "How should reversibility change the way you decide?",
+          ask: "How should the ability to change course affect the decision?",
           options: [
-            "Decide the reversible bulk fast at around 70% confidence, and spend the deliberation on the one-way parts",
+            "Move faster on parts you can change later, and spend more time on the parts you cannot recover",
             "Require high confidence on the whole decision before moving",
             "Treat the whole thing as reversible, since you can always return",
             "Choose the option with fewer irreversible components",
           ],
           answer: 0,
-          because: "Confidence should be bought where it pays. Agonising over what you can undo wastes the scrutiny that the unrecoverable parts — the career gap, the school year — actually need.",
+          because: "A mistake you can change later is less costly than losing a school year or creating a career gap. Spend the most careful thought where a choice cannot be recovered.",
         },
       ],
     },
     debrief: {
       principle: "Reversibility is a property of components, not of decisions. Once you split a choice up, most of it turns out to be a two-way door that deserves speed, and a small irreversible core turns out to deserve nearly all of the deliberation.",
-      whereItMisleads: "The heuristic's second application is the one people miss: because staying put feels safe, its one-way doors are invisible. Not deciding is a decision with its own irreversible parts, and no premortem ever gets run on it.",
+      whereItMisleads: "People often examine the risks of changing course but ignore the risks of staying. Not deciding is still a decision, and some missed opportunities cannot be recovered later.",
     },
   },
   {
@@ -2358,7 +2358,7 @@ const MTC_GYM_CHALLENGES = [
     payload: {
       claim: "The famous dropout founders show that a degree does not matter for building a large company.",
       evidence: [
-        { text: "Researchers compared similar students and found no lower earnings among those who left specifically to start a company", bucket: "supports" },
+        { text: "Researchers compared similar students who started companies and found no lower five-year survival rate among businesses started by those who left early", bucket: "supports" },
         { text: "Several large companies were built by founders with neither a degree nor family capital", bucket: "supports" },
         { text: "The people featured in success stories had already gained places at universities that accept very few applicants", bucket: "undermines" },
         { text: "The far larger number of dropouts whose companies failed are profiled nowhere", bucket: "undermines" },
@@ -2464,7 +2464,7 @@ const MTC_GYM_CHALLENGES = [
         { text: "I revised my figure upward after hearing £18,000, without any new information about the car", bucket: "undermines" },
         { text: "I have started describing £16,000 to myself as a good deal", bucket: "undermines" },
         { text: "The only comparison I have looked at since is the seller's asking price", bucket: "undermines" },
-        { text: "The seller says the car has been serviced regularly", bucket: "irrelevant" },
+        { text: "The seller speaks confidently and seems proud of the car", bucket: "irrelevant" },
         { text: "It is the colour I wanted", bucket: "irrelevant" },
       ],
     },
@@ -2489,7 +2489,7 @@ const MTC_GYM_CHALLENGES = [
         { text: "Almost all of its users arrived through the main product and would not otherwise have found it", bucket: "undermines" },
         { text: "Its growth is measured from a base small enough that one customer moves the percentage", bucket: "undermines" },
         { text: "The main product still supplies all the income that pays for both products", bucket: "undermines" },
-        { text: "One engineer built it during a short team event for trying new ideas", bucket: "irrelevant" },
+        { text: "The feature's button is green and sits at the top of the screen", bucket: "irrelevant" },
         { text: "The team finds it more interesting to work on", bucket: "irrelevant" },
       ],
     },
@@ -2536,9 +2536,9 @@ const MTC_GYM_CHALLENGES = [
         { text: "The role requires rebuilding a team, and nobody has asked how they have done that before", bucket: "supports" },
         { text: "Their last two jobs included a specialist support team that this company does not have", bucket: "supports" },
         { text: "No one in the process has spoken to anybody who reported to them", bucket: "supports" },
-        { text: "They may simply lose interest in the work after two years", bucket: "undermines" },
+        { text: "The job itself may change in unknown ways and make them lose interest after two years", bucket: "undermines" },
         { text: "The company may reorganise in eighteen months and remove most of this job's responsibilities", bucket: "undermines" },
-        { text: "Their partner may not settle in the city", bucket: "undermines" },
+        { text: "A future family change that nobody can predict may cause them to leave the city", bucket: "undermines" },
         { text: "Everyone on the panel is excited about them", bucket: "irrelevant" },
         { text: "They were referred by someone we trust", bucket: "irrelevant" },
       ],
@@ -2640,7 +2640,7 @@ const MTC_GYM_CHALLENGES = [
       bands: [
         { id: "now", label: "Do now" },
         { id: "schedule", label: "Schedule" },
-        { id: "delegate", label: "Delegate" },
+        { id: "delegate", label: "Delegate or decline" },
         { id: "drop", label: "Drop" },
       ],
       items: [
@@ -2746,7 +2746,7 @@ const MTC_GYM_CHALLENGES = [
   {
     id: "gym-triage-6", format: "triage", muscle: "prioritise", difficulty: 3, xpBase: 50,
     title: "Find What Is Holding Up the Work",
-    scenario: "A print shop receives 40 orders a day but finishes only 25. Three designers each need two hours per order. One printer needs 30 minutes per order. Four finishing workers each need 20 minutes. Use the rule to find what is holding up the work.",
+    scenario: "A print shop receives 40 orders a day but finishes only 16. Three designers each need one hour per order. One printer needs 30 minutes per order. Four finishing workers each need 20 minutes. Use the rule to find what is holding up the work.",
     frameworks: ["constraints", "systems-thinking", "analytical-thinking"],
     emoji: "🏭",
     hint: "Work out how many orders each step can finish in a day. The slowest step limits the whole shop. Making a faster step even faster will not increase finished orders.",
@@ -2822,7 +2822,7 @@ const MTC_GYM_CHALLENGES = [
     emoji: "✂️",
     hint: "Ask of each: does stopping this stop money coming in, or stop the company existing? Everything else is a preference, however good it is.",
     payload: {
-      protocol: "Cash rule: KEEP if stopping it directly reduces incoming revenue or breaks a legal or contractual obligation. DEFER if it is genuinely valuable but nothing breaks within six weeks. CUT if its return arrives after the runway ends, or cannot be shown at all.",
+      protocol: "Cash rule: KEEP if stopping it directly reduces incoming income or breaks a legal or contract duty. DEFER if it is valuable but nothing breaks within six weeks. CUT if it brings no clear benefit before the money runs out.",
       boardTitle: "The spending",
       bands: [
         { id: "keep", label: "Keep" },
@@ -2832,14 +2832,14 @@ const MTC_GYM_CHALLENGES = [
       items: [
         { text: "The two salespeople who close 80% of new contracts", band: "keep",
           because: "Stopping this stops revenue arriving, which is the one thing that extends the runway." },
-        { text: "Hosting and the on-call rota that keeps the product up for paying customers", band: "keep",
-          because: "Contractual, and an outage would lose the customers currently funding everything." },
+        { text: "The computer service and staff who handle urgent problems day and night for paying customers", band: "keep",
+          because: "Customer contracts depend on this service. A long failure could make the business lose the customers currently funding it." },
         { text: "The annual conference stand booked for four months from now", band: "cut",
           because: "Its return arrives well past the runway. If there is no company in four months the stand is worth nothing." },
         { text: "The rebrand, half designed", band: "cut",
           because: "It will not bring in money within six weeks. Work already completed does not justify spending more when the business cannot wait for the result." },
-        { text: "The engineer rebuilding the billing system to support annual plans customers keep asking to buy", band: "keep",
-          because: "This one is revenue, not engineering: customers are asking to pay in a way you cannot currently accept." },
+        { text: "The worker changing the payment system so customers can buy the yearly plan they keep requesting", band: "keep",
+          because: "Customers are asking to pay in a way the business cannot currently accept. This work can bring in money during the six weeks." },
         { text: "The second office lease, on notice but inside its notice period", band: "keep",
           because: "Contractual within the window. It is going, but not in the next six weeks, so cutting it saves nothing now." },
         { text: "The graduate training programme starting in September", band: "defer",
@@ -2918,10 +2918,10 @@ const MTC_GYM_CHALLENGES = [
           answer: "Concentrated — 40 of 300 stores account for nearly all of it.",
           because: "This splits a chain-wide problem from a local one, and the two have nothing in common. It is the first question because it changes which explanation is even possible." },
         { text: "Did the way we count sales change last month?", value: "high",
-          answer: "Yes — click-and-collect moved to the online ledger on the 3rd.",
+          answer: "Yes — orders collected from a shop are now counted as online sales instead of shop sales.",
           because: "A definition change can manufacture an 18% drop with no change in the world. Establish the number is real before explaining it." },
         { text: "What did the same month look like last year?", value: "high",
-          answer: "Down 15% on the prior month too — this is a seasonal trough.",
+          answer: "Sales also fell 15% in the same month last year. This is a normal quiet month.",
           because: "Month-on-month comparisons in a seasonal business are close to meaningless. Year-on-year is the one that carries information." },
         { text: "What is the competitor doing?", value: "low",
           answer: "They ran a promotion in the second half of the month.",
@@ -2936,7 +2936,7 @@ const MTC_GYM_CHALLENGES = [
       decision: {
         ask: "What do you tell the board?",
         options: [
-          "Most of the 18% is an accounting change plus a seasonal trough; the real question is the 40 stores, and that is a separate investigation",
+          "Most of the 18% comes from counting some orders differently and from a normal quiet month. The remaining problem is limited to 40 shops and needs its own check",
           "Sales are down 18% because the new campaign underperformed",
           "Sales are down 18% because a competitor promotion took share",
           "Sales are down 18% and we need a chain-wide recovery plan",
@@ -2983,18 +2983,18 @@ const MTC_GYM_CHALLENGES = [
       decision: {
         ask: "What do you do?",
         options: [
-          "Make the offer, and design the role around the gap \u2014 a shorter first mandate and the recruiting support they are used to",
+          "Speak to the former workers who reported to them and decide whether this company can provide the support they would need",
           "Make the offer as planned; the panel was unanimous",
           "Reject them \u2014 they have not done this specific job before",
           "Re-interview with harder questions about team rebuilding",
         ],
         answer: 0,
-        because: "The checks did not produce a reason to reject; they produced a specific, fixable risk. A candidate who has grown working teams with heavy support is a real risk for a rebuild with none \u2014 and that is an argument about how to shape the role, not about whether to hire.",
+        because: "The team has not yet completed the strongest check. It also knows the applicant relied on support this company does not have. Gather the missing evidence and decide whether that support can be provided before offering the job.",
       },
     },
     debrief: {
-      principle: "Reference checks are worth running only on the things an interview cannot show: how someone behaves over months, and what was holding them up. Everything a panel can already see has been seen.",
-      whereItMisleads: "The natural reading of a gap is \"reject\", and it is usually the wrong one. Most checks return a risk to be designed around rather than a disqualification \u2014 the value is in changing the role, not the verdict.",
+      principle: "Use checks after an interview to learn what the interview could not show. Speak to people who saw the applicant manage over time and compare the support in their old job with the support available here.",
+      whereItMisleads: "A missing skill does not always mean reject, and a popular applicant does not always mean hire. First decide whether the risk can be reduced through support or a different shape for the job.",
     },
   },
   {
@@ -3197,10 +3197,10 @@ const MTC_GYM_CHALLENGES = [
       budget: 3,
       questions: [
         { text: "What in this depends on someone outside the team?", value: "high",
-          answer: "A security review, typically two to three weeks, not yet booked.",
+          answer: "A required review by another team, usually two to three weeks, has not been booked.",
           because: "Work can stop while the team waits for someone else. Nobody in the room may have included that waiting time in the estimate." },
         { text: "Which part have you not done anything like before?", value: "high",
-          answer: "The migration \u2014 nobody has moved this much live data before.",
+          answer: "Moving all customer records while the service stays open. Nobody on the team has done that before.",
           because: "Estimates are reliable for familiar work and near-worthless for unfamiliar work. This question locates the part where the number is a guess." },
         { text: "Does six weeks assume nothing else lands on the team?", value: "high",
           answer: "Yes — and two of the four must also handle urgent support work that month.",
@@ -3213,18 +3213,18 @@ const MTC_GYM_CHALLENGES = [
           because: "A solution question asked before you understand the constraint \u2014 and the answer is usually no." },
         { text: "Have you broken it into tasks?", value: "low",
           answer: "Yes, in the ticket.",
-          because: "Process, not risk. A well-broken-down estimate that ignores a security review is still wrong." },
+          because: "This checks the planning method, not the missing risk. A detailed estimate can still be wrong when it leaves out a required review." },
       ],
       decision: {
         ask: "What do you do about the date?",
         options: [
-          "Book the security review now, and plan against a date that assumes the migration takes twice as long as estimated",
+          "Book the required review now and allow extra time for moving the customer records while the service stays open",
           "Accept six weeks; the team is closest to the work",
           "Add a two-week buffer and tell nobody, so the team keeps working to six",
           "Ask them to re-estimate more carefully",
         ],
         answer: 0,
-        because: "The six weeks was never the risk. An unbooked two-to-three-week review sits outside it entirely, and the migration is the part nobody has done before. Acting on the specific risks beats padding, which hides them, or re-estimating, which asks the same people the same question.",
+        because: "The estimate left out a required two-to-three-week review. It also includes unfamiliar work moving customer records. Deal with those two risks directly instead of asking the same team for another confident number.",
       },
     },
     debrief: {
@@ -3248,8 +3248,8 @@ const MTC_GYM_PLAIN_PHRASES = [
   ["prior probability", "how likely it was before the new clue"],
   ["base rates", "how common each outcome was to begin with"],
   ["base rate", "how common it was to begin with"],
-  ["expected values", "average results over many tries"],
-  ["expected value", "average result over many tries"],
+  ["expected values", "average outcomes"],
+  ["expected value", "average outcome"],
   ["confidence interval", "range you are fairly sure contains the answer"],
   ["counterfactual", "what would have happened without the change"],
   ["reversible and irreversible parts", "parts you can undo and parts you cannot"],
@@ -3282,8 +3282,8 @@ const MTC_GYM_PLAIN_PHRASES = [
   ["mechanisms that assume", "rules built on the idea that"],
   ["mechanisms", "ways things work"],
   ["mechanism", "way it works"],
-  ["undermines", "makes weaker"],
-  ["undermine", "make weaker"],
+  ["undermines", "weakens"],
+  ["undermine", "weaken"],
   ["an irreversible outcome", "an outcome that cannot be undone"],
   ["irreversible", "hard to undo"],
   ["reversible", "easy to undo"],
@@ -3393,6 +3393,7 @@ function mtcPlainGymText(text) {
 }
 
 function mtcSimplifyGymContent(value, parentKey = "") {
+  if (parentKey === "band" && typeof value === "string") return value.toLowerCase();
   const structural = new Set(["id", "format", "muscle", "frameworks", "emoji", "bucket", "value"]);
   if (structural.has(parentKey)) return value;
   if (typeof value === "string") return mtcPlainGymText(value);
