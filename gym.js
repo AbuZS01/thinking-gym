@@ -42,7 +42,7 @@ const GYM = (() => {
   function e(s) { return esc(s); }
 
   function init(ch) {
-    const base = { id: ch.id, format: ch.format, result: null, note: "", hintShown: false };
+    const base = { id: ch.id, format: ch.format, result: null, savedResult: null, note: "", noteSaved: false, hintShown: false };
     if (ch.format === "map") {
       const cards = seededShuffle(
         ch.payload.pairs.map((p) => p.match).concat(ch.payload.decoys), ch.id);
@@ -143,6 +143,46 @@ const GYM = (() => {
   function pct(sc) {
     const raw = (sc.points / sc.max) * 100;
     return Math.max(0, Math.round(play.hintShown ? raw * 0.85 : raw));
+  }
+
+  function finish(ch) {
+    if (play.result) return;
+    play.result = score(ch);
+    // The score belongs to the completed interaction, not to the optional note
+    // below it. Persist it now so leaving the page cannot lose the attempt.
+    play.savedResult = MTC.submitGymChallenge(STATE, ch.id, pct(play.result), "");
+  }
+
+  const TOMORROW_TIPS = {
+    notice: "Before trusting a message, claim or first impression, pause and name the strongest clue for it and the strongest clue against it.",
+    judge: "When two choices compete, write down the full cost, the real benefit and the fact that would change your choice.",
+    connect: "When you feel stuck, ask where you have seen the same job being done in a different setting. Borrow the useful part, then check where the comparison fails.",
+    prioritise: "When several things feel urgent, sort them by danger to people, harm that is growing and whether there is a safe way around the problem.",
+    question: "Before deciding, ask the question whose answer could genuinely make you choose differently.",
+    adapt: "If a conversation or plan goes off course, return to the facts, state what you need and choose the smallest safe next step.",
+  };
+
+  const LIFE_TIPS = {
+    safety: "If something feels unsafe, move towards other people, good lighting or a member of staff. Call someone you trust or the emergency services if you are in immediate danger.",
+    scams: "Do not use the link, phone number or payment method in the message. Stop and check the claim using contact details you find yourself.",
+    health: "Check health claims with a reliable medical source or a qualified professional before changing treatment, spending money or sharing the claim.",
+    money: "Compare the full cost, important conditions and what happens if things go wrong—not just the price shown first.",
+    relationships: "Say what happened without guessing the other person's motive, explain what you need and set a clear boundary if the behaviour continues.",
+    home: "Check the agreement and keep a written record. If the stakes are high, get independent advice before paying or agreeing.",
+    study: "Check the full course cost, likely outcome and independent evidence. Compare it with at least one other route before deciding.",
+    work: "Write down the facts, your priorities and the specific next step you want. This makes a difficult work conversation easier to handle.",
+  };
+  const LIFE_TIP_PRIORITY = ["safety", "scams", "health", "money", "relationships", "home", "study", "work"];
+
+  function tomorrowTip(ch) {
+    if (ch.payload && ch.payload.creativity) {
+      return "When a plan gets stuck, write down the limits first. Create at least two options, then check which one is safe, clear and practical.";
+    }
+    const areaTip = LIFE_TIP_PRIORITY
+      .filter((area) => (ch.lifeAreas || []).includes(area))
+      .map((area) => LIFE_TIPS[area])
+      .find(Boolean);
+    return ch.useTomorrow || areaTip || TOMORROW_TIPS[ch.muscle] || "Pause before your next decision, name what you know and choose one fact to check before acting.";
   }
 
   /* ---------- board renderers ---------- */
@@ -376,9 +416,12 @@ const GYM = (() => {
 
   // the reference's free-text box: optional, never graded, saved to the journal
   function ideasHTML() {
+    const ch = current();
+    const creative = Boolean(ch && ch.payload && ch.payload.creativity);
     return `<div class="panel">
-      <h2>Your thinking <span class="subtle">(optional, +5 XP)</span></h2>
-      <textarea id="gym-note" placeholder="Type your ideas here...">${e(play.note)}</textarea>
+      <h2>${creative ? "Try your own idea" : "Your thinking"} <span class="subtle">(optional)</span></h2>
+      <p class="subtle">${creative ? "Your idea is not graded. Use the limits in the challenge to check whether it is safe, clear and practical." : "You can save this as a private journal note after you check the answer."}</p>
+      <textarea id="gym-note" placeholder="${creative ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
     </div>`;
   }
 
@@ -512,10 +555,11 @@ const GYM = (() => {
     const tone = p >= 80 ? "" : p >= 50 ? " mid" : " low";
     // "Great connection!" only makes sense for Map It; the other three formats get
     // top marks for spotting, ordering and sorting, not for connecting.
-    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted cleanly!", workout: "Worked it out!", triage: "Sorted under pressure!", ask: "You asked the right things!" };
+    const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted correctly!", workout: "Worked it out!", triage: "Sorted under pressure!", ask: "You asked the right things!" };
     const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
       : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
     const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
+    const unlocked = (play.savedResult && play.savedResult.achievementsUnlocked) || [];
     return `<div class="panel">
       <div class="result-hero">
         <div class="tick${tone}">${p >= 50 ? "&#10003;" : "!"}</div>
@@ -525,23 +569,31 @@ const GYM = (() => {
         </div>
       </div>
       ${play.hintShown ? `<p class="subtle nudge">Hint used &mdash; 15% off this score.</p>` : ""}
+      <p class="save-status" role="status">&#10003; Result saved automatically</p>
+      ${unlocked.map((achievement) => `<p class="achievement-note">&#127942; ${e(achievement.name)} unlocked</p>`).join("")}
     </div>
     <div class="panel">
       <h2>What you did</h2>
       ${reviewHTML(ch, sc)}
     </div>
+    ${ch.payload.creativity ? `<div class="panel">
+      <div class="info-panel green"><div class="lbl">Try your own idea</div>${e(ch.payload.creativePrompt)} Your answer is not graded. Check it against the limits shown in the challenge.</div>
+    </div>` : ""}
     <div class="panel">
       <div class="info-panel green"><div class="lbl">The principle</div>${e(ch.debrief.principle)}</div>
       <div class="info-panel purple"><div class="lbl">Where it misleads</div>${e(ch.debrief.whereItMisleads)}</div>
+      <div class="info-panel blue"><div class="lbl">Use this tomorrow</div>${e(tomorrowTip(ch))}</div>
     </div>
     <div class="panel">
-      <h2>Your thinking <span class="subtle">(optional, +5 XP)</span></h2>
-      <p class="subtle">Never graded &mdash; saved to your journal.</p>
-      <textarea id="gym-note" placeholder="Type your ideas here...">${e(play.note)}</textarea>
+      <h2>${ch.payload.creativity ? "Save your idea" : "Save a journal note"} <span class="subtle">(optional, +5 points)</span></h2>
+      <p class="subtle">The score is already saved. This note is private, never graded and can help you remember what you learned.</p>
+      <textarea id="gym-note" placeholder="${ch.payload.creativity ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
+      <div class="field"><button class="btn ghost" data-gym-save-note="${ch.id}" ${play.note.trim() && !play.noteSaved ? "" : "disabled"}>${play.noteSaved ? "Note saved" : "Save note"}</button></div>
+      ${play.noteSaved ? `<p class="save-status" role="status">&#10003; Saved to your journal</p>` : ""}
     </div>
     <div class="field">
-      <button class="btn block" data-gym-save="${ch.id}" data-gym-next="${nextCh ? nextCh.id : ""}">
-        ${nextCh ? "Bank it &amp; next challenge" : "Bank it"}${play.note.trim() ? " (+5)" : ""}
+      <button class="btn block" data-gym-next="${nextCh ? nextCh.id : ""}">
+        ${nextCh ? "Next challenge" : "Back to challenges"}
       </button>
     </div>`;
   }
@@ -569,6 +621,7 @@ const GYM = (() => {
           <div><h1>${e(ch.title)}</h1><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
         </div>
         <p>${e(ch.scenario)}</p>
+        ${ch.payload && ch.payload.fairnessNote ? `<p class="fairness-note"><b>How this is scored:</b> ${e(ch.payload.fairnessNote)}</p>` : ""}
         ${play.result ? "" : `<p class="subtle" style="margin-top:10px">${e(fmt.how)}</p>`}
       </div>`;
 
@@ -626,7 +679,7 @@ const GYM = (() => {
     const flaw = hit("data-gym-flaw");
     if (flaw) {
       play.pickedFlaw = Number(flaw.dataset.gymFlaw);
-      play.result = score(ch);
+      finish(ch);
       return true;
     }
 
@@ -647,7 +700,7 @@ const GYM = (() => {
       } else {
         play.lastWrong = choice;         // first miss: flag it and let them retry for half
       }
-      if (play.stepIdx >= ch.payload.steps.length) play.result = score(ch);
+      if (play.stepIdx >= ch.payload.steps.length) finish(ch);
       return true;
     }
 
@@ -673,7 +726,7 @@ const GYM = (() => {
     const decide = hit("data-gym-decide");
     if (decide) {
       play.pickedDecision = Number(decide.dataset.gymDecide);
-      play.result = score(ch);
+      finish(ch);
       return true;
     }
 
@@ -700,17 +753,22 @@ const GYM = (() => {
 
     if (hit("data-gym-check")) {
       if (ch.format === "map" && play.stage === "board") play.stage = "misleads";
-      else play.result = score(ch);
+      else finish(ch);
       return true;
     }
 
     if (hit("data-gym-hint")) { play.hintShown = true; return true; }
 
-    const save = hit("data-gym-save");
-    if (save) {
-      const res = MTC.submitGymChallenge(STATE, save.dataset.gymSave, pct(play.result), play.note);
-      pendingResult = res;
-      const nextId = save.dataset.gymNext;
+    const saveNote = hit("data-gym-save-note");
+    if (saveNote) {
+      MTC.saveGymNote(STATE, saveNote.dataset.gymSaveNote, play.note);
+      play.noteSaved = true;
+      return true;
+    }
+
+    const next = hit("data-gym-next");
+    if (next) {
+      const nextId = next.dataset.gymNext;
       play = null;
       navigate(nextId ? "gym/play/" + nextId : "gym");
       return true;
@@ -719,7 +777,18 @@ const GYM = (() => {
   }
 
   function handleInput(ev) {
-    if (ev.target.id === "gym-note" && play) { play.note = ev.target.value; return true; }
+    if (ev.target.id === "gym-note" && play) {
+      play.note = ev.target.value;
+      play.noteSaved = false;
+      const button = document.querySelector("[data-gym-save-note]");
+      if (button) {
+        button.disabled = !play.note.trim();
+        button.textContent = "Save note";
+      }
+      const status = document.querySelector(".panel .save-status[role='status']");
+      if (status && status.textContent.includes("journal")) status.remove();
+      return true;
+    }
     return false;
   }
 

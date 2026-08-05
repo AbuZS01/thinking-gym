@@ -1,7 +1,10 @@
 # The Thinking Gym
 
-**Train your brain to connect unrelated ideas.** Duolingo, but for thinking:
-*"A coffee shop has a cybersecurity problem — solve it using biology."*
+**Practise clearer everyday decisions.** Short, playable challenges cover money,
+work, relationships, scams, health, home and personal safety. Thirty challenges
+use familiar jobs and responsibilities such as hospitality, factories, teaching,
+driving, parenting, care work, retail and delivery work. Ten of those train
+practical creativity inside clear safety, cost and time limits.
 
 A self-contained static web app — no backend, no build step, no external
 services, and **no AI anywhere in the user journey**. Every challenge is scored
@@ -16,8 +19,8 @@ Four tabs along the bottom:
 | Tab | What's in it |
 |---|---|
 | **Home** | streak / points / challenges-done strip, today's challenge, track preview |
-| **Challenges** | the Gym session and its six tracks, Deep Work, Boss Battle, Calibration, Review |
-| **Progress** | level and XP, skill tracks, weakness meters, calibration trend, weekly report, journal |
+| **Challenges** | today's session, eight real-life areas, six thinking skills, Deep Work, Boss Battle, Calibration, Review |
+| **Progress** | everyday improvement summary, skills to practise, calibration trend, weekly report, journal |
 | **Profile** | level badge, achievements, toolbox and frameworks, export / import / erase |
 
 Every screen is also a deep link (`#/gym/play/<id>`, `#/journal`, `#/toolbox`, …),
@@ -26,7 +29,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**107 challenges** across seven formats, each objectively scored:
+**115 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -38,19 +41,12 @@ Three challenges a day, about ten minutes, played by tapping rather than typing.
   unfold; one card doesn't belong in the chain at all.
 - **Sort the Signal** — file each piece of evidence as supporting, undermining,
   or neither.
-- **Work It Out** — a problem worked one step at a time, each stage a tap: compute
-  the expected cost, then judge the offer, then name what the average hides. Later
-  steps stay hidden until the current one is settled, so an answer can't be
-  reverse-engineered from the next question. This is where the deduction and
-  arithmetic live — Monty Hall, the Wason selection task, base rates, expected
-  value.
-- **Triage** — a rule is stated on the board and you sort items into priority bands
-  by applying it: START mass-casualty triage, which bugs block a launch, a risk
-  register where anything unrecoverable outranks anything likely, on-call severity,
-  urgent against important, where a production line's real bottleneck is. Because
-  the rule is written down, the answer follows from it rather than from taste — you
-  are being scored on applying a protocol, not on having the same instincts as
-  whoever wrote the challenge.
+- **Work It Out** — an everyday problem worked one step at a time. Later steps
+  stay hidden until the current one is settled. Job scenarios include every rule
+  needed on the card, so the player never needs experience in that job.
+- **Triage** — a plain rule is stated on the board and you sort items into priority
+  groups by applying it. The answer follows from the rule shown, not from hidden
+  knowledge or the writer's personal preference.
 - **Ask First** — a situation full of unknowns and a budget of three questions.
   Tapping one reveals its answer. Marks go to the questions whose answers would
   actually change what you do; the rest are interesting and cost you a slot. Once
@@ -63,16 +59,23 @@ nothing reorders mid-play) while the authored answer key stays fixed. Without th
 every answer sits in the slot it was written in and the whole game falls to "always
 tap the top option".
 
-Challenges are filed by **mental muscle** — what the challenge makes you *do*,
-rather than what it is about:
+Creativity challenges do not pretend that one idea is the only imaginative answer.
+Points are awarded for recognising the option that meets every stated limit. Players
+are then invited to write another idea, which is private and never graded. A good
+example is shown alongside checks for safety, clarity, cost and practical use.
+
+Challenges can be browsed first by **real-life area**: Money and bills, Scams and
+online safety, Friends and relationships, Work and jobs, Home and renting, Health
+and wellbeing, Study and early career, and Travel and personal safety. Every
+challenge also keeps its **mental muscle** — what the challenge makes you *do*:
 
 | | | |
 |---|---|---|
-| 🕵️ **Notice** | Spot what's easy to miss | 21 |
-| ⚖️ **Judge** | Weigh conflicting evidence | 24 |
+| 🕵️ **Notice** | Spot what's easy to miss | 24 |
+| ⚖️ **Judge** | Weigh conflicting evidence | 26 |
 | 🧩 **Connect** | Find patterns across unrelated domains | 13 |
-| 🔄 **Adapt** | Change the plan when reality changes | 19 |
-| 🎯 **Prioritise** | Choose under pressure | 12 |
+| 🔄 **Adapt** | Change the plan when reality changes | 21 |
+| 🎯 **Prioritise** | Choose under pressure | 13 |
 | 🔍 **Question** | Work out what's missing before you act | 18 |
 
 Those last two are why organising this way was worth doing: framework families
@@ -84,19 +87,18 @@ A challenge's muscle and its framework tags are different axes — a Map It
 challenge about casinos trains *Connect* while its subject is probability — so
 playing one credits both.
 
-Every challenge ends with a debrief split in two: **the principle** you just
-used, and **where it misleads you** — because a mental model you can't see the
-edges of is a liability. Challenges are graded 0–100%, replay themselves on a
-spaced schedule based on how well you did, and feed six skill tracks
-(Probabilistic, Systems, Causal & Scientific, Adversarial & Strategic,
-Metacognition, Creative).
+Every challenge ends with three useful pieces: **the principle** you just used,
+**where it can mislead you**, and **use this tomorrow**, which connects the skill
+to an ordinary next decision. Challenges are graded 0–100%, replay themselves
+on a spaced schedule based on how well you did, and feed the six thinking skills.
 
-Each one also offers a **hint** (one nudge sentence, costing 15% of the score)
-and an optional free-text box — write your own thinking alongside the board and
-it earns a flat +5 XP, saves to the journal, and is never graded. The day's three
+Each one also offers a **hint** (one nudge sentence, costing 15% of the score).
+The result and progress save as soon as the answer appears. An optional journal
+note is a separate action: it earns a flat +5 points and is never graded. The day's three
 are picked from what's due for replay, then what you've never played, then your
-weakest — always three different formats, and stable within a day so refreshing
-doesn't reshuffle your session.
+weakest. They stay stable within a day so refreshing or completing one does not
+reshuffle the session. When a life focus is chosen, relevance is allowed to matter
+more than having three different game formats.
 
 ## Deep Work and the rest
 
