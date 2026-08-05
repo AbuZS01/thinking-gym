@@ -65,6 +65,8 @@ const MTC = (() => {
       schema: 2, // bumped when saved state needs migrating (see migrateToMuscles)
       trackXp: {}, // muscleId -> lifetime XP earned on that muscle
       gym: {}, // challengeId -> {plays, bestScore, lastScore, lastPlayed}
+      lifeFocus: null, // optional real-life area used to shape the daily session
+      dailyGymSession: null, // {date, size, focus, ids} keeps today's list stable after each result
       newIntro: null, // {date, count} — caps new review cards introduced per day
       weaknessScores: {}, // frameworkId -> {attempts, totalScore}
       history: [], // {date, exerciseId, type, score, xp, hintsUsed}
@@ -596,12 +598,22 @@ const MTC = (() => {
   }
   const gymChallengesForTrack = gymChallengesForMuscle; // old name, still used by deep links
 
+  function gymChallengesForLifeArea(areaId) {
+    return MTC_GYM_CHALLENGES.filter((c) => Array.isArray(c.lifeAreas) && c.lifeAreas.includes(areaId));
+  }
+
   // Today's session: due replays first, then never-played, then weakest scores.
   // Ties break on a date-seeded key so the trio is stable through the day but
   // differs day to day, and formats are kept varied so you never get three of
   // the same game in a row.
   function gymSession(state, size = 3) {
     const today = todayStr();
+    const focus = MTC_GYM_LIFE_AREAS.some((area) => area.id === state.lifeFocus) ? state.lifeFocus : null;
+    const cached = state.dailyGymSession;
+    if (cached && cached.date === today && cached.size === size && cached.focus === focus && Array.isArray(cached.ids)) {
+      const restored = cached.ids.map(getGymChallenge).filter(Boolean);
+      if (restored.length === size) return restored;
+    }
     // FNV-1a, but with the date FIRST and a final avalanche. Both matter: hashing
     // "id" + "date" puts the only varying bytes last, where they shift the high
     // bits too little to reorder the sort — which froze the daily pick to the same
@@ -621,14 +633,18 @@ const MTC = (() => {
       if (g && g.due && g.due <= today) rank = 0;      // due for replay
       else if (!g) rank = 1;                            // never played
       else rank = 2 + g.bestScore / 100;                // weakest first
-      return { c, rank, key: seed(c.id) };
-    }).sort((a, b) => a.rank - b.rank || a.key - b.key);
+      const focusRank = focus && c.lifeAreas.includes(focus) ? 0 : 1;
+      const dueRank = rank === 0 ? 0 : 1;
+      return { c, rank, dueRank, focusRank, key: seed(c.id) };
+    }).sort((a, b) => a.dueRank - b.dueRank || a.focusRank - b.focusRank || a.rank - b.rank || a.key - b.key);
 
     const picked = [];
     const formats = new Set();
     for (const r of ranked) {
       if (picked.length >= size) break;
-      if (formats.has(r.c.format)) continue;
+      // Relevance beats format variety when the user has chosen a life focus.
+      // Some areas currently have several strong scenarios in the same format.
+      if (formats.has(r.c.format) && !(focus && r.c.lifeAreas.includes(focus))) continue;
       picked.push(r.c);
       formats.add(r.c.format);
     }
@@ -636,6 +652,8 @@ const MTC = (() => {
       if (picked.length >= size) break;
       if (!picked.includes(r.c)) picked.push(r.c);
     }
+    state.dailyGymSession = { date: today, size, focus, ids: picked.map((challenge) => challenge.id) };
+    saveState(state);
     return picked;
   }
 
@@ -669,7 +687,8 @@ const MTC = (() => {
     const ch = getGymChallenge(challengeId);
     if (!ch) throw new Error("Unknown challenge: " + challengeId);
     const clamped = Math.max(0, Math.min(100, Math.round(score)));
-    const xp = Math.round(ch.xpBase * (clamped / 100)) + (note && note.trim() ? 5 : 0);
+    const cleanNote = trimAnswer(note);
+    const xp = Math.round(ch.xpBase * (clamped / 100)) + (cleanNote ? 5 : 0);
 
     const prev = state.gym[challengeId] || { plays: 0, bestScore: 0 };
     state.gym[challengeId] = {
@@ -687,10 +706,47 @@ const MTC = (() => {
       score: clamped,
       xp,
       hintsUsed: 0,
-      answer: trimAnswer(note),
+      answer: cleanNote,
+      noteBonusAwarded: Boolean(cleanNote),
     }, ch.muscle);
     result.nextDue = state.gym[challengeId].due;
     return result;
+  }
+
+  // Completion is saved the moment a result appears. A journal note can be
+  // added afterwards without creating a second play or changing the score.
+  function saveGymNote(state, challengeId, note) {
+    const ch = getGymChallenge(challengeId);
+    if (!ch) throw new Error("Unknown challenge: " + challengeId);
+    const entry = lastRecordFor(state, challengeId, "gym");
+    if (!entry) throw new Error("Complete the challenge before saving a note");
+
+    const cleanNote = trimAnswer(note);
+    const hadNote = Boolean(entry.answer);
+    const awardBonus = Boolean(cleanNote) && !hadNote && !entry.noteBonusAwarded;
+    entry.answer = cleanNote;
+
+    let achievementsUnlocked = [];
+    let leveledUp = false;
+    let newLevel = deriveLevel(state.totalXp).level;
+    if (awardBonus) {
+      const beforeLevel = newLevel;
+      entry.noteBonusAwarded = true;
+      entry.xp += 5;
+      state.totalXp += 5;
+      const credited = new Set([ch.muscle]);
+      for (const muscle of MTC_MUSCLES) {
+        if (ch.frameworks.some((framework) => muscle.frameworks.includes(framework))) credited.add(muscle.id);
+      }
+      for (const id of credited) state.trackXp[id] = (state.trackXp[id] || 0) + 5;
+      newLevel = deriveLevel(state.totalXp).level;
+      leveledUp = newLevel > beforeLevel;
+      achievementsUnlocked = checkAchievements(state);
+    } else if (hadNote) {
+      entry.noteBonusAwarded = true; // protects notes created by older app versions
+    }
+    saveState(state);
+    return { xpAwarded: awardBonus ? 5 : 0, leveledUp, newLevel, achievementsUnlocked };
   }
 
   function nextGymDue(prev, score) {
@@ -750,11 +806,13 @@ const MTC = (() => {
     skillTracks: muscleXp,               // pre-muscle name
     getGymChallenge,
     gymChallengesForMuscle,
+    gymChallengesForLifeArea,
     gymChallengesForTrack,               // pre-muscle name
     gymSession,
     muscleProgress,
     gymTrackProgress: muscleProgress,    // pre-muscle name
     submitGymChallenge,
+    saveGymNote,
     dueGymReplays,
     submitWorkbench,
     calibrationTrend,

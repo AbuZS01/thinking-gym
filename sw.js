@@ -3,13 +3,14 @@
    the cache in the background so the next load picks up updates.
    Bump CACHE_VERSION whenever shipped files change. */
 
-const CACHE_VERSION = "mtc-v27";
+const CACHE_VERSION = "mtc-v31";
 const SHELL = [
   "./",
   "./index.html",
   "./style.css",
   "./content.js",
   "./gym-content.js",
+  "./everyday-content.js",
   "./engine.js",
   "./app.js",
   "./gym.js",

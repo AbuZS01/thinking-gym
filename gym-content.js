@@ -40,6 +40,20 @@ const MTC_GYM_FORMATS = {
   },
 };
 
+// People usually arrive with a real-life problem, not the name of a thinking
+// skill. These areas give every challenge an everyday home while keeping the
+// six muscles available for people who prefer skill-based practice.
+const MTC_GYM_LIFE_AREAS = [
+  { id: "money", name: "Money and bills", emoji: "💷", blurb: "Compare costs, spot traps and make calmer money choices." },
+  { id: "scams", name: "Scams and online safety", emoji: "🛡️", blurb: "Check messages, sellers, jobs and requests before you trust them." },
+  { id: "relationships", name: "Friends and relationships", emoji: "🤝", blurb: "Handle pressure, boundaries and difficult conversations." },
+  { id: "work", name: "Work and jobs", emoji: "💼", blurb: "Deal with priorities, coworkers, managers and job choices." },
+  { id: "home", name: "Home and renting", emoji: "🏠", blurb: "Think through rent, repairs, contracts and doorstep claims." },
+  { id: "health", name: "Health and wellbeing", emoji: "❤️", blurb: "Check health claims and make safer everyday choices." },
+  { id: "study", name: "Study and early career", emoji: "🎓", blurb: "Judge courses, first jobs, evidence and learning choices." },
+  { id: "safety", name: "Travel and personal safety", emoji: "🚦", blurb: "Notice warning signs and choose the safest next step." },
+];
+
 const MTC_GYM_CHALLENGES = [
   /* ---------------- MAP IT ---------------- */
   {
@@ -3545,6 +3559,182 @@ const MTC_GYM_CHALLENGES = [
       whereItMisleads: "Some workplaces punish direct disagreement or involve a serious power imbalance. If speaking privately feels unsafe, use a trusted manager, representative or formal workplace process instead.",
     },
   },
+  {
+    id: "gym-workout-17", format: "workout", muscle: "judge", difficulty: 1, xpBase: 50,
+    title: "Split the Restaurant Bill Fairly",
+    scenario: "Four friends share a meal. Two ordered £12 meals, one ordered a £24 meal and one ordered a £16 meal. There is also an £8 shared starter and an £8 tip. Decide on a fair split without turning it into an argument.",
+    frameworks: ["numerical-reasoning", "fairness", "decision-making"],
+    lifeAreas: ["money", "relationships"],
+    emoji: "🧾",
+    hint: "Separate personal orders from shared costs. Agree on the rule before working out the final amounts.",
+    payload: {
+      problem: "Use a clear rule that reflects what each person ordered and what everyone shared.",
+      steps: [
+        { ask: "What should you agree first?", options: ["Personal food is paid by the person who ordered it, while the starter and tip are shared equally", "Everyone pays the same because that is always fair", "The person with the highest pay covers the tip", "The last person to arrive pays for the starter"], answer: 0, because: "Agreeing on the rule first keeps the calculation separate from personal pressure." },
+        { ask: "How much of the shared £16 does each person pay?", options: ["£4", "£8", "£2", "£16"], answer: 0, because: "The £8 starter and £8 tip total £16. Dividing £16 by four gives £4 each." },
+        { ask: "What does a person with a £12 meal pay in total?", options: ["£16", "£12", "£20", "£18"], answer: 0, because: "Their £12 meal plus their £4 share of the starter and tip is £16." },
+        { ask: "Someone says they would rather split everything equally. What is the best response?", options: ["Explain the rule calmly and ask whether everyone agrees before paying", "Tell them they are trying to cheat", "Pay the whole bill to end the discussion", "Change the numbers without telling anyone"], answer: 0, because: "A fair process is one people can see and discuss. The group can choose a different rule if everyone freely agrees." },
+      ],
+    },
+    debrief: {
+      principle: "Make fairness visible. Separate personal costs from shared costs, state the rule and show the simple calculation.",
+      whereItMisleads: "Exact splitting is not always worth the time. For a small difference, friends may freely choose an equal split. The important part is that nobody is pressured or surprised.",
+    },
+  },
+  {
+    id: "gym-workout-18", format: "workout", muscle: "judge", difficulty: 2, xpBase: 50,
+    title: "Which Phone Plan Really Costs Less?",
+    scenario: "Plan A costs £24 a month for 24 months with no upfront fee. Plan B costs £18 a month for 24 months, but has a £120 upfront fee and a £4 monthly charge for enough data. Compare the full cost.",
+    frameworks: ["numerical-reasoning", "critical-thinking", "decision-making"],
+    lifeAreas: ["money"],
+    emoji: "📱",
+    hint: "Put every required cost into the same 24-month total. Do not compare only the large monthly price in the advert.",
+    payload: {
+      problem: "Compare like with like and find the total cost of each plan.",
+      steps: [
+        { ask: "What is Plan A's total cost?", options: ["£576", "£480", "£600", "£24"], answer: 0, because: "£24 multiplied by 24 months is £576." },
+        { ask: "What is Plan B's real monthly cost before the upfront fee?", options: ["£22", "£18", "£26", "£4"], answer: 0, because: "The £4 data charge is needed, so the monthly cost is £18 plus £4, which is £22." },
+        { ask: "What is Plan B's total cost?", options: ["£648", "£528", "£552", "£432"], answer: 0, because: "£22 for 24 months is £528. Adding the £120 upfront fee gives £648." },
+        { ask: "Which plan costs less over the full contract?", options: ["Plan A, by £72", "Plan B, by £72", "They cost the same", "There is not enough information"], answer: 0, because: "Plan A is £576 and Plan B is £648. The difference is £72." },
+      ],
+    },
+    debrief: {
+      principle: "Compare the full cost over the same period. Include every fee you must pay, not only the number made largest in the advert.",
+      whereItMisleads: "The cheapest plan is not automatically the best plan. Coverage, cancellation rules and the amount of data still matter if they differ.",
+    },
+  },
+  {
+    id: "gym-workout-19", format: "workout", muscle: "adapt", difficulty: 2, xpBase: 50,
+    title: "Your Rent Is Going Up",
+    scenario: "Your landlord messages to say the rent will rise by £120 next month. The message gives no reason and asks you to agree today. You want to stay, but the extra cost would be difficult.",
+    frameworks: ["decision-making", "negotiation", "communication"],
+    lifeAreas: ["home", "money"],
+    emoji: "🏠",
+    hint: "Slow the decision down. Check the agreement and local rules, then ask for the facts and make a specific request.",
+    payload: {
+      problem: "Respond firmly without agreeing under pressure or starting an avoidable fight.",
+      steps: [
+        { ask: "What is the best first reply?", options: ["I have received the message. I need time to check my agreement and the notice required before I respond", "Fine, I agree", "You are greedy and I will report you", "Ignore every message"], answer: 0, because: "This confirms receipt without accepting the change and gives you time to check what applies." },
+        { ask: "What should you check next?", options: ["The tenancy agreement, the required notice and reliable local housing guidance", "What rent strangers pay in another city", "Whether the landlord sounds confident", "How quickly you can borrow the difference"], answer: 0, because: "The agreement and local rules tell you what process applies. Tone and pressure do not." },
+        { ask: "The increase appears allowed. What is a useful request?", options: ["Ask for the reason, offer evidence of local rents and propose a smaller rise or a later start date", "Threaten to damage the property", "Agree now and hope the cost becomes easier", "Stop paying rent without advice"], answer: 0, because: "A specific alternative gives both sides something concrete to consider." },
+        { ask: "You feel unsure about your rights. What should you do?", options: ["Use an independent housing advice service before signing or withholding anything", "Rely on the landlord's explanation alone", "Ask social media to vote", "Move out tonight"], answer: 0, because: "Independent advice can check the exact agreement and local rules without creating a new risk." },
+      ],
+    },
+    debrief: {
+      principle: "Do not make a housing decision under an artificial deadline. Check the rules, gather comparable facts and make a clear counter-request.",
+      whereItMisleads: "Housing rules differ by place and agreement. This thinking process helps you ask better questions, but it is not a substitute for local housing advice.",
+    },
+  },
+  {
+    id: "gym-workout-20", format: "workout", muscle: "notice", difficulty: 1, xpBase: 50,
+    title: "The Viral Miracle Cure",
+    scenario: "A popular video says one drink can cure a long-term health problem in seven days. The speaker sells the drink, shows three success stories and says doctors do not want people to know about it.",
+    frameworks: ["source-checking", "evidence-evaluation", "critical-thinking"],
+    lifeAreas: ["health", "scams"],
+    emoji: "🩺",
+    hint: "Check who benefits, what evidence is missing and whether reliable health sources agree.",
+    payload: {
+      problem: "Decide what to check before believing or sharing the claim.",
+      steps: [
+        { ask: "What is the clearest conflict of interest?", options: ["The speaker makes money when viewers buy the drink", "The video has bright colours", "The speaker talks quickly", "The drink comes in a bottle"], answer: 0, because: "Selling the product does not prove the claim is false, but it gives the speaker a reason to show only favourable information." },
+        { ask: "Why are three success stories weak evidence?", options: ["They do not show what happened to everyone else or what would have happened without the drink", "Three people can never tell the truth", "Health improvements are impossible", "Videos cannot contain evidence"], answer: 0, because: "Selected stories leave out failures, natural recovery and other treatments." },
+        { ask: "What should you check next?", options: ["Reliable health guidance and well-run studies that include many people and a fair comparison", "More videos from the same seller", "The number of likes", "Whether the bottle looks professional"], answer: 0, because: "Independent guidance and fair studies test the claim beyond the seller's chosen examples." },
+        { ask: "You already take prescribed medicine. What is the safest next step?", options: ["Speak to a qualified health professional before replacing or combining treatment", "Stop the medicine for seven days", "Take twice as much of both", "Ask the seller in the comments"], answer: 0, because: "Stopping or combining treatments can cause harm. A qualified professional can consider your actual condition and medicines." },
+      ],
+    },
+    debrief: {
+      principle: "Strong health claims need independent evidence, a fair comparison and clear information about harms. Popularity and personal stories are not enough.",
+      whereItMisleads: "A seller can still have good evidence, and a new treatment may not appear in every guide immediately. Check the evidence itself rather than rejecting a claim only because money is involved.",
+    },
+  },
+  {
+    id: "gym-workout-21", format: "workout", muscle: "notice", difficulty: 1, xpBase: 50,
+    title: "A Stranger Wants to Borrow Your Phone",
+    scenario: "At a busy station, a stranger says their phone has died and asks to borrow yours for an urgent call. They want to hold it and walk a few steps away because the station is noisy.",
+    frameworks: ["situational-awareness", "risk-assessment", "decision-making"],
+    lifeAreas: ["safety"],
+    emoji: "🚉",
+    hint: "You can help without handing over control of an unlocked phone.",
+    payload: {
+      problem: "Offer reasonable help while protecting your phone, accounts and personal safety.",
+      steps: [
+        { ask: "What is the main risk in their request?", options: ["They want to take control of an unlocked phone and move away with it", "Their own battery is empty", "The station is noisy", "They need to make a call"], answer: 0, because: "Moving away with an unlocked phone could expose the device, messages and accounts as well as the phone itself." },
+        { ask: "What is a safer way to help?", options: ["Keep hold of the phone and offer to place the call on speaker in a visible area", "Unlock it and hand it over", "Give them your passcode", "Follow them somewhere quiet"], answer: 0, because: "You can help with the call without giving up the device or leaving the public area." },
+        { ask: "They refuse and insist on holding the phone. What does that change?", options: ["End the interaction and move toward staff or other people", "It proves the emergency is real", "Hand it over for only one minute", "Show them your banking app first"], answer: 0, because: "Refusing a safe way to make the call makes the demand for control more important than the stated need." },
+        { ask: "You feel threatened. What should come first?", options: ["Create distance and seek help from station staff or emergency services", "Win the argument", "Record a close-up video", "Block the exit"], answer: 0, because: "Distance and help protect you better than trying to prove the stranger's motive." },
+      ],
+    },
+    debrief: {
+      principle: "Separate the need from the requested method. You can offer help while keeping control of your device and staying in a public place.",
+      whereItMisleads: "Most people who ask may genuinely need help. A safe boundary is not an accusation. It protects both people while still allowing a call.",
+    },
+  },
+  {
+    id: "gym-workout-22", format: "workout", muscle: "prioritise", difficulty: 1, xpBase: 50,
+    title: "Someone Follows You After the Cash Machine",
+    scenario: "After taking out cash at night, you notice the same person behind you through two turns. You are five minutes from home and your car is in a quiet side street.",
+    frameworks: ["risk-assessment", "situational-awareness", "decision-making"],
+    lifeAreas: ["safety"],
+    emoji: "🚶",
+    hint: "Do not lead the person to your home or a quiet place. Move toward people, staff and a clear way to call for help.",
+    payload: {
+      problem: "Respond to the warning sign without stopping to prove why the person is there.",
+      steps: [
+        { ask: "What is the safest destination?", options: ["A busy, well-lit place with staff, such as an open shop", "Your home", "The quiet car park", "A narrow shortcut"], answer: 0, because: "A staffed public place gives you witnesses, help and distance without revealing where you live." },
+        { ask: "What should you avoid doing?", options: ["Confronting the person to demand an explanation", "Calling someone you trust", "Telling shop staff what is happening", "Staying where other people can see you"], answer: 0, because: "A confrontation can increase danger and is not needed to justify moving to safety." },
+        { ask: "The person waits outside the shop. What next?", options: ["Tell staff, call emergency help if you feel in danger and do not leave alone", "Walk home quickly", "Go outside to film them closely", "Ask them to follow you to the car"], answer: 0, because: "The continued behaviour strengthens the warning sign. Stay with support and seek appropriate help." },
+        { ask: "What information is useful if you can note it safely?", options: ["A simple description, direction of travel and the time", "Their full motive", "Their private messages", "A guess about where they live"], answer: 0, because: "Visible facts can help staff or police. Guessing motive adds no safety and may distract you." },
+      ],
+    },
+    debrief: {
+      principle: "You do not need proof of someone's motive before moving to safety. Choose people, light, staff and a way to call for help.",
+      whereItMisleads: "The same person may be walking the same route by chance. Moving to a safer place is not an accusation. It is a low-cost response to uncertainty.",
+    },
+  },
+  {
+    id: "gym-workout-23", format: "workout", muscle: "adapt", difficulty: 1, xpBase: 50,
+    title: "Reply to a Passive-Aggressive Text",
+    scenario: "You ask a friend whether they can return something they borrowed. They reply, 'Wow, I did not know you cared more about that than our friendship.' You feel angry and want to answer immediately.",
+    frameworks: ["emotional-regulation", "communication", "decision-making"],
+    lifeAreas: ["relationships"],
+    emoji: "💬",
+    hint: "Answer the real request without accepting the false choice or attacking the person.",
+    payload: {
+      problem: "Keep the conversation on the practical issue and avoid an unnecessary fight.",
+      steps: [
+        { ask: "What has the reply done?", options: ["Turned a request about returning an item into a claim about the whole friendship", "Answered when the item will be returned", "Proved the friend is dishonest", "Ended the friendship"], answer: 0, because: "The reply changes the subject and creates a false choice between the item and the friendship." },
+        { ask: "What is the best immediate action?", options: ["Pause until you can reply calmly", "Send the angriest reply you can", "Post the message publicly", "Apologise for asking"], answer: 0, because: "A short pause reduces the chance that anger decides the tone for you." },
+        { ask: "Which reply is clearest?", options: ["I care about our friendship. I also need the item back. Can you return it by Friday?", "You always manipulate people", "Forget it, keep everything", "If you cared, you would know what to do"], answer: 0, because: "It rejects the false choice, states the need and asks for a specific action." },
+        { ask: "They keep attacking your character instead of answering. What next?", options: ["Repeat the request once and end the conversation until they are ready to discuss it", "Defend every part of your personality", "Attack their friendships", "Offer them another item"], answer: 0, because: "A repeated boundary stops the conversation from expanding into claims that do not solve the original problem." },
+      ],
+    },
+    debrief: {
+      principle: "Separate the relationship from the request. Name both, ask for one clear action and do not let a practical issue become a trial of your character.",
+      whereItMisleads: "Text removes tone and context. A clumsy message is not always deliberate manipulation. Focus on the pattern and the response you need rather than guessing motive from one line.",
+    },
+  },
+  {
+    id: "gym-workout-24", format: "workout", muscle: "notice", difficulty: 2, xpBase: 50,
+    title: "The Course With a Guaranteed Job",
+    scenario: "An online course costs £2,500 and promises a guaranteed job within three months. A countdown says the discount ends tonight. The page shows five success stories but no figures for everyone who joined.",
+    frameworks: ["source-checking", "evidence-evaluation", "decision-making"],
+    lifeAreas: ["study", "money", "scams"],
+    emoji: "🎓",
+    hint: "Turn the promise into facts you can verify: how many people joined, how many found relevant jobs, what counts as a job and when refunds apply.",
+    payload: {
+      problem: "Check whether the course is worth the cost before the countdown pushes you to pay.",
+      steps: [
+        { ask: "What is missing from the five success stories?", options: ["The result for everyone who joined, including people who did not finish or find work", "The students' favourite lessons", "More photographs", "The colour of the certificates"], answer: 0, because: "Selected winners do not show the usual result. You need the full group to judge the promise." },
+        { ask: "Which question tests the job guarantee?", options: ["Exactly what job counts, what must I do to qualify and when do I receive a full refund?", "Will I enjoy the videos?", "How many followers do you have?", "Can I pay tonight?"], answer: 0, because: "A guarantee is useful only when its conditions, measurement and remedy are clear." },
+        { ask: "What should you compare before paying?", options: ["Independent reviews, full outcome figures, the syllabus, total cost and cheaper ways to learn the same skills", "Only the crossed-out original price", "Only the best salary shown", "The countdown speed"], answer: 0, because: "A course competes with other courses, free study and direct job experience. Compare the real alternatives." },
+        { ask: "What should you do about the deadline tonight?", options: ["Let the offer expire if the checks cannot be completed safely", "Pay first and read the terms tomorrow", "Borrow the money immediately", "Assume urgency proves demand"], answer: 0, because: "A genuine course should still make sense after careful checks. Missing one discount costs less than an unsuitable £2,500 commitment." },
+      ],
+    },
+    debrief: {
+      principle: "Test a guarantee by asking who qualifies, what result counts, how often it happens and what you receive if the promise fails.",
+      whereItMisleads: "A course can be valuable even when no job is guaranteed. Judge the teaching, support and realistic outcomes separately from the marketing promise.",
+    },
+  },
 ];
 
 /*
@@ -3707,7 +3897,7 @@ function mtcPlainGymText(text) {
 
 function mtcSimplifyGymContent(value, parentKey = "") {
   if (parentKey === "band" && typeof value === "string") return value.toLowerCase();
-  const structural = new Set(["id", "format", "muscle", "frameworks", "emoji", "bucket", "value"]);
+  const structural = new Set(["id", "format", "muscle", "frameworks", "lifeAreas", "emoji", "bucket", "value"]);
   if (structural.has(parentKey)) return value;
   if (typeof value === "string") return mtcPlainGymText(value);
   if (Array.isArray(value)) return value.map((item) => mtcSimplifyGymContent(item, parentKey));
@@ -3719,3 +3909,26 @@ function mtcSimplifyGymContent(value, parentKey = "") {
 
 mtcSimplifyGymContent(MTC_GYM_FORMATS);
 mtcSimplifyGymContent(MTC_GYM_CHALLENGES);
+
+// Older challenges predate life-area browsing. Tag them from the situation the
+// player sees, while allowing authored tags above to take priority. A challenge
+// can live in more than one area because real problems rarely fit one drawer.
+const MTC_GYM_LIFE_AREA_RULES = {
+  money: /money|bank|bill|budget|price|cost|loan|credit|debt|rent|deposit|invoice|payment|salary|income|contract|subscription|phone plan|car|crypto|invest|marketplace|freelanc/i,
+  scams: /scam|fraud|fake|phish|suspicious|impersonat|marketplace|bank text|romance|gift card|invoice|recruiter|pressure tactic|identity/i,
+  relationships: /friend|family|partner|relationship|coworker|colleague|neighbour|gossip|text message|borrow|boundary|credit for my idea/i,
+  work: /\b(job|team|manager|boss|office|warehouse|driver|delivery|company|business|customer|shop|clinic|hospital|meeting|project|supplier|freelanc\w*|workplace|work shift|at work|work task|work deadline|workload|coworker|colleague)\b/i,
+  home: /home|house|flat|apartment|rent|landlord|tenant|repair|contractor|warranty|utility|doorstep|property/i,
+  health: /health|body|illness|medicine|doctor|clinic|hospital|patient|cure|treatment|drink|sleep|stress|food/i,
+  study: /study|student|school|college|university|course|exam|learn|entry-level|first job|recruiter|interview/i,
+  safety: /personal safety|\bstation\b|\btravel\b|\bparty\b|unattended drink|\bATM\b|being followed|follows you|ride home|borrow your phone|at your door|doorstep/i,
+};
+
+for (const challenge of MTC_GYM_CHALLENGES) {
+  if (Array.isArray(challenge.lifeAreas) && challenge.lifeAreas.length) continue;
+  const visibleText = `${challenge.title} ${challenge.scenario}`;
+  challenge.lifeAreas = MTC_GYM_LIFE_AREAS
+    .filter((area) => MTC_GYM_LIFE_AREA_RULES[area.id].test(visibleText))
+    .map((area) => area.id);
+  if (!challenge.lifeAreas.length) challenge.lifeAreas = ["work"];
+}

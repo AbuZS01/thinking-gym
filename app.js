@@ -9,6 +9,10 @@ let revUI = null; // {queue, idx, revealed, xp, count}
 let toolboxFilter = "";
 let frameworksFilter = "";
 let journalFilter = "";
+let gymAreaFilter = "all";
+let gymLevelFilter = "all";
+let gymTimeFilter = "all";
+let lastRenderedRoute = null;
 
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let activeRec = null;
@@ -73,6 +77,63 @@ function navigate(path) {
   location.hash = "#/" + path;
 }
 
+const GYM_MINUTES = { flaw: 3, signal: 4, chain: 4, triage: 4, ask: 5, workout: 5, map: 6 };
+const GYM_LEVELS = { 1: "Beginner", 2: "Everyday", 3: "Stretch" };
+
+function lifeArea(id) {
+  return MTC_GYM_LIFE_AREAS.find((area) => area.id === id) || null;
+}
+
+function challengeMinutes(challenge) {
+  return GYM_MINUTES[challenge.format] || 5;
+}
+
+function challengeMatchesBrowseFilters(challenge, fixedArea) {
+  const area = fixedArea || gymAreaFilter;
+  if (area !== "all" && !challenge.lifeAreas.includes(area)) return false;
+  if (gymLevelFilter !== "all" && challenge.difficulty !== Number(gymLevelFilter)) return false;
+  const minutes = challengeMinutes(challenge);
+  if (gymTimeFilter === "quick" && minutes > 4) return false;
+  if (gymTimeFilter === "standard" && minutes <= 4) return false;
+  return true;
+}
+
+function browseFiltersHTML(options = {}) {
+  const showArea = options.showArea !== false;
+  return `<div class="browse-filters" aria-label="Filter challenges">
+    ${showArea ? `<label>Life area
+      <select id="gym-area-filter">
+        <option value="all">All life areas</option>
+        ${MTC_GYM_LIFE_AREAS.map((area) => `<option value="${area.id}" ${gymAreaFilter === area.id ? "selected" : ""}>${area.emoji} ${esc(area.name)}</option>`).join("")}
+      </select>
+    </label>` : ""}
+    <label>Level
+      <select id="gym-level-filter">
+        <option value="all">All levels</option>
+        ${Object.entries(GYM_LEVELS).map(([value, label]) => `<option value="${value}" ${gymLevelFilter === value ? "selected" : ""}>${label}</option>`).join("")}
+      </select>
+    </label>
+    <label>Time
+      <select id="gym-time-filter">
+        <option value="all">Any length</option>
+        <option value="quick" ${gymTimeFilter === "quick" ? "selected" : ""}>About 3–4 min</option>
+        <option value="standard" ${gymTimeFilter === "standard" ? "selected" : ""}>About 5–6 min</option>
+      </select>
+    </label>
+  </div>`;
+}
+
+function challengeBrowseCardHTML(challenge) {
+  const played = STATE.gym[challenge.id];
+  const format = MTC_GYM_FORMATS[challenge.format];
+  return `<a class="panel card ${played && played.bestScore >= 80 ? "done" : ""}" href="#/gym/play/${challenge.id}">
+    <div class="card-tags"><span class="tag">${esc(format.name)}</span><span class="tag neutral">${GYM_LEVELS[challenge.difficulty] || "Everyday"} · ~${challengeMinutes(challenge)} min</span></div>
+    <h2>${esc(challenge.title)}</h2>
+    <p class="subtle">${esc(challenge.scenario)}</p>
+    <span class="cta">${played ? "Play again" : "Start"} &rarr;</span>
+  </a>`;
+}
+
 function levelInfo() {
   const { level, xpIntoLevel, xpForNext } = MTC.deriveLevel(STATE.totalXp);
   return { level, xpIntoLevel, xpForNext, title: MTC.titleForLevel(level), pct: Math.min(100, Math.round((xpIntoLevel / xpForNext) * 100)) };
@@ -95,9 +156,9 @@ function activeTab() {
 
 function tabbarHTML() {
   const cur = activeTab();
-  return `<nav class="tabbar">${TABS.map((t) => `
+  return `<nav class="tabbar" aria-label="Main navigation">${TABS.map((t) => `
     <a href="#/${t.id}" data-nav="${t.id}" class="${cur === t.id ? "active" : ""}" ${cur === t.id ? 'aria-current="page"' : ""}>
-      <span class="ico">${t.ico}</span>${t.label}
+      <span class="ico" aria-hidden="true">${t.ico}</span>${t.label}
     </a>`).join("")}</nav>`;
 }
 
@@ -107,12 +168,12 @@ function appbarHTML(title, backTo) {
     ? `<span class="streak-chip">&#128293; ${STATE.streak}</span>`
     : `<span class="streak-chip dim">&#128293; 0</span>`;
   if (backTo === null) {
-    return `<div class="appbar"><a class="brand" href="#/dashboard"><span class="mark">&#9670;</span> ${esc(title)}</a>${streak}</div>`;
+    return `<header class="appbar"><h1 class="brand"><a href="#/dashboard"><span class="mark" aria-hidden="true">&#9670;</span> ${esc(title)}</a></h1>${streak}</header>`;
   }
-  return `<div class="appbar">
+  return `<header class="appbar">
     <a class="back" href="#/${backTo}" aria-label="Back">&#8249;</a>
-    <div class="title">${esc(title)}</div>${streak}
-  </div>`;
+    <h1 class="title">${esc(title)}</h1>${streak}
+  </header>`;
 }
 
 // title + where the back arrow goes, per route (null = tab root, show brand)
@@ -123,6 +184,7 @@ function chromeFor(r) {
   if (r === "profile") return ["Profile", null];
   if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
   if (r.startsWith("gym/muscle/") || r.startsWith("gym/track/")) return ["Muscle", "gym"];
+  if (r.startsWith("gym/life/")) return ["Real-life challenges", "gym"];
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
@@ -142,23 +204,29 @@ function chromeFor(r) {
 
 function onboardingHTML() {
   const feats = [
-    ["\u{1F9E9}", "Tap, decide, learn", "Short challenges with instant, objective feedback"],
-    ["\u{1F517}", "Build transferable thinking", "Practice noticing, judging, connecting and adapting"],
-    ["\u{1F4C8}", "See what is improving", "Track your strongest muscles and what to train next"],
+    ["\u{1F9E9}", "Make everyday choices", "Short challenges about money, work, relationships, scams, health and safety"],
+    ["\u{1F517}", "Learn from each answer", "See why an answer works, where it can fail and how to use it tomorrow"],
+    ["\u{1F4C8}", "See real improvement", "Track what you are getting better at and what to practise next"],
   ];
   return `<div class="onboarding">
     <div class="logo"><span class="mark">&#9670;</span> The Thinking Gym</div>
-    <div class="eyebrow">Your daily reasoning workout</div>
+    <div class="eyebrow">Your daily thinking practice</div>
     <h1>Think sharper.<br><span class="grad">Ten minutes a day.</span></h1>
-    <p class="lede">Practice the mental moves behind better decisions through short, playable challenges.</p>
+    <p class="lede">Practise making clearer decisions in situations you may face at home, online, at work or with other people.</p>
     <div class="trust-row" aria-label="App benefits">
-      <span>107 challenges</span><span>Works offline</span><span>Private by design</span>
+      <span>${MTC_GYM_CHALLENGES.length} challenges</span><span>Works without internet</span><span>No account needed</span>
     </div>
     <form data-onboard-form>
       <label class="onboard-label" for="player-name">What should we call you? <span>Optional</span></label>
       <input id="player-name" type="text" name="playerName" placeholder="Your name" maxlength="40" autocomplete="name" />
+      <label class="onboard-label" for="life-focus">What would help most right now? <span>Optional</span></label>
+      <select id="life-focus" name="lifeFocus">
+        <option value="">A mix of everyday situations</option>
+        ${MTC_GYM_LIFE_AREAS.map((area) => `<option value="${area.id}">${area.emoji} ${esc(area.name)}</option>`).join("")}
+      </select>
+      <p class="form-help">This shapes your daily mix. You can still browse every challenge.</p>
       <div class="field"><button class="btn block" type="submit">Start my first challenge <span aria-hidden="true">&rarr;</span></button></div>
-      <p class="form-note">No account. No AI grading. Your progress stays on this device.</p>
+      <p class="form-note">Answers use written answer keys, not AI judgement. Your progress stays on this device.</p>
     </form>
     <div style="margin-top:32px">
       ${feats.map(([i, h, p]) => `<div class="feat"><div class="ico">${i}</div><div><h3>${h}</h3><p>${p}</p></div></div>`).join("")}
@@ -179,6 +247,7 @@ function dashboardHTML() {
   const li = levelInfo();
   const session = MTC.gymSession(STATE);
   const muscles = MTC.muscleProgress(STATE);
+  const focus = lifeArea(STATE.lifeFocus);
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
   const today = MTC.todayStr();
   const completedToday = session.filter((c) => STATE.gym[c.id] && STATE.gym[c.id].lastPlayed === today).length;
@@ -195,13 +264,13 @@ function dashboardHTML() {
     <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
     <h1 style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h1>
     <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
-    <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} / ${li.xpForNext} XP to level ${li.level + 1}
+    <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
       ${STATE.graceShields > 0 ? "&middot; &#128737;&#65039; grace day ready" : ""}</p>
   </div>
 
   ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
     <div class="daily-session-head">
-      <div><span class="tag">Today's workout</span><h2 id="daily-session-title">${completedToday === session.length ? "Workout complete" : `${session.length - completedToday} challenge${session.length - completedToday === 1 ? "" : "s"} left`}</h2></div>
+      <div><span class="tag">Today's practice${focus ? ` · ${esc(focus.name)}` : ""}</span><h2 id="daily-session-title">${completedToday === session.length ? "Practice complete" : `${session.length - completedToday} challenge${session.length - completedToday === 1 ? "" : "s"} left`}</h2></div>
       <div class="session-count" aria-label="${completedToday} of ${session.length} complete">${completedToday}<span>/${session.length}</span></div>
     </div>
     <div class="session-progress"><span style="width:${session.length ? Math.round(completedToday / session.length * 100) : 0}%"></span></div>
@@ -210,26 +279,29 @@ function dashboardHTML() {
         const played = STATE.gym[challenge.id] && STATE.gym[challenge.id].lastPlayed === today;
         return `<a href="#/gym/play/${challenge.id}" class="session-item ${played ? "done" : challenge.id === next.id ? "next" : ""}">
           <span class="session-step">${played ? "&#10003;" : index + 1}</span>
-          <span class="session-copy"><b>${esc(challenge.title)}</b><small>${esc(MTC_GYM_FORMATS[challenge.format].name)} &middot; ${challenge.xpBase} XP</small></span>
+          <span class="session-copy"><b>${esc(challenge.title)}</b><small>${esc(MTC_GYM_FORMATS[challenge.format].name)} &middot; up to ${challenge.xpBase} points</small></span>
           <span class="session-arrow">${played ? "Done" : challenge.id === next.id ? "Start" : "&#8250;"}</span>
         </a>`;
       }).join("")}
     </div>
-    <a class="btn block daily-cta" href="#/gym/play/${next.id}">${completedToday === session.length ? "Practice again" : completedToday ? "Continue workout" : "Start today's workout"} <span aria-hidden="true">&rarr;</span></a>
+    <a class="btn block daily-cta" href="#/gym/play/${next.id}">${completedToday === session.length ? "Practice again" : completedToday ? "Continue today's practice" : "Start today's practice"} <span aria-hidden="true">&rarr;</span></a>
   </section>` : ""}
+
+  ${focus ? `<div class="section-head"><h2>Your chosen focus</h2><a href="#/gym">Change</a></div>
+  <a class="panel focus-card" href="#/gym/life/${focus.id}"><span class="focus-emoji" aria-hidden="true">${focus.emoji}</span><span><b>${esc(focus.name)}</b><small>${esc(focus.blurb)}</small></span><span class="chev" aria-hidden="true">&#8250;</span></a>` : ""}
 
   <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
   <div class="grid tight">
     ${muscles.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
-      <div class="meta">${t.mastered}/${t.total} clean</div>
+      <div class="meta">${t.mastered}/${t.total} at 80%+</div>
     </a>`).join("")}
   </div>
 
   <div class="section-head"><h2>Keep going</h2></div>
   <div class="panel">
-    <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">The Gym</span><span class="val">${session.length} queued</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">Browse challenges</span><span class="val">${session.length} today</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
   </div>`;
@@ -263,12 +335,25 @@ function challengesHTML() {
   </div>
   ${replays ? `<p class="subtle" style="margin:10px 2px">${replays} challenge${replays === 1 ? " is" : "s are"} due for a replay &mdash; already queued.</p>` : ""}
 
-  <div class="section-head"><h2>Explore the six muscles</h2></div>
+  <div class="section-head"><h2>Choose a real-life area</h2><span class="subtle">Start with what matters to you</span></div>
+  <div class="grid tight life-area-grid">
+    ${MTC_GYM_LIFE_AREAS.map((area) => {
+      const count = MTC.gymChallengesForLifeArea(area.id).length;
+      return `<a class="tile life-area" href="#/gym/life/${area.id}">
+        <div class="ico" aria-hidden="true">${area.emoji}</div>
+        <h3>${esc(area.name)}</h3>
+        <p>${esc(area.blurb)}</p>
+        <div class="meta">${count} challenge${count === 1 ? "" : "s"}${STATE.lifeFocus === area.id ? " · in your daily mix" : ""}</div>
+      </a>`;
+    }).join("")}
+  </div>
+
+  <div class="section-head"><h2>Or train a thinking skill</h2><span class="subtle">Six skills used across daily life</span></div>
   <div class="grid tight">
     ${muscles.map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
-      <div class="meta">${t.total} challenges &middot; ${t.mastered} clean</div>
+      <div class="meta">${t.total} challenges &middot; ${t.mastered} at 80%+</div>
     </a>`).join("")}
   </div>
 
@@ -281,7 +366,43 @@ function challengesHTML() {
   </div>`;
 }
 
+function gymLifeAreaHTML(areaId) {
+  const area = lifeArea(areaId);
+  if (!area) return `<div class="panel"><p>Life area not found.</p><a class="btn" href="#/gym">Browse challenges</a></div>`;
+  const all = MTC.gymChallengesForLifeArea(areaId);
+  const challenges = all.filter((challenge) => challengeMatchesBrowseFilters(challenge, areaId));
+  return `<div class="panel life-area-hero">
+    <a class="crumb" href="#/gym">&larr; All challenges</a>
+    <div class="life-area-title"><span aria-hidden="true">${area.emoji}</span><div><h2>${esc(area.name)}</h2><p>${esc(area.blurb)}</p></div></div>
+    <button class="btn ${STATE.lifeFocus === area.id ? "" : "ghost"}" data-set-life-focus="${area.id}" ${STATE.lifeFocus === area.id ? 'aria-pressed="true"' : 'aria-pressed="false"'}>
+      ${STATE.lifeFocus === area.id ? "Included in my daily mix" : "Use this for my daily mix"}
+    </button>
+  </div>
+  ${browseFiltersHTML({ showArea: false })}
+  <p class="browse-count" aria-live="polite">Showing ${challenges.length} of ${all.length} challenges</p>
+  <div class="grid browse-results">
+    ${challenges.length ? challenges.map(challengeBrowseCardHTML).join("") : `<div class="panel"><p>No challenges match these filters.</p><button class="btn ghost" data-clear-gym-filters>Clear filters</button></div>`}
+  </div>`;
+}
+
 /* ---------- Progress tab ---------- */
+
+const MUSCLE_OUTCOMES = {
+  notice: "spotting details and warning signs before you act",
+  judge: "comparing choices using the facts that matter",
+  connect: "using a useful idea from one situation in another",
+  prioritise: "deciding what needs attention first",
+  question: "asking the questions that can change a decision",
+  adapt: "changing your response when the situation changes",
+};
+
+function progressMessage(muscles, done) {
+  if (!done) return "Complete one challenge and this page will show what you are improving.";
+  const practised = muscles.filter((muscle) => muscle.played > 0).sort((a, b) => (b.avgBest || 0) - (a.avgBest || 0));
+  const strongest = practised[0];
+  if (!strongest) return "You have started building clearer everyday thinking.";
+  return `You are getting better at ${MUSCLE_OUTCOMES[strongest.id] || strongest.name.toLowerCase()}.`;
+}
 
 function progressHTML() {
   const li = levelInfo();
@@ -289,6 +410,7 @@ function progressHTML() {
   const weak = MTC.weaknessProfile(STATE).filter((w) => w.attempts > 0).slice(0, 5);
   const calStats = MTC.calibrationStats(STATE);
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
+  const progressCopy = progressMessage(muscles, done);
 
   return `
   <div class="stat-strip">
@@ -298,25 +420,26 @@ function progressHTML() {
   </div>
 
   <div class="panel">
-    <h2>Connection Mastery</h2>
-    <p class="subtle">Level ${li.level} &middot; ${esc(li.title)}</p>
+    <h2>How your thinking is improving</h2>
+    <p class="progress-message">${esc(progressCopy)}</p>
+    <p class="subtle">Practice level ${li.level} &middot; ${esc(li.title)}</p>
     <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
-    <p class="subtle">${li.xpIntoLevel} / ${li.xpForNext} XP</p>
+    <p class="subtle">${li.xpIntoLevel} of ${li.xpForNext} points toward the next level</p>
   </div>
 
-  <div class="section-head"><h2>Track mastery</h2><a href="#/gym">Train</a></div>
+  <div class="section-head"><h2>Skills you are building</h2><a href="#/gym">Practise</a></div>
   <div class="panel">
     ${muscles.map((t) => `<a class="weak-row" href="#/gym/muscle/${t.id}">
       <span class="name">${muscleIcon(t.id)} ${esc(t.name)}</span>
-      <div class="weak-meter"><div class="fill" style="width:${t.pct}%"></div></div>
-      <span class="subtle">${t.mastered}/${t.total}</span>
+      <div class="weak-meter" role="progressbar" aria-label="${esc(t.name)} challenges scored at 80 percent or more" aria-valuemin="0" aria-valuemax="${t.total}" aria-valuenow="${t.mastered}"><div class="fill" style="width:${t.pct}%"></div></div>
+      <span class="subtle">${t.mastered}/${t.total} strong</span>
     </a>`).join("")}
   </div>
 
-  <div class="section-head"><h2>Weakness radar</h2></div>
+  <div class="section-head"><h2>What to practise next</h2></div>
   <div class="panel">
     ${weak.length === 0
-      ? `<p class="subtle">Complete a few challenges to reveal your weakest thinking tools.</p>`
+      ? `<p class="subtle">Complete a few challenges and we will suggest a useful next skill.</p>`
       : weak.map((w) => `<div class="weak-row"><span class="name">${esc(w.name)}</span><div class="weak-meter"><div class="fill" style="width:${Math.round(w.avg)}%"></div></div><span class="subtle">${Math.round(w.avg)}%</span></div>`).join("")}
   </div>
 
@@ -430,7 +553,7 @@ function exerciseHTML(id) {
   if (alreadyDone) {
     const record = MTC.lastRecordFor(STATE, id);
     return header + `<div class="panel">
-      <p class="subtle">Completed today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} XP` : ""}.</p>
+      <p class="subtle">Completed today${record ? ` &mdash; self-assessed ${record.score}%, +${record.xp} points` : ""}.</p>
       ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
       <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
@@ -444,7 +567,7 @@ function exerciseHTML(id) {
 
   const hintsHTML = ex.hints.slice(0, exUI.hintsRevealed).map((h) => `<div class="hint-box">${esc(h)}</div>`).join("");
   const hintBtn = exUI.hintsRevealed < ex.hints.length
-    ? `<button class="btn ghost" data-hint>Show a hint (&minus;20% XP &middot; ${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
+    ? `<button class="btn ghost" data-hint>Show a hint (&minus;20% points &middot; ${exUI.hintsRevealed}/${ex.hints.length} used)</button>`
     : `<p class="subtle">All hints revealed.</p>`;
 
   let assessmentHTML = "";
@@ -472,7 +595,7 @@ function exerciseHTML(id) {
           <div class="model-answer"><div class="lbl">Model Answer</div>${esc(ex.modelAnswer)}</div>
         </div>
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
-        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; est. XP: <b>${MTC.estimateXp(ex.xpBase, scorePreview, exUI.hintsRevealed)}</b></p>
+        <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; estimated points: <b>${MTC.estimateXp(ex.xpBase, scorePreview, exUI.hintsRevealed)}</b></p>
         <button class="btn" data-submit-exercise>Submit</button>
       </div>`;
   }
@@ -550,7 +673,7 @@ function bossHTML() {
         <div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer" style="border:none;padding:0;margin:0">${esc(bossUI.draft) || '<span class="subtle">(nothing written)</span>'}</div></div>
         <div class="model-answer"><div class="lbl">Expert Framing (no perfect answer)</div>${esc(battle.noPerfectAnswerNote)}</div>
       </div>
-      <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; est. XP: <b>${MTC.estimateXp(battle.xpBase, scorePreview, 0)}</b></p>
+      <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> &middot; estimated points: <b>${MTC.estimateXp(battle.xpBase, scorePreview, 0)}</b></p>
       <button class="btn" data-submit-boss="${battle.id}">Submit</button>
     </div>`;
   }
@@ -634,7 +757,7 @@ function achievementsHTML() {
       return `<div class="panel ach-card ${unlocked ? "" : "locked"}">
         <h2>${unlocked ? "&#127942; " : "&#128274; "}${esc(a.name)}</h2>
         <p class="subtle">${esc(a.desc)}</p>
-        <p class="xp">+${a.xp} XP</p>
+        <p class="xp">+${a.xp} points</p>
       </div>`;
     }).join("")}
   </div>`;
@@ -668,7 +791,7 @@ function calibrationLandingHTML() {
   }
   return `<div class="panel">
     <h1>Calibration</h1>
-    <p class="subtle">Auto-graded &mdash; no honor system. Honest confidence earns the most XP; overconfidence is penalized.</p>
+    <p class="subtle">Checked against written answers. Honest confidence earns the most points; overconfidence loses points.</p>
     ${exGap ? `<p class="subtle">Daily exercises: your pre-reveal confidence differs from your rubric score by <b>${exGap.gap}</b> points on average (${exGap.n} exercise${exGap.n === 1 ? "" : "s"}).</p>` : ""}
   </div>
   <div class="panel">
@@ -689,13 +812,13 @@ function calibrationHTML() {
       if (g.kind === "binary") {
         return `<div class="panel">
           <p>${esc(g.statement)}</p>
-          <p class="subtle">You said <b>${g.answer ? "true" : "false"}</b> at ${g.confidence}% &middot; ${g.correct ? "correct" : `wrong &mdash; it's ${g.truth ? "true" : "false"}`} &middot; +${g.points} XP</p>
+          <p class="subtle">You said <b>${g.answer ? "true" : "false"}</b> at ${g.confidence}% &middot; ${g.correct ? "correct" : `wrong &mdash; it's ${g.truth ? "true" : "false"}`} &middot; +${g.points} points</p>
           <div class="model-answer"><div class="lbl">Why</div>${esc(g.note)}</div>
         </div>`;
       }
       return `<div class="panel">
         <p>${esc(g.prompt)} (${esc(g.unit)})</p>
-        <p class="subtle">Your range: ${g.low}&ndash;${g.high} &middot; actual: <b>${g.truth}</b> &middot; ${g.hit ? "hit" : "miss"} &middot; +${g.points} XP</p>
+        <p class="subtle">Your range: ${g.low}&ndash;${g.high} &middot; actual: <b>${g.truth}</b> &middot; ${g.hit ? "hit" : "miss"} &middot; +${g.points} points</p>
       </div>`;
     }).join("") + `<div class="panel"><button class="btn" data-cal-done>Done</button></div>`;
   }
@@ -775,7 +898,7 @@ function reportHTML() {
     <p class="subtle">Week ${esc(r.week)}</p>
   </div>
   <div class="panel">
-    ${row("XP earned", r.current.xp, r.previous.xp)}
+    ${row("Points earned", r.current.xp, r.previous.xp)}
     ${row("Exercises", r.current.exercises, r.previous.exercises)}
     ${row("Avg self-score", r.current.avgScore === null ? "&mdash;" : r.current.avgScore + "%", r.previous.avgScore === null ? "&mdash;" : r.previous.avgScore + "%")}
     ${row("Calibration sessions", r.current.calibrationSessions, r.previous.calibrationSessions)}
@@ -817,7 +940,7 @@ function workbenchHTML(toolId) {
       ${SpeechRec ? `<button class="btn ghost" data-mic="wb-draft">&#127908; Dictate</button>` : ""}
     </div>
     <div class="field">
-      <button class="btn" data-submit-workbench="${tool.id}" ${ready ? "" : "disabled"}>Save to journal (+10 XP)</button>
+      <button class="btn" data-submit-workbench="${tool.id}" ${ready ? "" : "disabled"}>Save to journal (+10 points)</button>
       <p class="subtle" data-gate-note ${ready ? 'style="display:none"' : ""}>Fill in the sections &mdash; it unlocks saving.</p>
     </div>
   </div>`;
@@ -828,31 +951,25 @@ function workbenchHTML(toolId) {
 function gymMuscleHTML(muscleId) {
   const m = MTC_MUSCLES.find((t) => t.id === muscleId);
   if (!m) return `<div class="panel">Muscle not found. <a class="btn" href="#/gym">The Gym</a></div>`;
-  const challenges = MTC.gymChallengesForMuscle(muscleId);
-  if (!challenges.length) {
+  const all = MTC.gymChallengesForMuscle(muscleId);
+  const challenges = all.filter((challenge) => challengeMatchesBrowseFilters(challenge));
+  if (!all.length) {
     return `<div class="panel">
       <a class="crumb" href="#/gym">&larr; The Gym</a>
-      <h1>${muscleIcon(m.id)} ${esc(m.name)}</h1>
+      <h2>${muscleIcon(m.id)} ${esc(m.name)}</h2>
       <p class="subtle">${esc(m.blurb)}</p>
       <p style="margin-top:14px">No challenges here yet &mdash; this muscle is next to be written.</p>
     </div>`;
   }
   return `<div class="panel">
-    <a class="crumb" href="#/gym">&larr; The Gym</a>
-    <h1>${muscleIcon(m.id)} ${esc(m.name)}</h1>
-    <p class="subtle">${esc(m.blurb)} &middot; ${challenges.length} challenge${challenges.length === 1 ? "" : "s"}, clean when every one is at 80% or better.</p>
+    <a class="crumb" href="#/gym">&larr; All challenges</a>
+    <h2>${muscleIcon(m.id)} ${esc(m.name)}</h2>
+    <p class="subtle">${esc(m.blurb)} &middot; ${all.length} challenge${all.length === 1 ? "" : "s"}. A strong score is 80% or more.</p>
   </div>
-  <div class="grid">
-    ${challenges.map((c) => {
-      const g = STATE.gym[c.id];
-      const fmt = MTC_GYM_FORMATS[c.format];
-      return `<a class="panel card ${g && g.bestScore >= 80 ? "done" : ""}" href="#/gym/play/${c.id}">
-        <span class="tag">${esc(fmt.name)}</span>
-        <h2>${esc(c.title)}</h2>
-        <p class="subtle">${g ? `Best ${g.bestScore}% over ${g.plays} play${g.plays === 1 ? "" : "s"}` : "Not played yet"}</p>
-        <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
-      </a>`;
-    }).join("")}
+  ${browseFiltersHTML()}
+  <p class="browse-count" aria-live="polite">Showing ${challenges.length} of ${all.length} challenges</p>
+  <div class="grid browse-results">
+    ${challenges.length ? challenges.map(challengeBrowseCardHTML).join("") : `<div class="panel"><p>No challenges match these filters.</p><button class="btn ghost" data-clear-gym-filters>Clear filters</button></div>`}
   </div>`;
 }
 
@@ -876,7 +993,7 @@ function journalResultsHTML() {
     return `<div class="panel">
       <span class="pill">${TYPE_LABELS[h.type] || esc(h.type)}</span><span class="pill">${esc(h.date)}</span>
       <h2>${esc(title)}</h2>
-      <p class="subtle">${h.type === "workbench" ? `+${h.xp} XP` : `Self-assessed ${h.score}% &middot; +${h.xp} XP${h.hintsUsed ? ` &middot; ${h.hintsUsed} hint${h.hintsUsed === 1 ? "" : "s"} used` : ""}`}</p>
+      <p class="subtle">${h.type === "workbench" ? `+${h.xp} points` : `Self-assessed ${h.score}% &middot; +${h.xp} points${h.hintsUsed ? ` &middot; ${h.hintsUsed} hint${h.hintsUsed === 1 ? "" : "s"} used` : ""}`}</p>
       ${h.answer ? `<div class="journal-answer">${esc(h.answer)}</div>` : `<p class="subtle">(no written answer was saved with this entry)</p>`}
     </div>`;
   }).join("");
@@ -904,7 +1021,7 @@ function journalMarkdown() {
   for (const h of STATE.history) {
     if (!h.answer) continue;
     lines.push(`## ${h.date} — ${journalEntryTitle(h)} (${TYPE_LABELS[h.type] || h.type})`);
-    if (h.type !== "workbench") lines.push(`Self-assessed ${h.score}% · +${h.xp} XP`);
+    if (h.type !== "workbench") lines.push(`Self-assessed ${h.score}% · +${h.xp} points`);
     lines.push("", h.answer, "");
   }
   return lines.join("\n");
@@ -925,10 +1042,10 @@ function resultToastHTML(result) {
   return `<div class="toast-overlay">
     <div class="toast-card">
       <div class="subtle">Exercise complete</div>
-      <div class="xp-gain">+${result.xpAwarded} XP</div>
+      <div class="xp-gain">+${result.xpAwarded} points</div>
       ${result.leveledUp ? `<p>&#127881; Level up! You're now <b>Level ${result.newLevel}</b> &mdash; ${esc(MTC.titleForLevel(result.newLevel))}</p>` : ""}
       ${result.missed && result.missed.length ? `<div class="unlock" style="text-align:left"><b>Focus next time:</b>${result.missed.map((m) => `<div>&middot; ${esc(m)}</div>`).join("")}</div>` : ""}
-      ${result.achievementsUnlocked.length ? result.achievementsUnlocked.map((a) => `<div class="unlock">&#127942; Achievement unlocked: <b>${esc(a.name)}</b> (+${a.xp} XP)</div>`).join("") : ""}
+      ${result.achievementsUnlocked.length ? result.achievementsUnlocked.map((a) => `<div class="unlock">&#127942; Achievement unlocked: <b>${esc(a.name)}</b> (+${a.xp} points)</div>`).join("") : ""}
       <div class="field"><button class="btn" data-dismiss-result>Continue</button></div>
     </div>
   </div>`;
@@ -943,6 +1060,10 @@ function render() {
     app.innerHTML = onboardingHTML();
     const host = document.getElementById("tabbar-host");
     if (host) host.remove();
+    if (lastRenderedRoute !== "onboarding") {
+      lastRenderedRoute = "onboarding";
+      requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+    }
     return;
   }
   document.body.classList.remove("landing");
@@ -956,6 +1077,7 @@ function render() {
   else if (r === "gym") body = challengesHTML();
   else if (r.startsWith("gym/muscle/")) body = gymMuscleHTML(r.split("/")[2]);
   else if (r.startsWith("gym/track/")) body = gymMuscleHTML(r.split("/")[2]); // pre-muscle links
+  else if (r.startsWith("gym/life/")) body = gymLifeAreaHTML(r.split("/")[2]);
   else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();
@@ -980,12 +1102,34 @@ function render() {
   }
   bar.innerHTML = tabbarHTML();
   if (pendingResult) app.insertAdjacentHTML("beforeend", resultToastHTML(pendingResult));
+  if (r !== lastRenderedRoute) {
+    lastRenderedRoute = r;
+    requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+  }
 }
 
 /* ---------- Events ---------- */
 
 document.addEventListener("click", (e) => {
   if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); return; }
+
+  const lifeFocusButton = e.target.closest("[data-set-life-focus]");
+  if (lifeFocusButton) {
+    STATE.lifeFocus = lifeFocusButton.dataset.setLifeFocus;
+    // Choosing a new focus is an intentional request for a different daily mix.
+    STATE.dailyGymSession = null;
+    MTC.saveState(STATE);
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-clear-gym-filters]")) {
+    gymAreaFilter = "all";
+    gymLevelFilter = "all";
+    gymTimeFilter = "all";
+    render();
+    return;
+  }
 
   if (e.target.closest("[data-hint]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
@@ -1202,6 +1346,21 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("change", (e) => {
+  if (e.target.id === "gym-area-filter") {
+    gymAreaFilter = e.target.value;
+    render();
+    return;
+  }
+  if (e.target.id === "gym-level-filter") {
+    gymLevelFilter = e.target.value;
+    render();
+    return;
+  }
+  if (e.target.id === "gym-time-filter") {
+    gymTimeFilter = e.target.value;
+    render();
+    return;
+  }
   if (e.target.matches('input[name="cal-answer"]')) {
     const btn = document.querySelector("[data-cal-next]");
     if (btn) btn.disabled = false;
@@ -1305,8 +1464,11 @@ document.addEventListener("input", (e) => {
 document.addEventListener("submit", (e) => {
   if (e.target.matches("[data-onboard-form]")) {
     e.preventDefault();
-    const name = new FormData(e.target).get("playerName");
+    const form = new FormData(e.target);
+    const name = form.get("playerName");
+    const selectedFocus = form.get("lifeFocus");
     STATE.name = (name && name.trim()) || "Thinker";
+    STATE.lifeFocus = lifeArea(selectedFocus) ? selectedFocus : null;
     MTC.saveState(STATE);
     const first = MTC.gymSession(STATE)[0];
     if (first) navigate(`gym/play/${first.id}`);
@@ -1314,6 +1476,7 @@ document.addEventListener("submit", (e) => {
   }
 });
 
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 window.addEventListener("hashchange", render);
 // STATE is cached in memory; pick up writes from other tabs.
 window.addEventListener("storage", (e) => {
