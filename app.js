@@ -152,7 +152,7 @@ function onboardingHTML() {
     <h1>Think sharper.<br><span class="grad">Ten minutes a day.</span></h1>
     <p class="lede">Practice the mental moves behind better decisions through short, playable challenges.</p>
     <div class="trust-row" aria-label="App benefits">
-      <span>94 challenges</span><span>Works offline</span><span>Private by design</span>
+      <span>107 challenges</span><span>Works offline</span><span>Private by design</span>
     </div>
     <form data-onboard-form>
       <label class="onboard-label" for="player-name">What should we call you? <span>Optional</span></label>

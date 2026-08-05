@@ -26,7 +26,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**94 challenges** across seven formats, each objectively scored:
+**107 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, Pixar's process); you tap the action from a completely different
@@ -68,12 +68,12 @@ rather than what it is about:
 
 | | | |
 |---|---|---|
-| 🕵️ **Notice** | Spot what's easy to miss | 16 |
-| ⚖️ **Judge** | Weigh conflicting evidence | 23 |
+| 🕵️ **Notice** | Spot what's easy to miss | 21 |
+| ⚖️ **Judge** | Weigh conflicting evidence | 24 |
 | 🧩 **Connect** | Find patterns across unrelated domains | 13 |
-| 🔄 **Adapt** | Change the plan when reality changes | 15 |
+| 🔄 **Adapt** | Change the plan when reality changes | 19 |
 | 🎯 **Prioritise** | Choose under pressure | 12 |
-| 🔍 **Question** | Work out what's missing before you act | 15 |
+| 🔍 **Question** | Work out what's missing before you act | 18 |
 
 Those last two are why organising this way was worth doing: framework families
 hid the fact that almost nothing in the bank trained prioritising under pressure
