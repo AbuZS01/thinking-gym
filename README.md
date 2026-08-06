@@ -32,7 +32,7 @@ Three challenges a day, about ten minutes, played by tapping rather than typing.
 **115 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
-  colony, Pixar's process); you tap the action from a completely different
+  colony, an animation studio's process); you tap the action from a completely different
   domain that does the same job. Two cards belong nowhere. Ends by asking where
   the analogy misleads.
 - **Spot the Flaw** — tap the sentence where an argument breaks, then name the
@@ -63,6 +63,12 @@ Creativity challenges do not pretend that one idea is the only imaginative answe
 Points are awarded for recognising the option that meets every stated limit. Players
 are then invited to write another idea, which is private and never graded. A good
 example is shown alongside checks for safety, clarity, cost and practical use.
+
+The Gym uses global English. Familiar pound and dollar examples remain because the
+currency does not change the reasoning. Speeds include both mph and km/h, and terms
+such as cash machine / ATM or store credit / shop credit are paired when useful.
+No answer depends on unstated local rules, an unexplained historical event or knowledge of a
+particular company. Every rule needed to answer appears on the challenge card.
 
 Challenges can be browsed first by **real-life area**: Money and bills, Scams and
 online safety, Friends and relationships, Work and jobs, Home and renting, Health
