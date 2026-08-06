@@ -444,3 +444,284 @@ for (const replacement of MTC_EVERYDAY_REPLACEMENTS) {
     },
   });
 }
+
+/* Final global-English pass.
+ *
+ * Keep familiar currencies and ordinary UK/US words, but pair terms when a
+ * reader elsewhere may know only one version. Historical examples must carry
+ * all of their own context, and no answer may depend on knowing a local law.
+ */
+function mtcGymChallenge(id) {
+  return MTC_GYM_CHALLENGES.find((item) => item.id === id);
+}
+
+function mtcReplaceVisibleText(value, replacements, key = "") {
+  const structural = new Set(["id", "format", "muscle", "frameworks", "lifeAreas", "emoji", "bucket", "value"]);
+  if (typeof value === "string") {
+    if (structural.has(key)) return value;
+    return replacements.reduce((text, [pattern, next]) => text.replace(pattern, next), value);
+  }
+  if (Array.isArray(value)) return value.map((item) => mtcReplaceVisibleText(item, replacements, key));
+  if (value && typeof value === "object") {
+    for (const [childKey, childValue] of Object.entries(value)) {
+      value[childKey] = mtcReplaceVisibleText(childValue, replacements, childKey);
+    }
+  }
+  return value;
+}
+
+const animationStudio = mtcGymChallenge("gym-map-3");
+mtcReplaceVisibleText(animationStudio, [[/Pixar/g, "the animation studio"]]);
+animationStudio.title = "How an Animation Studio Can Help a Clinic";
+animationStudio.scenario = "A hospital clinic has long waits. A successful animation studio improves films through rough drafts and honest peer feedback. Use that clearly described process to help the clinic improve.";
+animationStudio.hint = "Look for ways to test an idea cheaply, invite honest feedback and fix a weak process before blaming a person.";
+animationStudio.payload.sourceDomain = "How an animation studio develops a film";
+animationStudio.payload.pairs = [
+  {
+    prompt: "Colleagues give honest feedback, but they cannot order the creator to accept it",
+    match: "Clinic workers review cases together and question decisions without threatening anyone's job",
+  },
+  {
+    prompt: "Everyone expects the first draft to need work",
+    match: "Try a new clinic layout for one afternoon before changing the whole clinic",
+  },
+  {
+    prompt: "A cheap rough version of the whole film is tested before the finished version is made",
+    match: "Walk an imaginary patient through the whole visit before rebuilding any one step",
+  },
+  {
+    prompt: "When something goes wrong, improve the process instead of blaming one person",
+    match: "When a patient leaves late, ask which step caused the delay instead of blaming the nurse on duty",
+  },
+  {
+    prompt: "A promising new idea gets a short, protected trial before people judge it",
+    match: "Test a new way of deciding who is seen first for a fixed period before cancelling it after one complaint",
+  },
+];
+animationStudio.payload.misleads = {
+  question: "Where could the animation studio example mislead a clinic?",
+  options: [
+    "A studio can discard a rough film. A clinic must keep caring for patients while it tests improvements",
+    "The studio does not use feedback, so feedback has no place in the clinic",
+    "A weak film costs money, but a weak clinic process can harm people. Tests must therefore be small and safe",
+    "Clinics have no deadlines, so a rough trial cannot help",
+  ],
+  answers: [0, 2],
+};
+animationStudio.payload.fairnessNote = "You do not need to know the studio. Every part of its process is explained on the cards.";
+animationStudio.debrief = {
+  principle: "Good ideas improve through honest feedback, safe trials and attention to the process rather than blame.",
+  whereItMisleads: "A clinic cannot risk patient safety to test an idea. Start with a small trial or a practice run that cannot harm anyone.",
+};
+
+const casinoFreelancer = mtcGymChallenge("gym-map-4");
+casinoFreelancer.title = "What a Casino Can Teach a Freelancer";
+casinoFreelancer.scenario = "A self-employed designer has very uneven income. A casino plans for many small games, keeps money in reserve and limits any one bet. Use those explained ideas to help her build a steadier income.";
+casinoFreelancer.hint = "Look for four simple protections: earn something on average, repeat the work, keep savings and never depend too much on one customer.";
+casinoFreelancer.payload.sourceDomain = "How a casino manages money across many small games";
+casinoFreelancer.payload.targetDomain = "How a self-employed person manages uneven income";
+casinoFreelancer.payload.pairs = [
+  {
+    prompt: "Each game earns the casino a small amount on average",
+    match: "Price each project above its full cost, including unpaid planning and paperwork",
+  },
+  {
+    prompt: "One win or loss proves little, so the casino looks at many games together",
+    match: "Judge prices across a full year, not by whether one month was good or bad",
+  },
+  {
+    prompt: "The casino keeps enough money to survive an unusually large payout",
+    match: "Keep savings for quiet months or a customer who pays late",
+  },
+  {
+    prompt: "The casino limits the size of any one bet",
+    match: "Do not let one customer provide so much income that losing them ends the business",
+  },
+  {
+    prompt: "The casino expects some losing nights and plans for them",
+    match: "Expect some months to lose money and include them in the yearly plan",
+  },
+];
+casinoFreelancer.payload.misleads = {
+  question: "Where could the casino example mislead a self-employed person?",
+  options: [
+    "A casino handles far more games than one person can handle projects, so bad luck may last much longer for the designer",
+    "A casino never keeps money in reserve, so savings do not fit the example",
+    "A casino knows the chances in each game. A designer must estimate future costs and demand, and those estimates can be wrong",
+    "A casino never loses a single game, unlike a designer",
+  ],
+  answers: [0, 2],
+};
+casinoFreelancer.payload.fairnessNote = "You do not need to know casino games. Each useful feature is explained before you match it.";
+casinoFreelancer.debrief = {
+  principle: "Uneven income is easier to manage when each job covers its costs, savings cover bad months and no single customer can end the business.",
+  whereItMisleads: "A casino repeats the same game many times. A person's projects differ, so prices and future income remain estimates rather than known facts.",
+};
+
+const localShop = mtcGymChallenge("gym-map-7");
+mtcReplaceVisibleText(localShop, [[/corner shop/gi, "small local shop"]]);
+localShop.title = "The Small Local Shop's Opening Move";
+
+const scarceResource = mtcGymChallenge("gym-map-11");
+mtcReplaceVisibleText(scarceResource, [[/Badr/g, "the historical battle"], [/a licence or/g, "special permission or"]]);
+scarceResource.title = "Control the Resource the Bigger Rival Needs";
+scarceResource.scenario = "In a historical battle, a smaller side secured the only nearby wells before a much larger rival arrived. This gave it control of drinking water. Use that fact to help a small company choose where it can compete.";
+scarceResource.hint = "Do not copy the bigger rival. Find one important thing it does not control, then build the plan around that advantage.";
+scarceResource.payload.sourceDomain = "How a smaller side controlled a scarce resource";
+scarceResource.payload.targetDomain = "How a small company can compete with a much larger one";
+scarceResource.payload.pairs = [
+  {
+    prompt: "Avoid a direct contest that the larger side can win through size alone",
+    match: "Stop trying to beat the larger company on lowest price or widest choice",
+  },
+  {
+    prompt: "Identify one resource that could decide the contest",
+    match: "Find something the rival cannot easily buy, such as direct customer access, special permission or community trust",
+  },
+  {
+    prompt: "Secure the important resource before the larger side notices it",
+    match: "Build that access, permission or trust while it is still affordable",
+  },
+  {
+    prompt: "Control of the scarce resource makes size less important",
+    match: "Offer something the larger company cannot match simply by spending more money",
+  },
+  {
+    prompt: "Once the useful position is chosen, support it fully",
+    match: "Focus the small team on its chosen advantage instead of weakly funding several different plans",
+  },
+];
+scarceResource.payload.misleads = {
+  question: "Where could the historical battle example mislead a small company?",
+  options: [
+    "A battle can end quickly, but business continues. An early advantage may later disappear",
+    "A larger company can never copy or buy access to a useful resource",
+    "Stories remember successful unusual choices. Similar choices may also fail when the chosen resource proves unimportant",
+    "A small company always wins once it focuses on one advantage",
+  ],
+  answers: [0, 2],
+};
+scarceResource.payload.fairnessNote = "No history knowledge is needed. The only fact being used is that the smaller side controlled water the larger side needed.";
+scarceResource.debrief = {
+  principle: "A smaller group can avoid a contest based on size by finding and building around one important advantage the larger rival lacks.",
+  whereItMisleads: "The company may choose the wrong advantage, or the rival may copy it later. The example suggests a move, not a guaranteed win.",
+};
+
+const roadHazard = mtcGymChallenge("gym-flaw-4");
+roadHazard.scenario = "You are driving at 20 mph (about 32 km/h) past parked cars. A ball rolls into the road and you can see a child's shoes between two cars. The road behind you is clear.";
+mtcReplaceVisibleText(roadHazard.payload, [[/the pavement/g, "the pavement or sidewalk"], [/20 mph/g, "20 mph (32 km/h)"]]);
+
+const refundRequest = mtcGymChallenge("gym-flaw-9");
+mtcReplaceVisibleText(refundRequest, [[/store credit/g, "store credit (shop credit)"]]);
+
+const fixedDefence = mtcGymChallenge("gym-chain-15");
+Object.assign(fixedDefence, {
+  title: "The Defence That Was Bypassed",
+  scenario: "A country builds strong forts along only part of its border. The forts make a direct attack very costly, but another route remains open. Put the results in order.",
+  hint: "The forts work, so the rival looks for a route that the forts do not cover.",
+});
+Object.assign(fixedDefence.payload, {
+  event: "A country builds strong forts along part of its border to stop a direct attack.",
+  steps: [
+    "A direct attack against the forts would cost the rival too many people and supplies",
+    "The rival therefore stops planning a direct attack against the forts",
+    "It looks for a route the forts do not cover and chooses difficult forest land",
+    "Its vehicles cross land the defenders thought a large force could not use",
+    "The forts are never broken, but the fighting moves behind them",
+  ],
+  intruder: "The rival attacks the forts directly and remains there for several months",
+  fairnessNote: "No history knowledge is needed. The starting facts and every possible result are shown on the cards.",
+});
+fixedDefence.debrief = {
+  principle: "A strong defence can redirect a problem instead of removing it. Ask what route, method or behaviour becomes more attractive after one route is blocked.",
+  whereItMisleads: "The forts were not useless. The lesson is simply that a plan must also consider what can happen around its strongest defence.",
+};
+
+const sweeterDrink = mtcGymChallenge("gym-chain-18");
+Object.assign(sweeterDrink, {
+  title: "The Sweeter Drink Customers Rejected",
+  scenario: "A drinks company creates a sweeter version after people prefer one sip in a blind test. It then removes the original drink. Put the results in order.",
+});
+Object.assign(sweeterDrink.payload, {
+  event: "A drinks company changes its famous drink after a large blind test shows people prefer one sip of the sweeter version.",
+  steps: [
+    "The sweeter version genuinely wins the one-sip test",
+    "The company concludes that the sweeter version is therefore the better product",
+    "The original is removed, so customers experience the change as losing a familiar product",
+    "Customers protest because the original mattered to them for more than its taste",
+    "The company brings the original back and the careful research is remembered as a failure",
+  ],
+  intruder: "Sales of the sweeter version rise steadily as every customer accepts the change",
+  fairnessNote: "No brand knowledge is needed. The test, decision and possible results are all explained on the cards.",
+});
+sweeterDrink.debrief = {
+  principle: "A fair study answers the question it asked. Preferring one sip is not the same as wanting a familiar product to disappear.",
+  whereItMisleads: "The lesson is not that research is useless. The test must match the real decision people will face.",
+};
+
+const cardMachine = mtcGymChallenge("gym-workout-4");
+mtcReplaceVisibleText(cardMachine, [
+  [/cash machine/g, "cash machine (ATM)"],
+  [/legal, clear, practical/g, "allowed, clear and practical"],
+]);
+
+const deliveryRoute = mtcGymChallenge("gym-workout-8");
+mtcReplaceVisibleText(deliveryRoute, [
+  [/public roads/g, "roads open to delivery vans"],
+  [/legal routes/g, "routes allowed by the road signs"],
+  [/legal route/g, "route allowed by the road signs"],
+  [/legal-road limit/g, "road-sign limit"],
+  [/Safety, legality/g, "Safety, road signs"],
+  [/bus-only road/g, "road marked for buses only"],
+]);
+
+const officeForm = mtcGymChallenge("gym-workout-11");
+mtcReplaceVisibleText(officeForm, [
+  [/The legal questions/g, "The required questions"],
+  [/the legal meaning/g, "the required meaning"],
+]);
+
+const cashTriage = mtcGymChallenge("gym-triage-8");
+mtcReplaceVisibleText(cashTriage.payload, [[/breaks a legal or contract duty/g, "breaks a duty the business is already required to meet"]]);
+
+const rentRise = mtcGymChallenge("gym-workout-19");
+rentRise.hint = "Slow the decision down. Check the rental agreement, the written details and your budget before making a specific request.";
+rentRise.payload.steps[0] = {
+  ask: "What is the best first reply?",
+  options: ["I have received the message. I need time to check my rental agreement and budget before I respond", "Fine, I agree", "You are greedy and I will report you", "Ignore every message"],
+  answer: 0,
+  because: "This confirms receipt without accepting the change and gives you time to check the facts.",
+};
+rentRise.payload.steps[1] = {
+  ask: "What should you check next?",
+  options: ["The rental agreement, the written details of the increase and your budget", "What rent strangers pay in another city", "Whether the landlord sounds confident", "How quickly you can borrow the difference"],
+  answer: 0,
+  because: "These facts show what was agreed, what is being proposed and whether you can afford it.",
+};
+rentRise.payload.steps[2] = {
+  ask: "The increase would stretch your budget. What is a useful request?",
+  options: ["Ask for the reason and propose a smaller increase or a later start date", "Threaten to damage the property", "Agree now and hope the cost becomes easier", "Stop paying rent without advice"],
+  answer: 0,
+  because: "A specific alternative gives both sides something clear to consider.",
+};
+rentRise.payload.steps[3] = {
+  ask: "The rental agreement is unclear. What should you do?",
+  options: ["Use an independent housing advice service before signing or withholding anything", "Rely on the landlord's explanation alone", "Ask social media to vote", "Move out tonight"],
+  answer: 0,
+  because: "Independent advice can help you understand the agreement before you make a risky decision.",
+};
+rentRise.debrief = {
+  principle: "Do not make a housing decision under pressure. Check the written agreement, understand your budget and make a clear request.",
+  whereItMisleads: "An agreement may be unclear or incomplete. Independent housing advice can help you understand it before you sign or withhold payment.",
+};
+
+const followedAfterCash = mtcGymChallenge("gym-workout-22");
+followedAfterCash.title = "Someone Follows You After Using an ATM";
+followedAfterCash.scenario = "After using a cash machine (ATM) at night, you notice the same person behind you through two turns. You are five minutes from home and your car is in a quiet side street.";
+
+for (const challenge of MTC_GYM_CHALLENGES) {
+  challenge.payload.globalClarityChecked = true;
+  if (!challenge.payload.fairnessNote) {
+    challenge.payload.fairnessNote = "Everything needed is on this card. No cultural knowledge or specialist training is being tested.";
+  }
+}

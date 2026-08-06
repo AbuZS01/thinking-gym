@@ -98,6 +98,38 @@ for (const item of everydayReplacements) {
   }
 }
 
+assert.ok(challenges.every((item) => item.payload?.globalClarityChecked), "every Gym card must pass the global-English audit");
+assert.ok(challenges.every((item) => item.payload?.fairnessNote), "every Gym card must explain that outside knowledge is not being scored");
+
+const structuralTextKeys = new Set(["id", "format", "muscle", "frameworks", "lifeAreas", "emoji", "bucket", "value"]);
+const visibleStrings = (value, key = "", output = []) => {
+  if (typeof value === "string") {
+    if (!structuralTextKeys.has(key)) output.push(value);
+  } else if (Array.isArray(value)) {
+    for (const item of value) visibleStrings(item, key, output);
+  } else if (value && typeof value === "object") {
+    for (const [childKey, childValue] of Object.entries(value)) visibleStrings(childValue, childKey, output);
+  }
+  return output;
+};
+
+for (const item of challenges) {
+  for (const text of visibleStrings(item)) {
+    for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+      assert.ok(wordCount(sentence) <= 30, `${item.id}: user-facing sentence is too long for quick reading`);
+    }
+  }
+  const allText = visibleStrings(item).join(" ");
+  if (/\bmph\b/i.test(allText)) assert.match(allText, /km\/h/i, `${item.id}: speed needs a metric equivalent`);
+  if (/pavement/i.test(allText)) assert.match(allText, /sidewalk/i, `${item.id}: pair pavement with sidewalk`);
+  if (/cash machine/i.test(allText)) assert.match(allText, /\bATM\b/i, `${item.id}: pair cash machine with ATM`);
+  if (/store credit/i.test(allText)) assert.match(allText, /shop credit/i, `${item.id}: pair store credit with shop credit`);
+}
+
+const runtimeText = challenges.flatMap((item) => visibleStrings(item)).join(" ");
+assert.doesNotMatch(runtimeText, /Pixar|\bBadr\b|Maginot|Coca-Cola|\bKodak\b|\bUmar\b/i, "brand or history knowledge must not be assumed by a Gym card");
+assert.doesNotMatch(runtimeText, /\b(?:law|laws|legal|legally|rights)\b/i, "a Gym card must not test or imply unstated local rules");
+
 const state = MTC.loadState();
 state.name = "Test user";
 const challenge = challenges.find((item) => item.id === "gym-workout-24");
@@ -124,4 +156,4 @@ const focusedIds = focusedSession.map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
 assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
 
-console.log(`Validated ${challenges.length} challenges, ${everydayReplacements.length} everyday replacements, 10 creativity tasks, answer keys, fair scoring notes, stable daily sessions and autosave.`);
+console.log(`Validated ${challenges.length} globally clear challenges, ${everydayReplacements.length} everyday replacements, 10 creativity tasks, answer keys, fair scoring notes, stable daily sessions and autosave.`);
