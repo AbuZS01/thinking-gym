@@ -29,7 +29,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**115 challenges** across seven formats, each objectively scored:
+**122 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, an animation studio's process); you tap the action from a completely different
@@ -78,10 +78,10 @@ challenge also keeps its **mental muscle** — what the challenge makes you *do*
 | | | |
 |---|---|---|
 | 🕵️ **Notice** | Spot what's easy to miss | 24 |
-| ⚖️ **Judge** | Weigh conflicting evidence | 26 |
+| ⚖️ **Judge** | Weigh conflicting evidence | 28 |
 | 🧩 **Connect** | Find patterns across unrelated domains | 13 |
-| 🔄 **Adapt** | Change the plan when reality changes | 21 |
-| 🎯 **Prioritise** | Choose under pressure | 13 |
+| 🔄 **Adapt** | Change the plan when reality changes | 23 |
+| 🎯 **Prioritise** | Choose under pressure | 16 |
 | 🔍 **Question** | Work out what's missing before you act | 18 |
 
 Those last two are why organising this way was worth doing: framework families
@@ -125,8 +125,9 @@ more than having three different game formats.
   principles, Bayesian thinking, game theory, red-team thinking, etc.), each
   covering what problem it solves, why smart people get it wrong, when it's
   dangerous, a famous example, and how an expert applies it.
-- **Thinking Toolbox** — 26 quick-reference tools (OODA loop, Five Whys, MECE,
-  premortem, base rates, Occam's razor, and more).
+- **Thinking Toolbox** — 38 quick-reference tools and mental models. Public names
+  stay plain, such as **Leave a Safety Buffer**, **Follow the Reward** and **The
+  Plan Is Not Reality**; formal names are shown as secondary information.
 - **Leveling & Achievements** — an RPG-style level curve (1 → 100, with titles
   from "Beginner Observer" to "Grand Strategist"), XP, streaks, and 29
   achievements.

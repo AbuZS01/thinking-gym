@@ -65,7 +65,7 @@ function esc(s) {
 }
 
 function frameworkNames(ids) {
-  return ids.map((f) => (MTC_FRAMEWORKS.find((fw) => fw.id === f) || {}).name).filter(Boolean).join(" &middot; ");
+  return ids.map((id) => (MTC_SKILL_CATALOG.find((skill) => skill.id === id) || {}).name).filter(Boolean).join(" &middot; ");
 }
 
 function route() {
@@ -699,8 +699,8 @@ function bossHTML() {
 
 function toolboxResultsHTML() {
   const q = toolboxFilter.toLowerCase();
-  const items = MTC_TOOLBOX.filter((t) => !q || t.name.toLowerCase().includes(q) || t.summary.toLowerCase().includes(q));
-  return items.map((t) => `<div class="panel"><h2>${esc(t.name)}</h2><p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p><a class="cta" href="#/workbench/${t.id}">Apply to my problem &rarr;</a></div>`).join("") || `<p class="subtle">No tools match.</p>`;
+  const items = MTC_TOOLBOX.filter((t) => !q || [t.name, t.formalName, t.summary].some((value) => String(value || "").toLowerCase().includes(q)));
+  return items.map((t) => `<div class="panel"><h2>${esc(t.name)}</h2>${t.formalName ? `<span class="tag neutral">Also called ${esc(t.formalName)}</span>` : ""}<p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p><a class="cta" href="#/workbench/${t.id}">Apply to my problem &rarr;</a></div>`).join("") || `<p class="subtle">No tools match.</p>`;
 }
 
 function toolboxHTML() {
@@ -931,6 +931,7 @@ function workbenchHTML(toolId) {
   return `<div class="panel">
     <a class="crumb" href="#/toolbox">&larr; Toolbox</a>
     <h1>${esc(tool.name)} &mdash; on your problem</h1>
+    ${tool.formalName ? `<span class="tag neutral">Also called ${esc(tool.formalName)}</span>` : ""}
     <p class="subtle">${esc(tool.summary)}</p>
     <p class="subtle"><b>When:</b> ${esc(tool.when)}</p>
   </div>

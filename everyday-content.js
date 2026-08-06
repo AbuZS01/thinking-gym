@@ -614,29 +614,6 @@ mtcReplaceVisibleText(roadHazard.payload, [[/the pavement/g, "the pavement or si
 const refundRequest = mtcGymChallenge("gym-flaw-9");
 mtcReplaceVisibleText(refundRequest, [[/store credit/g, "store credit (shop credit)"]]);
 
-const fixedDefence = mtcGymChallenge("gym-chain-15");
-Object.assign(fixedDefence, {
-  title: "The Defence That Was Bypassed",
-  scenario: "A country builds strong forts along only part of its border. The forts make a direct attack very costly, but another route remains open. Put the results in order.",
-  hint: "The forts work, so the rival looks for a route that the forts do not cover.",
-});
-Object.assign(fixedDefence.payload, {
-  event: "A country builds strong forts along part of its border to stop a direct attack.",
-  steps: [
-    "A direct attack against the forts would cost the rival too many people and supplies",
-    "The rival therefore stops planning a direct attack against the forts",
-    "It looks for a route the forts do not cover and chooses difficult forest land",
-    "Its vehicles cross land the defenders thought a large force could not use",
-    "The forts are never broken, but the fighting moves behind them",
-  ],
-  intruder: "The rival attacks the forts directly and remains there for several months",
-  fairnessNote: "No history knowledge is needed. The starting facts and every possible result are shown on the cards.",
-});
-fixedDefence.debrief = {
-  principle: "A strong defence can redirect a problem instead of removing it. Ask what route, method or behaviour becomes more attractive after one route is blocked.",
-  whereItMisleads: "The forts were not useless. The lesson is simply that a plan must also consider what can happen around its strongest defence.",
-};
-
 const sweeterDrink = mtcGymChallenge("gym-chain-18");
 Object.assign(sweeterDrink, {
   title: "The Sweeter Drink Customers Rejected",
@@ -718,6 +695,295 @@ rentRise.debrief = {
 const followedAfterCash = mtcGymChallenge("gym-workout-22");
 followedAfterCash.title = "Someone Follows You After Using an ATM";
 followedAfterCash.scenario = "After using a cash machine (ATM) at night, you notice the same person behind you through two turns. You are five minutes from home and your car is in a quiet side street.";
+
+/* Everyday mental-model practice. Six abstract cards are replaced in place so
+   saved progress and deep links keep working. Seven new cards fill genuine
+   practice gaps found in the framework audit. */
+const MTC_MENTAL_MODEL_REPLACEMENTS = [
+  {
+    id: "gym-chain-1", format: "chain", muscle: "adapt", difficulty: 1, xpBase: 50,
+    title: "The Stock List Does Not Match the Shelves", emoji: "📋",
+    scenario: "A café manager plans tomorrow's order from a stock list. Nobody updated the list during a busy weekend. Put the results in order.",
+    frameworks: ["map-territory", "critical-thinking", "verification"],
+    lifeAreas: ["work", "money"],
+    hint: "The written list is only a picture of the stock. Follow what happens when the manager treats it as the real shelves.",
+    payload: {
+      event: "The manager orders supplies from the old stock list without checking the shelves.",
+      steps: [
+        "Several cartons of milk were used but never removed from the written count",
+        "The manager assumes the written count still matches the shelves",
+        "The order contains less milk than the café actually needs",
+        "The café runs out during the next busy period",
+        "Staff turn away drink orders, then count the real stock and correct the list",
+      ],
+      intruder: "The old stock list automatically changes to match every item used",
+      mentalModelChallenge: true,
+    },
+    debrief: {
+      principle: "A list, report or plan is only a simplified picture. Check it against reality before making a decision that depends on it.",
+      whereItMisleads: "A recent, carefully maintained list may be reliable. The lesson is to check when the cost of being wrong matters.",
+    },
+  },
+  {
+    id: "gym-chain-2", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
+    title: "Paid for Speed, Damages Go Up", emoji: "📦",
+    scenario: "A packing team gets a bonus for parcels completed each hour. Damage and returns do not affect the bonus. Put the results in order.",
+    frameworks: ["incentives", "systems-thinking", "second-order-thinking"],
+    lifeAreas: ["work", "money"],
+    hint: "Follow what the bonus measures. People can hit the number while harming the result the business actually wants.",
+    payload: {
+      event: "The business rewards only the number of parcels packed each hour.",
+      steps: [
+        "Workers learn that faster packing raises the bonus even when parcels are poorly protected",
+        "Some workers shorten or skip checks that slow them down",
+        "The number packed each hour rises",
+        "More customers receive damaged goods and ask for replacements",
+        "Replacement costs and complaints remove much of the apparent saving",
+      ],
+      intruder: "The speed-only bonus automatically rewards careful packing and fewer damaged goods",
+      mentalModelChallenge: true,
+    },
+    debrief: {
+      principle: "People respond to what is rewarded. A useful target must measure the real result, not one easy number that can be improved at its expense.",
+      whereItMisleads: "Rewards are not always harmful. A balanced target could include speed, damage and customer complaints together.",
+    },
+  },
+  {
+    id: "gym-chain-15", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
+    title: "Dinner for Four Becomes Dinner for Four Hundred", emoji: "🍲",
+    scenario: "A cook who serves four people accepts an order for four hundred. They plan to multiply every ingredient by one hundred and change nothing else. Put the results in order.",
+    frameworks: ["scale", "systems-thinking", "constraints"],
+    lifeAreas: ["work", "home"],
+    hint: "More food also needs more storage, equipment, time and people. Find the first part of the small process that cannot handle the new size.",
+    payload: {
+      event: "The cook uses the four-person process for four hundred people, only multiplying the ingredients.",
+      steps: [
+        "The ingredients no longer fit in the available fridge or preparation space",
+        "The cooker cannot heat enough portions at the same time",
+        "Finished dishes wait while later batches are still being cooked",
+        "Much of the food reaches guests late or cold",
+        "The cook realises the larger job needs batches, more equipment and a larger team",
+      ],
+      intruder: "Multiplying the ingredients also makes the fridge, cooker and team one hundred times larger",
+      mentalModelChallenge: true,
+    },
+    debrief: {
+      principle: "A process can change when it becomes much larger. Look for the first limit in space, equipment, time or coordination.",
+      whereItMisleads: "Some tasks do scale by simple multiplication. Check the real limits instead of assuming every larger job needs a complete redesign.",
+    },
+  },
+  {
+    id: "gym-chain-16", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
+    title: "One App Provides Nearly All the Work", emoji: "🚚",
+    scenario: "A self-employed delivery driver gets 85% of their income from one app. They stop taking work from smaller customers because the app stays busy. Put the results in order.",
+    frameworks: ["diversification", "risk-assessment", "margin-of-safety"],
+    lifeAreas: ["work", "money"],
+    hint: "The income looks steady while the app is available. Follow what happens when one source controls nearly everything.",
+    payload: {
+      event: "The driver depends on one app for 85% of their income and lets other customer relationships end.",
+      steps: [
+        "The app becomes the driver's only reliable source of daily work",
+        "The driver's account is paused for a routine review",
+        "Nearly all income stops immediately even though the driver is ready to work",
+        "The smaller customers cannot quickly replace the missing work because those relationships ended",
+        "The driver rebuilds several income sources so one pause cannot stop everything again",
+      ],
+      intruder: "The account pause automatically increases the income from every former customer",
+      mentalModelChallenge: true,
+    },
+    debrief: {
+      principle: "Do not let one source control everything important. Several income or supply sources make one failure easier to survive.",
+      whereItMisleads: "Splitting attention across too many weak sources can reduce income. Diversify enough to survive, not so much that every source is neglected.",
+    },
+  },
+  {
+    id: "gym-chain-17", format: "chain", muscle: "adapt", difficulty: 2, xpBase: 50,
+    title: "Three Complaints Change Every Drink", emoji: "☕",
+    scenario: "A café serves four hundred drinks. Three people from one group say a new recipe is too sweet. The manager changes every drink the next day. Put the results in order.",
+    frameworks: ["sampling", "scientific-thinking", "critical-thinking"],
+    lifeAreas: ["work"],
+    hint: "Three people from one group may share the same taste. They do not represent all four hundred customers.",
+    payload: {
+      event: "The manager treats three complaints from one group as the view of all customers.",
+      steps: [
+        "The manager does not ask a wider or randomly chosen group of customers",
+        "The recipe is changed using only the three complaints",
+        "Many regular customers receive a different drink without being asked",
+        "More customers dislike the new version than disliked the first one",
+        "The manager restores the recipe and tests future changes with a larger, mixed group",
+      ],
+      intruder: "A random group of customers is asked before any recipe is changed",
+      mentalModelChallenge: true,
+    },
+    debrief: {
+      principle: "A few examples can suggest a question, but they rarely prove a broad conclusion. Check the size and variety of the sample.",
+      whereItMisleads: "A small sample can still reveal a serious safety problem. The response should match both the evidence and the possible harm.",
+    },
+  },
+  {
+    id: "gym-workout-7", format: "workout", muscle: "judge", difficulty: 1, xpBase: 50,
+    title: "Was £900, Now £500", emoji: "📱",
+    scenario: "A phone is marked 'Was £900, now £500'. Two trusted shops sell the same new phone for £470 and £480, with the same included cover and return terms.",
+    frameworks: ["anchoring", "critical-thinking", "decision-making"],
+    lifeAreas: ["money"],
+    hint: "The crossed-out price can pull your judgment toward £900. Compare the offer with real alternatives instead.",
+    payload: {
+      problem: "Decide whether the sale label shows that £500 is a good price.",
+      mentalModelChallenge: true,
+      steps: [
+        { ask: "Which number may anchor your judgment?", options: ["The claimed old price of £900", "The number of shops", "The phone's colour", "The day of the week"], answer: 0, because: "The first high price can make £500 feel cheap before you compare it with anything else." },
+        { ask: "What is the most useful comparison?", options: ["Prices for the same phone with the same conditions", "The largest discount label", "A different phone from five years ago", "How excited the seller sounds"], answer: 0, because: "Like-for-like prices show what the same product costs elsewhere now." },
+        { ask: "What do the comparisons show?", options: ["£500 is not the lowest available price", "£500 must be a bargain because £900 is higher", "Every shop charges exactly the same", "The original price proves the phone's quality"], answer: 0, because: "The same phone is available for £470 and £480 under the same conditions." },
+        { ask: "What is the sound decision?", options: ["Judge the £500 offer against current alternatives, not the crossed-out price", "Buy immediately before comparing", "Assume the largest claimed saving is best", "Ignore the final amount paid"], answer: 0, because: "An independent comparison reduces the pull of the first number." },
+    ]},
+    debrief: {
+      principle: "The first number you see can shape what feels cheap or expensive. Build your judgment from independent comparisons.",
+      whereItMisleads: "The cheapest option is not always best. Compare condition, included service and reliability as well as price.",
+    },
+  },
+];
+
+for (const replacement of MTC_MENTAL_MODEL_REPLACEMENTS) {
+  const challenge = mtcGymChallenge(replacement.id);
+  Object.keys(challenge).forEach((key) => delete challenge[key]);
+  Object.assign(challenge, replacement);
+}
+
+const MTC_MENTAL_MODEL_ADDITIONS = [
+  {
+    id: "gym-workout-25", format: "workout", muscle: "prioritise", difficulty: 1, xpBase: 50,
+    title: "Leave Money for the Surprise Bill", emoji: "💷",
+    scenario: "You receive £1,000. Regular bills cost £860 and travel until payday costs £60. A necessary household item may need an £80 replacement.",
+    frameworks: ["margin-of-safety", "budgeting", "risk-assessment"], lifeAreas: ["money", "home"],
+    hint: "Set aside known costs and the possible replacement before treating any money as spare.",
+    payload: {
+      problem: "Build a budget that can handle the stated surprise without borrowing.", mentalModelChallenge: true,
+      steps: [
+        { ask: "How much remains after regular bills?", options: ["£140", "£60", "£80", "£860"], answer: 0, because: "£1,000 minus £860 leaves £140." },
+        { ask: "What else must the plan protect?", options: ["£60 travel and the possible £80 replacement", "Only optional shopping", "A more expensive phone", "Nothing because the bills are paid"], answer: 0, because: "Travel is known and the replacement is a stated risk. Together they use the remaining £140." },
+        { ask: "Which choice keeps the buffer?", options: ["Set aside both amounts and delay optional spending", "Spend £100 now and hope", "Ignore travel costs", "Borrow before anything breaks"], answer: 0, because: "This leaves the money available for both the known journey costs and the possible replacement." },
+        { ask: "Why keep the £80 before the item breaks?", options: ["A buffer protects the plan when a realistic surprise happens", "The replacement is certain today", "Unused money has no value", "Every surprise costs exactly £80"], answer: 0, because: "A safety buffer handles uncertainty. It does not claim to predict the exact event." },
+    ]},
+    debrief: { principle: "A plan needs spare room when one realistic surprise could force borrowing or stop something essential.", whereItMisleads: "Keeping the largest possible buffer can prevent useful spending forever. Match the buffer to the likely cost and seriousness of being wrong." },
+  },
+  {
+    id: "gym-workout-26", format: "workout", muscle: "adapt", difficulty: 1, xpBase: 50,
+    title: "Make Studying Easier to Start", emoji: "📚",
+    scenario: "After work, you plan to study online. Your laptop is packed away, the lesson link is hard to find and your phone is beside you.",
+    frameworks: ["activation-energy", "habit-building", "process-design"], lifeAreas: ["study", "work"],
+    hint: "Do not demand more motivation first. Remove the small obstacles between finishing work and opening the lesson.",
+    payload: {
+      problem: "Reduce the effort needed to begin the useful habit.", mentalModelChallenge: true,
+      steps: [
+        { ask: "What makes starting harder here?", options: ["Several setup steps and an easy distraction", "The lesson already being open", "A clear first task", "The phone being in another room"], answer: 0, because: "Finding equipment and links adds effort, while the nearby phone offers an easier action." },
+        { ask: "Which preparation removes friction?", options: ["Leave the laptop ready, save the lesson link and move the phone away", "Hide the charger", "Choose a new course each evening", "Wait to feel fully motivated"], answer: 0, because: "The useful action becomes the easiest visible next step." },
+        { ask: "What is a helpful first target?", options: ["Open the lesson and study for five minutes", "Complete the whole course tonight", "Study only when energy feels perfect", "Buy more equipment first"], answer: 0, because: "A small start gets the task moving without requiring a large burst of effort." },
+        { ask: "How should the change be judged?", options: ["Check whether starting became more consistent over several days", "Judge it after one tired evening", "Count how expensive the laptop is", "Assume preparation guarantees success"], answer: 0, because: "Repeated starts show whether the changed setup is helping." },
+    ]},
+    debrief: { principle: "The first step often needs the most effort. Arrange the environment so the useful action is easy to begin.", whereItMisleads: "Reducing friction helps you start, but it cannot replace rest, time or a reason to continue." },
+  },
+  {
+    id: "gym-workout-27", format: "workout", muscle: "prioritise", difficulty: 1, xpBase: 50,
+    title: "Stop Polishing the Finished Report", emoji: "📝",
+    scenario: "Your weekly report is correct, clear and ready. You have one hour left. A customer problem also needs a reply today.",
+    frameworks: ["diminishing-returns", "prioritisation", "decision-making"], lifeAreas: ["work"],
+    hint: "Compare the value of another hour on work that is already good with an hour on a problem that is still open.",
+    payload: {
+      problem: "Put the remaining hour where it produces the most useful improvement.", mentalModelChallenge: true,
+      steps: [
+        { ask: "What would another hour change in the report?", options: ["Only small spacing and wording details", "Its figures from wrong to correct", "Its purpose completely", "The customer's unresolved problem"], answer: 0, because: "The scenario says the report is already correct, clear and ready." },
+        { ask: "Where can the hour add more value?", options: ["Reply to the customer problem that still needs action", "Keep adjusting tiny spaces", "Change every heading colour", "Read the finished report ten more times"], answer: 0, because: "The open customer problem can improve meaningfully, while further report polishing adds little." },
+        { ask: "What is a sensible stopping rule?", options: ["Stop when the report is correct, clear and meets its purpose", "Stop only when no word could ever change", "Never check the report", "Stop after a random number of minutes"], answer: 0, because: "A clear quality threshold prevents endless work without removing necessary checks." },
+        { ask: "When should you keep improving instead?", options: ["When another check could still prevent an important error", "Whenever a task can be made one percent prettier", "When another task feels unfamiliar", "Only when someone is watching"], answer: 0, because: "Diminishing returns do not justify ignoring errors with serious consequences." },
+    ]},
+    debrief: { principle: "Once important quality is reached, extra effort may add less value than the same effort used on an unfinished problem.", whereItMisleads: "Do not use diminishing returns as an excuse for careless work. Define the required quality before deciding that enough is enough." },
+  },
+  {
+    id: "gym-signal-23", format: "signal", muscle: "judge", difficulty: 1, xpBase: 50,
+    title: "Everyone Else Is Buying This Course", emoji: "👥",
+    scenario: "A course page says thirty-four people bought today and only eight places remain. Decide what supports its claim of being trustworthy and useful.",
+    frameworks: ["social-proof", "critical-thinking", "source-checking"], lifeAreas: ["scams", "study", "money"],
+    hint: "Popularity can be real, mistaken or invented. Look for facts that do not come from the seller's own crowd claims.",
+    payload: {
+      claim: "The course is trustworthy and useful because many other people appear to be buying it.", mentalModelChallenge: true,
+      evidence: [
+        { text: "The purchase counter is controlled by the seller and cannot be checked independently", bucket: "undermines" },
+        { text: "Most reviews use the same vague wording and appeared on the same day", bucket: "undermines" },
+        { text: "Several identifiable former students describe specific strengths and limits on independent websites", bucket: "supports" },
+        { text: "The seller provides a full lesson sample that matches the advertised level", bucket: "supports" },
+        { text: "The page gives clear course content, total cost and contact details that can be verified", bucket: "supports" },
+        { text: "The buy button is bright orange", bucket: "irrelevant" },
+        { text: "The presenter is standing beside an expensive car", bucket: "irrelevant" },
+      ],
+    },
+    debrief: { principle: "A crowd is not proof. Check whether the people and results are real, independent and relevant to the decision.", whereItMisleads: "Popularity can provide useful information when choices are independent and genuine. It should support evidence, not replace it." },
+  },
+  {
+    id: "gym-ask-12", format: "ask", muscle: "question", difficulty: 1, xpBase: 50,
+    title: "Is Your Coworker Careless?", emoji: "🕒",
+    scenario: "A coworker arrived twenty-five minutes late three times this month. You are about to decide that they do not care about the team.",
+    frameworks: ["attribution-error", "questioning", "communication"], lifeAreas: ["work", "relationships"],
+    hint: "Separate the behaviour you observed from your judgment about the person. Ask what situation or pattern could explain it.",
+    payload: {
+      situation: "You can ask three questions before speaking to them about the pattern.", budget: 3, mentalModelChallenge: true,
+      questions: [
+        { text: "What happened on the three late days?", value: "high", answer: "The first bus was repeatedly cancelled during temporary road works.", because: "This gives a situation that could explain the repeated timing without proving the person does not care." },
+        { text: "Did they tell anyone they would be late?", value: "high", answer: "They messaged the manager each time, but the rest of the team was not told.", because: "This changes the judgment that they ignored the effect on others." },
+        { text: "What happens on shifts that start later?", value: "high", answer: "They usually arrive ten minutes early.", because: "The wider pattern helps separate a transport problem from general unreliability." },
+        { text: "What music do they listen to?", value: "low", answer: "They like several kinds of music.", because: "This does not explain the late arrivals or help solve them." },
+        { text: "What did they eat for breakfast?", value: "low", answer: "They had toast.", because: "This is personal but not useful to the decision." },
+        { text: "Do they like the colour of the staff room?", value: "low", answer: "They have no strong view.", because: "The answer cannot change how you understand or address the late arrivals." },
+      ],
+      decision: {
+        ask: "What is the best next step?",
+        options: ["Discuss the pattern and agree a temporary travel or start-time plan", "Tell everyone the coworker is lazy", "Ignore the effect on the team forever", "Punish them before hearing the facts"],
+        answer: 0,
+        because: "The facts show a repeated problem with a specific cause. A clear plan addresses it without inventing a character judgment.",
+      },
+    },
+    debrief: { principle: "Observed behaviour is real, but your first explanation may not be. Check the situation and wider pattern before judging someone's character.", whereItMisleads: "A difficult situation does not remove responsibility. Once the cause is understood, the people involved still need a workable plan." },
+  },
+  {
+    id: "gym-chain-19", format: "chain", muscle: "prioritise", difficulty: 1, xpBase: 50,
+    title: "Plan the Morning Backwards", emoji: "⏰",
+    scenario: "Training begins at 9:00. You need ten minutes to check in, ten minutes to park and walk, and fifty minutes for the journey. Add a ten-minute buffer.",
+    frameworks: ["working-backward", "prioritisation", "margin-of-safety"], lifeAreas: ["work", "study", "safety"],
+    hint: "Start from 9:00 and subtract each required step. The final card should make the planned departure possible.",
+    payload: {
+      event: "You work backward from being ready when training begins at 9:00.", mentalModelChallenge: true,
+      steps: [
+        "Plan to reach the check-in desk by 8:50",
+        "Plan to park by 8:40 so there are ten minutes to walk",
+        "Count back fifty minutes for the journey, giving 7:50",
+        "Add a ten-minute buffer, making the target departure time 7:40",
+        "Prepare the bag and directions the night before so a 7:40 departure is realistic",
+      ],
+      intruder: "Begin getting ready at 9:00 because that is when the training starts",
+    },
+    debrief: { principle: "A fixed finish becomes easier to plan when you work backward through every required step and include a realistic buffer.", whereItMisleads: "Times are estimates. Check current travel information and update the plan when conditions change." },
+  },
+  {
+    id: "gym-workout-28", format: "workout", muscle: "judge", difficulty: 1, xpBase: 50,
+    title: "The Dashboard Falls for One Day", emoji: "📉",
+    scenario: "An online shop's dashboard shows a one-day sales fall just after its counting system changed. A manager wants to cut prices, change adverts and message every customer immediately.",
+    frameworks: ["action-bias", "scientific-thinking", "decision-making"], lifeAreas: ["work", "money"],
+    hint: "Visible action can feel reassuring. First check whether the fall is real and avoid changing several things at once.",
+    payload: {
+      problem: "Choose a response that learns before creating new problems.", mentalModelChallenge: true,
+      steps: [
+        { ask: "What should be checked first?", options: ["Whether the counting change created the apparent fall", "Which three major changes to launch together", "The manager's favourite advert", "How worried the graph looks"], answer: 0, because: "A changed counting method can move the dashboard even when customer behaviour did not change." },
+        { ask: "What comparison would help next?", options: ["Reliable order records across several similar days", "One hour from the new dashboard", "A competitor's logo", "The colour of the sales line"], answer: 0, because: "A wider, trusted comparison helps separate a real pattern from one unusual or miscounted day." },
+        { ask: "The fall is real. What is the safer test?", options: ["Change one relevant thing for a limited group and compare the result", "Change prices, adverts and messages together", "Make a permanent change immediately", "Hide the result"], answer: 0, because: "A small single change can show what helped without exposing the whole shop to an untested response." },
+        { ask: "Why can immediate action be weaker?", options: ["Several rushed changes can cause harm and hide which one mattered", "Waiting is always correct", "Managers should never make changes", "Sales figures are never useful"], answer: 0, because: "Action is useful when it is informed. Pressure alone does not make a large response effective." },
+    ]},
+    debrief: { principle: "Pressure can make any action feel better than checking. Confirm the problem, then use the smallest test that can teach you something.", whereItMisleads: "Some dangers require immediate action. Stabilise urgent harm first, then investigate without making unnecessary changes." },
+  },
+];
+
+MTC_GYM_CHALLENGES.push(...MTC_MENTAL_MODEL_ADDITIONS);
+
+const sweeterDrinkModel = mtcGymChallenge("gym-chain-18");
+sweeterDrinkModel.frameworks = ["design-thinking", "scientific-thinking", "loss-aversion"];
 
 for (const challenge of MTC_GYM_CHALLENGES) {
   challenge.payload.globalClarityChecked = true;

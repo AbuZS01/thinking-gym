@@ -191,8 +191,7 @@ const MTC = (() => {
     const rows = Object.keys(state.weaknessScores).map((fw) => {
       const { attempts, totalScore } = state.weaknessScores[fw];
       const avg = attempts ? totalScore / attempts : 0;
-      // content tags both frameworks and toolbox tools, so look in both
-      const meta = MTC_FRAMEWORKS.find((f) => f.id === fw) || MTC_TOOLBOX.find((t) => t.id === fw);
+      const meta = MTC_SKILL_CATALOG.find((skill) => skill.id === fw);
       return { id: fw, name: meta ? meta.name : fw, avg, attempts };
     });
     rows.sort((a, b) => a.avg - b.avg);
@@ -469,7 +468,7 @@ const MTC = (() => {
       })),
       ...MTC_TOOLBOX.map((t) => ({
         id: "tool:" + t.id, kind: "Tool", front: t.name,
-        hint: "What is it? When do you reach for it?",
+        hint: (t.formalName ? "Also called " + t.formalName + ". " : "") + "What is it? When do you reach for it?",
         back: t.summary + " When: " + t.when,
       })),
     ];
