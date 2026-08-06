@@ -24,23 +24,41 @@ function run(file, expose) {
   vm.runInContext(`${source}\n;globalThis.${expose.name} = ${expose.value};`, context, { filename: file });
 }
 
-run("content.js", { name: "__contentLoaded", value: "true" });
+run("content.js", { name: "__contentData", value: "({ frameworks: MTC_FRAMEWORKS, toolbox: MTC_TOOLBOX, skills: MTC_SKILL_CATALOG, exercises: MTC_EXERCISES, templates: MTC_TOOL_TEMPLATES })" });
 run("gym-content.js", { name: "__gymData", value: "({ formats: MTC_GYM_FORMATS, challenges: MTC_GYM_CHALLENGES, areas: MTC_GYM_LIFE_AREAS })" });
 run("everyday-content.js", { name: "__everydayLoaded", value: "true" });
 run("engine.js", { name: "__engine", value: "MTC" });
 
 const { formats, challenges, areas } = context.__gymData;
+const { frameworks, toolbox, skills, exercises, templates } = context.__contentData;
 const MTC = context.__engine;
 const areaIds = new Set(areas.map((area) => area.id));
 
-assert.equal(challenges.length, 115, "README and onboarding count must match the content bank");
+assert.equal(challenges.length, 122, "README and onboarding count must match the content bank");
 assert.equal(new Set(challenges.map((challenge) => challenge.id)).size, challenges.length, "challenge IDs must be unique");
 assert.equal(areaIds.size, 8, "life-area IDs must be unique");
 assert.deepEqual(
   Object.fromEntries([...new Set(challenges.map((challenge) => challenge.muscle))].sort().map((muscle) => [muscle, challenges.filter((challenge) => challenge.muscle === muscle).length])),
-  { adapt: 21, connect: 13, judge: 26, notice: 24, prioritise: 13, question: 18 },
+  { adapt: 23, connect: 13, judge: 28, notice: 24, prioritise: 16, question: 18 },
   "documented muscle counts must match the content bank",
 );
+
+assert.equal(toolbox.length, 38, "the documented toolbox count must match the mental-model bank");
+assert.equal(new Set(skills.map((skill) => skill.id)).size, skills.length, "canonical skill IDs must be unique");
+const skillIds = new Set(skills.map((skill) => skill.id));
+for (const challenge of challenges) {
+  for (const framework of challenge.frameworks) assert.ok(skillIds.has(framework), `${challenge.id}: unknown skill or model tag ${framework}`);
+}
+for (const exercise of exercises) {
+  for (const framework of exercise.frameworks) assert.ok(skillIds.has(framework), `${exercise.id}: unknown skill or model tag ${framework}`);
+}
+
+const addedModels = ["map-territory", "incentives", "margin-of-safety", "anchoring", "loss-aversion", "sampling", "activation-energy", "diminishing-returns", "social-proof", "attribution-error", "action-bias", "working-backward", "scale", "diversification"];
+for (const model of addedModels) {
+  assert.ok(toolbox.some((tool) => tool.id === model), `${model}: mental model needs a toolbox card`);
+  assert.ok(challenges.some((challenge) => challenge.frameworks.includes(model)), `${model}: mental model needs playable practice`);
+  assert.ok(templates[model], `${model}: mental model needs a workbench template`);
+}
 
 for (const challenge of challenges) {
   assert.ok(formats[challenge.format], `${challenge.id}: unknown format`);

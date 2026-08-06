@@ -82,7 +82,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "It's mentally expensive, so people default to reasoning by analogy even when they claim to be doing this.",
     avoid: "Rebuilding from 'first principles' that are actually unexamined assumptions themselves.",
     danger: "Can lead you to reinvent, at high cost, something convention already got right for good reasons you didn't see.",
-    example: "SpaceX priced a rocket from the raw cost of aluminum, fuel, and labor rather than from historical launch prices, and found room to cut cost 10x.",
+    example: "A wheeled travel bag improves the real job — moving belongings — instead of only changing the material or shape of the bag.",
     expertUse: "Asks 'what do we know to be true independent of how it's currently done?' and rebuilds up from there.",
   },
   {
@@ -92,7 +92,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "First-order effects are immediate and satisfying to point to; second-order effects are delayed and diffuse, so they get discounted.",
     avoid: "Stopping at one extra step and declaring victory — the important effect is sometimes three or four steps out.",
     danger: "Chains of speculation degrade in reliability with each step; treat step three and four as hypotheses, not facts.",
-    example: "Rent control (first order: cheaper rent now) reduces new housing supply over years (second order), raising rents long-term.",
+    example: "A shop removes one checkout worker to save money. Longer queues then cause complaints and lost sales, which can cost more than the saving.",
     expertUse: "For every proposed action, asks 'and then what happens?' at least twice before deciding.",
   },
   {
@@ -106,13 +106,13 @@ const MTC_FRAMEWORKS = [
     expertUse: "Assigns explicit probabilities, updates them as evidence arrives, and tracks calibration over time.",
   },
   {
-    id: "bayesian-thinking", name: "Bayesian Thinking",
+    id: "bayesian-thinking", name: "Update With New Evidence",
     core: "Updating a prior belief in proportion to how strongly new evidence supports it.",
     problem: "Prevents both underreacting to strong new evidence and overreacting to weak or common evidence.",
     whyWrong: "People ignore the base rate (prior) and over-weight the vivid new piece of evidence in front of them.",
     avoid: "Updating all the way to the new evidence and discarding the prior entirely (this ignores base rates).",
     danger: "Garbage-in-garbage-out: a badly chosen prior, defended with Bayesian language, can look more rigorous than it is.",
-    example: "A positive test for a rare disease (1% prevalence) with 95% accuracy still leaves you more likely healthy than sick — the prior dominates.",
+    example: "A reliable alert can still be wrong when the event it warns about is extremely rare. Start with how often the event normally happens.",
     expertUse: "States the prior explicitly, states the evidence's likelihood ratio, and only then updates — instead of jumping straight to a gut conclusion.",
   },
   {
@@ -122,7 +122,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "People design tests that can confirm their hypothesis but couldn't possibly disconfirm it.",
     avoid: "Treating a single study or a short observation window as proof rather than one data point.",
     danger: "Can be used as a veneer ('studies show') to launder a conclusion that was never actually tested rigorously.",
-    example: "A 3-hour A/B test declared a winner before reaching statistical significance — the 'result' was noise, not signal.",
+    example: "A café changes its queue sign for one quiet morning and sees faster service. One short test cannot show whether the sign caused the change.",
     expertUse: "Pre-registers what result would prove the hypothesis wrong, then runs the test long/large enough to see it.",
   },
   {
@@ -132,7 +132,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "Teams skip straight to solutioning because prototyping feels like less progress than 'understanding the user'.",
     avoid: "Running the loop once and calling it done — design thinking is iterative, not a five-step checklist.",
     danger: "Can become theater (sticky notes, personas) without ever shipping a real prototype to real users.",
-    example: "IDEO's redesign of the shopping cart started by watching shoppers struggle, not by brainstorming cart features.",
+    example: "A shop watches an older customer struggle with a shopping bag before changing its handles, weight and opening.",
     expertUse: "Prototypes the cheapest possible version of the idea and puts it in front of a real user before refining it.",
   },
   {
@@ -202,7 +202,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "People construct a counterfactual that conveniently confirms what they already believed caused the outcome.",
     avoid: "Treating an untestable counterfactual as if it were an observed fact.",
     danger: "You can never observe the counterfactual directly, so it's easy to smuggle in bias while sounding rigorous.",
-    example: "Historians debate whether WWI was 'inevitable' by asking what would have happened without the assassination in Sarajevo.",
+    example: "To judge whether a new route saved time, ask what would probably have happened on the old route that same day.",
     expertUse: "Constructs the counterfactual explicitly, then asks what evidence would make it more or less plausible.",
   },
   {
@@ -242,7 +242,7 @@ const MTC_FRAMEWORKS = [
     whyWrong: "People see patterns that aren't there (apophenia) as readily as ones that are, especially under stress or in noisy data.",
     avoid: "Assuming every new instance matches your pattern without checking for disconfirming details.",
     danger: "Fighting the last war: pattern-matching to a past crisis when the current one has a different structure.",
-    example: "Generals who prepared for trench warfare after WWI were pattern-matching to the previous war, not the next one.",
+    example: "A manager treats every sales drop like the last one, even though this time a counting change caused the number to fall.",
     expertUse: "Actively tests whether the current case truly shares the causal structure of the pattern, not just surface similarity.",
   },
   {
@@ -252,21 +252,21 @@ const MTC_FRAMEWORKS = [
     whyWrong: "People build one detailed forecast because it feels more actionable than several vaguer ones.",
     avoid: "Creating scenarios that are all minor variants of the same story instead of genuinely different futures.",
     danger: "Too many scenarios becomes unusable — the point is a handful of distinct, decision-relevant futures.",
-    example: "Shell's scenario planning in the 1970s prepared it (unlike competitors) for an oil price shock it couldn't predict precisely.",
+    example: "A family planning a long journey prepares for normal traffic, a serious delay and a cancelled service instead of trusting one forecast.",
     expertUse: "Builds 3-4 structurally different futures and checks which decisions are robust across all of them.",
   },
   {
-    id: "red-team-thinking", name: "Red Team Thinking",
+    id: "red-team-thinking", name: "Try to Break the Plan",
     core: "Deliberately attacking your own plan as an adversary would.",
     problem: "Surfaces blind spots that the plan's own authors are structurally unable to see.",
     whyWrong: "The people who built the plan are invested in it succeeding, so they unconsciously steer the critique away from fatal flaws.",
     avoid: "Having the same people who built the plan also red-team it without a genuine adversarial mandate.",
     danger: "Can be used to rubber-stamp a plan ('we red-teamed it') without ever empowering the red team to actually kill it.",
-    example: "Pre-mission intelligence red teams are tasked to argue why an operation will fail, specifically to catch what planners missed.",
+    example: "Before an event, one person tries to find every way the plan could fail and has permission to stop or change it.",
     expertUse: "Gives the red team explicit authority to kill or majorly change the plan, not just annotate it.",
   },
   {
-    id: "intelligence-analysis", name: "Intelligence Analysis",
+    id: "intelligence-analysis", name: "Check the Evidence",
     core: "Structured tradecraft (competing hypotheses, sourcing, confidence levels) for judging incomplete, ambiguous information.",
     problem: "Prevents high-stakes decisions from being made on a single confident-sounding narrative built from thin evidence.",
     whyWrong: "Analysts (like everyone) find and favor evidence that fits the leading hypothesis instead of ones that could rule it out.",
@@ -316,7 +316,7 @@ const MTC_FRAMEWORKS = [
     expertUse: "Scores likelihood and impact separately, then asks a third question the matrix does not: is this recoverable? Anything unrecoverable gets removed rather than priced.",
   },
   {
-    id: "meta-thinking", name: "Meta Thinking",
+    id: "meta-thinking", name: "Choose the Right Thinking Tool",
     core: "Thinking about your own thinking process — which tool to use, and why.",
     problem: "Prevents applying the wrong framework to a problem (e.g. deductive certainty to an uncertain situation).",
     whyWrong: "People default to their most comfortable thinking style regardless of whether it fits the problem at hand.",
@@ -329,11 +329,11 @@ const MTC_FRAMEWORKS = [
 
 /* ---------- Thinking Toolbox (quick-reference cards) ---------- */
 const MTC_TOOLBOX = [
-  { id: "ooda", name: "OODA Loop", summary: "Observe, Orient, Decide, Act — cycle faster than your opponent/environment changes.", when: "Fast-moving, adversarial, or rapidly-changing situations where speed of iteration beats perfection of plan." },
-  { id: "cynefin", name: "Cynefin Framework", summary: "Sorts problems into Clear, Complicated, Complex, or Chaotic domains, each needing a different response.", when: "Before choosing a thinking tool at all — diagnose what kind of problem you actually have." },
-  { id: "mece", name: "MECE", summary: "Mutually Exclusive, Collectively Exhaustive — structure a list of categories with no overlaps and no gaps.", when: "Structuring an analysis, a hypothesis list, or a decomposition so nothing is double-counted or missed." },
+  { id: "ooda", name: "Notice, Understand, Decide, Act", formalName: "OODA Loop", summary: "Notice the facts, understand what they mean, choose a response, act, then check what changed.", when: "A fast-moving situation where you need to act and keep updating rather than wait for a perfect plan." },
+  { id: "cynefin", name: "Choose the Right Response", formalName: "Cynefin Framework", summary: "A clear problem needs a known answer. A complicated one needs expertise. A changing one needs small tests. A crisis needs immediate stabilising action.", when: "Before choosing a thinking tool, when you first need to understand what kind of problem you face." },
+  { id: "mece", name: "No Gaps, No Overlap", formalName: "MECE", summary: "Divide a problem into groups that do not overlap and together cover everything important.", when: "Making a checklist or breaking down a problem without counting the same thing twice or leaving something out." },
   { id: "five-whys", name: "Five Whys", summary: "Ask 'why' repeatedly on a problem until you reach an actionable root cause.", when: "Root-causing a recurring failure instead of patching its symptom." },
-  { id: "swot", name: "SWOT", summary: "Strengths, Weaknesses (internal), Opportunities, Threats (external).", when: "Quick situational scan before deeper strategic work — a starting point, not an ending point." },
+  { id: "map-territory", name: "The Plan Is Not Reality", formalName: "Map Is Not the Territory", summary: "A report, plan, label or memory is only a simplified picture. Check it against what is actually happening.", when: "A decision depends on a plan, dashboard, description or assumption that may be old or incomplete." },
   { id: "premortem", name: "Premortem", summary: "Imagine the project has already failed a year from now, then write down why.", when: "Before committing to a plan, to surface risks that optimism during planning suppresses." },
   { id: "postmortem", name: "Postmortem", summary: "After the fact, reconstruct what actually happened and why, without blame.", when: "After any outcome (success or failure) worth learning from." },
   { id: "decision-matrix", name: "Decision Matrix", summary: "Score each option against weighted criteria in a grid.", when: "Comparing 3+ options on multiple, sometimes conflicting, criteria." },
@@ -343,7 +343,7 @@ const MTC_TOOLBOX = [
   { id: "hanlons-razor", name: "Hanlon's Razor", summary: "Don't attribute to malice what is adequately explained by incompetence or error.", when: "Interpreting someone's mistake before assuming bad intent." },
   { id: "inversion", name: "Inversion", summary: "Instead of asking how to succeed, ask how you'd guarantee failure — then avoid that.", when: "Stuck problems where the forward path is unclear but the failure path is obvious." },
   { id: "feynman", name: "Feynman Technique", summary: "Explain a concept in plain language as if teaching a child; gaps reveal what you don't actually understand.", when: "Checking whether you truly understand something or just recognize it." },
-  { id: "rubber-duck", name: "Rubber Duck Debugging", summary: "Explain your problem out loud, step by step, to an inanimate object (or a person).", when: "Stuck on a bug or problem where the act of articulating it surfaces the flaw." },
+  { id: "margin-of-safety", name: "Leave a Safety Buffer", formalName: "Margin of Safety", summary: "Keep extra time, money or capacity because estimates can be wrong and surprises happen.", when: "A delay, bill or failure would cause serious trouble if your plan had no spare room." },
   { id: "eisenhower", name: "Eisenhower Matrix", summary: "Sort tasks by urgent/important into four quadrants to decide what to do, schedule, delegate, or drop.", when: "Prioritizing a to-do list that's dominated by urgency, not importance." },
   { id: "constraints", name: "Theory of Constraints", summary: "A system's throughput is limited by its single tightest bottleneck; optimizing elsewhere doesn't help.", when: "Improving a process/system with one clear bottleneck." },
   { id: "feedback-loops", name: "Feedback Loops", summary: "Reinforcing loops amplify change; balancing loops resist it — most system behavior comes from these.", when: "Understanding why a system self-stabilizes or spirals despite one-off interventions." },
@@ -355,6 +355,49 @@ const MTC_TOOLBOX = [
   { id: "base-rates", name: "Base Rates", summary: "The background frequency of something in the population, which should anchor your estimate before adjusting for specifics.", when: "Estimating a probability — always start from the base rate, then adjust." },
   { id: "survivorship-bias", name: "Survivorship Bias", summary: "Studying only the 'survivors' of a selection process gives a distorted picture, because failures are invisible.", when: "Analyzing what 'successful' people/companies/strategies have in common." },
   { id: "signal-noise", name: "Signal vs Noise", summary: "Distinguishing a real, persistent pattern from random fluctuation.", when: "Reacting to a change in a metric — ask if it's outside normal variance first." },
+  { id: "incentives", name: "Follow the Reward", formalName: "Incentives", summary: "People often do what a system rewards, even when that behaviour harms the real goal.", when: "A target, bonus, punishment or social reward may explain behaviour better than the stated intention." },
+  { id: "anchoring", name: "The First Number Sticks", formalName: "Anchoring", summary: "The first number or suggestion you hear can pull your judgment toward it, even when it is irrelevant.", when: "Judging a price, offer, estimate or negotiation after someone else has named a number first." },
+  { id: "loss-aversion", name: "Losing Feels Worse", formalName: "Loss Aversion", summary: "The pain of losing something often influences us more than an equal gain would.", when: "You are keeping a poor choice mainly because changing feels like accepting a loss." },
+  { id: "sampling", name: "A Few Examples Prove Little", formalName: "Sampling", summary: "A conclusion is only as reliable as the number and variety of examples behind it.", when: "Reviews, complaints, surveys or personal stories are being used to make a broad claim." },
+  { id: "activation-energy", name: "Make Starting Easier", formalName: "Friction and Activation Energy", summary: "The first step often needs the most effort. Reduce small obstacles so useful action is easier to begin.", when: "You repeatedly intend to start a habit or task but delay at the same first step." },
+  { id: "diminishing-returns", name: "More Effort, Less Improvement", formalName: "Diminishing Returns", summary: "After the most useful work is done, each extra unit of effort may produce a smaller improvement.", when: "You need to decide whether to keep polishing one task or move effort somewhere more useful." },
+  { id: "social-proof", name: "Everyone Else Is Doing It", formalName: "Social Proof", summary: "Seeing other people choose something can feel like evidence that it is safe or correct, even when the crowd may be mistaken or invented.", when: "Popularity, urgency or claims about other buyers are pushing you to decide quickly." },
+  { id: "attribution-error", name: "Person or Situation?", formalName: "Fundamental Attribution Error", summary: "We often blame someone's character before checking whether their situation explains the behaviour.", when: "A person's mistake or delay tempts you to label them before asking what happened." },
+  { id: "action-bias", name: "Acting Is Not Always Helping", formalName: "Action Bias", summary: "Pressure can make any visible action feel better than waiting, checking or doing nothing.", when: "You feel forced to intervene before you know whether the action will improve the situation." },
+  { id: "working-backward", name: "Work Backwards", formalName: "Working Backward", summary: "Start with the required result and time, then identify the steps that must happen before it.", when: "Planning a journey, deadline, event or task with a fixed finishing point." },
+  { id: "scale", name: "Bigger Changes the Process", formalName: "Scale", summary: "A method that works for a few people may fail when the amount becomes much larger.", when: "A task, service or event is growing and simply multiplying the old plan may overload it." },
+  { id: "diversification", name: "Do Not Depend on One Thing", formalName: "Diversification", summary: "Spread important dependence across several sources so one failure cannot remove everything.", when: "Most of your income, supply, information or support comes from one place." },
+];
+
+/* One registry for every tag used by scored content. Frameworks and toolbox
+   models carry full lessons. Supporting skills give everyday challenge tags a
+   stable, readable name so progress never falls back to a raw code-like id. */
+const MTC_SUPPORTING_SKILLS = [
+  ["adaptation", "Change the Plan"], ["analogy", "Use a Helpful Comparison"],
+  ["attention-to-detail", "Check the Details"], ["boundary-setting", "Set a Clear Boundary"],
+  ["budgeting", "Plan the Money"], ["communication", "Communicate Clearly"],
+  ["constraint-thinking", "Work Within the Limits"], ["creative-problem-solving", "Find a Practical New Option"],
+  ["decision-making", "Make a Decision"], ["emotional-regulation", "Stay Calm Under Pressure"],
+  ["escalation", "Ask the Right Person for Help"], ["evidence-evaluation", "Weigh the Evidence"],
+  ["fairness", "Choose Fairly"], ["habit-building", "Build a Useful Habit"],
+  ["hazard-perception", "Notice a Developing Danger"], ["instruction-following", "Follow Safety Steps"],
+  ["instruction-reading", "Read the Instructions Carefully"], ["negotiation", "Make a Clear Request"],
+  ["numerical-reasoning", "Use the Numbers"], ["observation", "Observe Before Deciding"],
+  ["plain-language", "Use Plain Language"], ["policy-reading", "Apply the Written Rule"],
+  ["prioritisation", "Choose What Comes First"], ["privacy", "Protect Private Information"],
+  ["problem-solving", "Solve the Practical Problem"], ["process-design", "Design a Better Process"],
+  ["process-improvement", "Improve the Process"], ["professional-judgement", "Use Careful Work Judgment"],
+  ["questioning", "Ask What Matters"], ["reuse", "Reuse What Is Available"],
+  ["route-planning", "Plan a Safe Route"], ["safeguarding", "Protect Someone at Risk"],
+  ["situational-awareness", "Notice What Is Happening Around You"], ["source-checking", "Check the Source"],
+  ["trade-offs", "Balance the Trade-offs"], ["user-centred-design", "Design for the Person Using It"],
+  ["verification", "Check Before Trusting"],
+].map(([id, name]) => ({ id, name, kind: "Everyday skill" }));
+
+const MTC_SKILL_CATALOG = [
+  ...MTC_FRAMEWORKS.map((item) => ({ id: item.id, name: item.name, kind: "Framework" })),
+  ...MTC_TOOLBOX.map((item) => ({ id: item.id, name: item.name, kind: "Mental model" })),
+  ...MTC_SUPPORTING_SKILLS,
 ];
 
 /* ---------- Exercises for the daily quest ----------
@@ -1411,16 +1454,29 @@ const MTC_SKILL_TRACKS = MTC_MUSCLES;
 /* ---------- Workbench templates: apply a tool to your own problem ---------- */
 
 const MTC_TOOL_TEMPLATES = {
-  "ooda": ["OBSERVE — the raw facts, without interpretation:", "ORIENT — what do these facts mean, given my situation and biases?", "DECIDE — the option I'm choosing, and why now:", "ACT — first concrete step, and when I'll loop back to observe again:"],
+  "ooda": ["NOTICE — the raw facts, without guessing:", "UNDERSTAND — what might these facts mean?", "DECIDE — the option I am choosing, and why now:", "ACT — the first step, and when I will check what changed:"],
   "five-whys": ["The problem:", "Why? (1)", "Why? (2)", "Why? (3)", "Why? (4)", "Why? (5) — root cause:", "The fix my root cause implies:"],
   "premortem": ["The plan, in one sentence:", "It's 12 months later and it failed. Failure story 1:", "Failure story 2:", "Failure story 3:", "The check or change each story implies, starting now:"],
-  "mece": ["What I'm breaking down:", "My categories (no overlaps, nothing missing):", "Check — do any two categories overlap?", "Check — what real case fits none of them?"],
-  "cynefin": ["The situation:", "Is cause-and-effect obvious (Clear), analyzable (Complicated), only visible afterwards (Complex), or absent (Chaotic)?", "What response does that domain call for?", "What would tell me I've misclassified it?"],
+  "mece": ["What I am breaking down:", "My groups, with no overlap:", "What belongs in two groups? Fix the overlap:", "What belongs in no group? Fix the gap:"],
+  "cynefin": ["The situation:", "Is the answer known, does it need expertise, does it need a small test, or is it an immediate crisis?", "What response fits that type?", "What would show that I chose the wrong type?"],
   "decision-matrix": ["The decision:", "My options:", "My criteria, with rough weights:", "Scores per option:", "The winner — and does it FEEL wrong? If so, which criterion is missing?"],
   "inversion": ["My goal:", "How would I guarantee failure?", "Which of those failure-guarantees am I already doing, even a little?", "What I'll stop or change:"],
   "base-rates": ["What I'm estimating:", "The base rate — how often does this happen in general?", "What's genuinely specific about my case?", "My estimate, anchored on the base rate and adjusted:"],
-  "swot": ["The subject:", "Strengths (internal):", "Weaknesses (internal):", "Opportunities (external):", "Threats (external):", "The single most important cell, and what I'll do about it:"],
+  "map-territory": ["The plan, report or assumption I am using:", "What it says should be happening:", "What I can check in the real situation:", "What I will update if they differ:"],
+  "margin-of-safety": ["What could go wrong:", "The time, money or capacity I currently need:", "The extra buffer I will keep:", "What the buffer protects me from:"],
   "expected-value": ["The bet or choice:", "Possible outcomes, with rough probabilities:", "The value of each outcome:", "The expected-value math:", "Could any outcome ruin me regardless of the average?"],
   "feynman": ["The concept:", "My plain explanation (as if to a 12-year-old):", "Where I got stuck or reached for jargon:", "What I need to relearn to fill that gap:"],
   "occams-razor": ["The observation:", "The competing explanations:", "The assumptions each one needs:", "The simplest adequate explanation — and what evidence would overturn it:"],
+  "incentives": ["The behaviour I am seeing:", "What is rewarded or punished:", "How that reward may be shaping the behaviour:", "A better reward that matches the real goal:"],
+  "anchoring": ["The first number or suggestion I heard:", "The independent facts or comparisons:", "My judgment without the first number:", "My revised decision:"],
+  "loss-aversion": ["What I am afraid of losing:", "What keeping it will cost:", "What I would choose if I did not already own or expect it:", "My decision:"],
+  "sampling": ["The claim:", "How many examples support it:", "Who or what may be missing from the sample:", "What larger or fairer sample would help:"],
+  "activation-energy": ["What I want to start:", "The small obstacle at the first step:", "How I can remove or reduce it:", "The easiest useful first action:"],
+  "diminishing-returns": ["What I am improving:", "What the next hour or pound will add:", "Where that effort could help more:", "The point where I will stop:"],
+  "social-proof": ["What the crowd appears to be doing:", "Is that crowd real and independent?", "What facts matter without the crowd:", "My decision based on those facts:"],
+  "attribution-error": ["The behaviour I noticed:", "My first judgment about the person:", "Situations that could also explain it:", "What I will ask or check before judging:"],
+  "action-bias": ["The pressure I feel to act:", "What happens if I wait and check:", "What happens if I act now and I am wrong:", "The smallest safe next step:"],
+  "working-backward": ["The required result and finish time:", "The last step before that:", "The earlier steps in reverse order:", "The start time, including a buffer:"],
+  "scale": ["What works at the current size:", "What changes when the amount is ten times larger:", "The first part likely to fail:", "How the process must change:"],
+  "diversification": ["What I depend on:", "How much comes from one source:", "What happens if that source stops:", "A second source I can build before that happens:"],
 };

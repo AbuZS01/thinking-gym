@@ -173,6 +173,22 @@ const GYM = (() => {
     work: "Write down the facts, your priorities and the specific next step you want. This makes a difficult work conversation easier to handle.",
   };
   const LIFE_TIP_PRIORITY = ["safety", "scams", "health", "money", "relationships", "home", "study", "work"];
+  const MODEL_TOMORROW_TIPS = {
+    "map-territory": "Before trusting a list, report or plan, check one important detail against what is actually happening.",
+    incentives: "When a target produces strange behaviour, ask what it rewards and whether that reward matches the real goal.",
+    scale: "Before making a task much larger, find which limit in space, time, equipment or coordination will fail first.",
+    diversification: "Identify anything important that depends on one source and begin building one realistic backup.",
+    sampling: "When a few comments support a big claim, ask how many people were checked and who may be missing.",
+    anchoring: "For your next price or estimate, find an independent comparison before using the first number you were shown.",
+    "margin-of-safety": "Add a small time or money buffer to one plan where a modest surprise would otherwise cause serious trouble.",
+    "activation-energy": "Prepare the first step of one useful task in advance and move one easy distraction out of reach.",
+    "diminishing-returns": "Set a clear standard for one task, then move on when extra effort would add less value elsewhere.",
+    "social-proof": "When popularity pushes you to decide, check whether the crowd is real, independent and relevant.",
+    "attribution-error": "Before labelling someone, ask what situation or wider pattern could also explain the behaviour.",
+    "working-backward": "For your next fixed deadline, work backward through every required step and include a realistic buffer.",
+    "action-bias": "When pressure makes you want to change everything, confirm the problem and choose the smallest safe test.",
+    "loss-aversion": "Ask whether you would choose the same option today if you did not already own it or expect to keep it.",
+  };
 
   function tomorrowTip(ch) {
     if (ch.payload && ch.payload.creativity) {
@@ -182,7 +198,8 @@ const GYM = (() => {
       .filter((area) => (ch.lifeAreas || []).includes(area))
       .map((area) => LIFE_TIPS[area])
       .find(Boolean);
-    return ch.useTomorrow || areaTip || TOMORROW_TIPS[ch.muscle] || "Pause before your next decision, name what you know and choose one fact to check before acting.";
+    const modelTip = (ch.frameworks || []).map((model) => MODEL_TOMORROW_TIPS[model]).find(Boolean);
+    return ch.useTomorrow || modelTip || areaTip || TOMORROW_TIPS[ch.muscle] || "Pause before your next decision, name what you know and choose one fact to check before acting.";
   }
 
   /* ---------- board renderers ---------- */
