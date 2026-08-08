@@ -18,13 +18,31 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
   const bad = [];
   const hash = () => page.evaluate(() => location.hash);
 
+  // One "what next". The dashboard, the Challenges tab and the course used to each
+  // run their own recommendation, so the app answered the same question three ways.
+  const listed = async (h) => {
+    await page.evaluate((x) => { location.hash = x; }, h);
+    await page.waitForTimeout(400);
+    // The big button repeats whichever board is next, so count each one once.
+    return page.evaluate(() => [...new Set([...document.querySelectorAll('a[href*="#/gym/play/"]')]
+      .map((a) => a.getAttribute('href').split('/').pop()))]);
+  };
+  const onDash = await listed('#/dashboard');
+  const onGym = await listed('#/gym');
+  const queued = await page.evaluate(() => MTC.gymSession(MTC.loadState(), 3).map((c) => c.id));
+  if (onDash.join(',') !== queued.join(',')) bad.push(`the dashboard offers ${onDash} but today's practice is ${queued}`);
+  if (onGym.join(',') !== queued.join(',')) bad.push(`the Challenges tab offers ${onGym} but today's practice is ${queued}`);
+  const courseOrder = await page.evaluate(() => MTC.courseQueue(MTC.loadState()).slice(0, 3).map((c) => c.id));
+  if (queued.join(',') !== courseOrder.join(',')) bad.push(`today's practice ${queued} is not the next of the course ${courseOrder}`);
+  else console.log(`  one queue: dashboard, Challenges and the course all offer ${queued.join(', ')}`);
+
   // 1. The path screen, then the first node: the muscle's walk-through.
   await page.goto(BASE + '#/path'); await page.reload(); await page.waitForTimeout(400);
   const section = await page.evaluate(() => {
     const s = MTC.learningPath(MTC.loadState())[0];
-    return { muscle: s.muscle.id, nodes: s.nodes.map((n) => ({ id: n.id, kind: n.kind, href: n.href })) };
+    return { muscle: s.muscle.id, key: s.key, title: s.title, nodes: s.nodes.map((n) => ({ id: n.id, kind: n.kind, href: n.href })) };
   });
-  console.log(`  section 1: ${section.muscle} — ${section.nodes.map((n) => n.kind).join(' → ')}`);
+  console.log(`  section 1: ${section.title} — ${section.nodes.map((n) => n.kind).join(' → ')}`);
 
   const first = await page.evaluate(() => MTC.nextPathNode(MTC.loadState()).node);
   if (first.kind !== 'walkthrough') bad.push(`first node is ${first.kind}, expected walkthrough`);
@@ -115,11 +133,11 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
   }
 
   // 3. The review should now be unlocked, since every board was mastered.
-  const review = await page.evaluate((m) => {
-    const s = MTC.learningPath(MTC.loadState()).find((x) => x.muscle.id === m);
+  const review = await page.evaluate((k) => {
+    const s = MTC.learningPath(MTC.loadState()).find((x) => x.key === k);
     const r = s.nodes.find((n) => n.kind === 'review');
     return r ? { ready: !!r.ready, done: !!r.done } : null;
-  }, section.muscle);
+  }, section.key);
   if (!review) bad.push('the section has no review node');
   else if (!review.ready) bad.push('the review is still locked after mastering every challenge in the section');
   else console.log('  review unlocked after the section was mastered');

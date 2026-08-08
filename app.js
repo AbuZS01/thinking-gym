@@ -311,6 +311,10 @@ function dashboardHTML() {
   const next = session.find((c) => !STATE.gym[c.id] || STATE.gym[c.id].lastPlayed !== today) || session[0];
 
   const loop = MTC.commitmentStats(STATE);
+  // The course used to shout for attention from its own card while the daily mix
+  // shouted from another. There is one prompt now, and this is where it says it is.
+  const place = MTC.nextPathNode(STATE);
+  const coursePlace = place ? place.section.title : null;
   return `
   <div class="stat-strip">
     <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
@@ -330,7 +334,7 @@ function dashboardHTML() {
 
   ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
     <div class="daily-session-head">
-      <div><span class="tag">Today's practice${focus ? ` · ${esc(focus.name)}` : ""}</span><h2 id="daily-session-title">${completedToday === session.length ? "Practice complete" : `${session.length - completedToday} challenge${session.length - completedToday === 1 ? "" : "s"} left`}</h2></div>
+      <div><span class="tag">Today's practice${coursePlace ? ` · ${esc(coursePlace)}` : ""}</span><h2 id="daily-session-title">${completedToday === session.length ? "Practice complete" : `${session.length - completedToday} challenge${session.length - completedToday === 1 ? "" : "s"} left`}</h2></div>
       <div class="session-count" aria-label="${completedToday} of ${session.length} complete">${completedToday}<span>/${session.length}</span></div>
     </div>
     <div class="session-progress"><span style="width:${session.length ? Math.round(completedToday / session.length * 100) : 0}%"></span></div>
@@ -348,7 +352,7 @@ function dashboardHTML() {
   </section>` : ""}
 
   ${focus ? `<div class="section-head"><h2>Your chosen focus</h2><a href="#/gym">Change</a></div>
-  <a class="panel focus-card" href="#/gym/life/${focus.id}"><span class="focus-emoji" aria-hidden="true">${focus.emoji}</span><span><b>${esc(focus.name)}</b><small>${esc(focus.blurb)}</small></span><span class="chev" aria-hidden="true">&#8250;</span></a>` : ""}
+  <a class="panel focus-card" href="#/gym/life/${focus.id}"><span class="focus-emoji" aria-hidden="true">${focus.emoji}</span><span><b>${esc(focus.name)}</b><small>${esc(focus.blurb)} &middot; the course puts this area first in the sections you have not started.</small></span><span class="chev" aria-hidden="true">&#8250;</span></a>` : ""}
 
   <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
   <div class="grid tight">
@@ -361,7 +365,7 @@ function dashboardHTML() {
 
   <div class="section-head"><h2>Keep going</h2></div>
   <div class="panel">
-    <a class="list-row" href="#/path"><span class="ico">&#127891;</span><span class="label">The course</span><span class="val">${MTC.learningPath(STATE).filter((s) => s.complete).length}/6</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/path"><span class="ico">&#127891;</span><span class="label">The course</span><span class="val">${MTC.learningPath(STATE).filter((s) => s.complete).length}/${MTC.learningPath(STATE).length}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">Browse challenges</span><span class="val">${session.length} today</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
@@ -372,6 +376,7 @@ function dashboardHTML() {
 
 function challengesHTML() {
   const session = MTC.gymSession(STATE);
+  const place = MTC.nextPathNode(STATE);
   const muscles = MTC.muscleProgress(STATE);
   const replays = MTC.dueGymReplays(STATE).length;
   const quest = MTC.getOrCreateDailyQuest(STATE);
@@ -382,13 +387,12 @@ function challengesHTML() {
   const reviewLabel = review.due ? `${review.due} due` : review.fresh ? `${review.fresh} new` : "up to date";
 
   return `
-  ${MTC.nextPathNode(STATE) ? `<a class="panel path-nudge" href="#/path">
+  <div class="section-head"><h2>Today's practice</h2><span class="subtle">${session.length} challenges &middot; ~10 min</span></div>
+  ${place ? `<a class="panel path-nudge" href="#/path">
     <span class="emoji-badge">&#127891;</span>
-    <span><b>Following the course?</b><small>${esc(MTC.nextPathNode(STATE).node.title)} is next in ${esc(MTC.nextPathNode(STATE).section.muscle.name)}.</small></span>
+    <span><b>${esc(place.section.title)}</b><small>Today's challenges are the next ones in the course &mdash; ${place.section.nodes.filter((n) => n.kind === "challenge" && n.done).length} of ${place.section.nodes.filter((n) => n.kind === "challenge").length} in this section done.</small></span>
     <span class="chev">&#8250;</span>
   </a>` : ""}
-
-  <div class="section-head"><h2>Today's session</h2><span class="subtle">${session.length} challenges &middot; ~10 min</span></div>
   <div class="grid">
     ${session.map((c) => {
       const g = STATE.gym[c.id];
@@ -506,11 +510,12 @@ function progressHTML() {
     </a>`).join("")}
   </div>
 
-  <div class="section-head"><h2>What to practise next</h2></div>
+  <div class="section-head"><h2>Where you score lowest</h2></div>
   <div class="panel">
     ${weak.length === 0
-      ? `<p class="subtle">Complete a few challenges and we will suggest a useful next skill.</p>`
-      : weak.map((w) => `<div class="weak-row"><span class="name">${esc(w.name)}</span><div class="weak-meter"><div class="fill" style="width:${Math.round(w.avg)}%"></div></div><span class="subtle">${Math.round(w.avg)}%</span></div>`).join("")}
+      ? `<p class="subtle">Complete a few challenges and your weakest areas will show up here.</p>`
+      : `<p class="subtle" style="margin:0 0 12px">A read-out, not a to-do list &mdash; the course already brings these round again, and a section review queues the weakest boards first.</p>
+      ${weak.map((w) => `<div class="weak-row"><span class="name">${esc(w.name)}</span><div class="weak-meter"><div class="fill" style="width:${Math.round(w.avg)}%"></div></div><span class="subtle">${Math.round(w.avg)}%</span></div>`).join("")}`}
   </div>
 
   <div class="panel">
@@ -845,17 +850,30 @@ function pathHTML() {
   const next = MTC.nextPathNode(STATE);
   const sectionsDone = path.filter((s) => s.complete).length;
   const icon = { walkthrough: "\u{1F4D6}", challenge: "\u{1F9E9}", review: "\u{1F3CB}️" };
+  const boards = path.reduce((t, s) => t + s.nodes.filter((n) => n.kind === "challenge").length, 0);
+  const rounds = [...new Set(path.map((s) => s.round))];
+  // Thirty-three sections listed node by node is a page nobody scrolls. Everything up
+  // to where you are is open; what is still ahead is one line until you reach it.
+  const reached = next ? next.section.index : path.length;
   return `<div class="panel">
     <h2 class="page-title">The course</h2>
-    <p class="subtle">Six sections, one for each kind of thinking. Each opens with a short walk-through, then challenges, then a review that clears once every one of them is solid. Nothing is locked, so you can still browse and play anything.</p>
+    <p class="subtle">One section per kind of thinking, five challenges at a time. The first pass opens each one with a short walk-through; after that the course keeps going through the rest of the bank in the same rhythm &mdash; ${path.length} sections, all ${boards} challenges. Nothing is locked, so you can still browse and play anything.</p>
   </div>
   ${next
     ? `<div class="field"><a class="btn block" href="#/${next.node.href}">Continue: ${esc(next.node.title)} <span aria-hidden="true">&rarr;</span></a></div>`
     : `<div class="panel"><p class="subtle">Every section is complete. Replays keep them sharp.</p></div>`}
   <div class="section-head"><h2>Sections</h2><span class="subtle">${sectionsDone}/${path.length} complete</span></div>
-  ${path.map((s) => `<div class="panel path-section">
+  ${rounds.map((round) => `${round === 0 ? "" : `<p class="course-part">Part ${round + 1}</p>`}
+  ${path.filter((s) => s.round === round).map((s) => s.index > reached
+    ? `<a class="panel path-section ahead" href="#/${s.nodes[0].href}">
+        <div class="path-head">
+          <div><b>${s.index}. ${esc(s.title)}</b><p class="subtle" style="margin:2px 0 0">${s.nodes.filter((n) => n.kind === "challenge").length} challenges &middot; not started</p></div>
+          <div class="emoji-badge">${s.muscle.emoji}</div>
+        </div>
+      </a>`
+    : `<div class="panel path-section">
     <div class="path-head">
-      <div><b>${s.index}. ${esc(s.muscle.name)}</b><p class="subtle" style="margin:2px 0 0">${s.done}/${s.total} done &middot; ${esc(s.muscle.blurb)}</p></div>
+      <div><b>${s.index}. ${esc(s.title)}</b><p class="subtle" style="margin:2px 0 0">${s.done}/${s.total} done &middot; ${esc(s.muscle.blurb)}</p></div>
       <div class="emoji-badge">${s.muscle.emoji}</div>
     </div>
     <div class="path-nodes">
@@ -868,21 +886,22 @@ function pathHTML() {
           : `<a class="path-node" href="#/${n.href}">${inner}<span class="chev">&#8250;</span></a>`;
       }).join("")}
     </div>
-  </div>`).join("")}`;
+  </div>`).join("")}`).join("")}`;
 }
 
 // The section review. Weakest first, and it only clears when every challenge in
 // the section is genuinely solid, so it is a mastery gate rather than a lap.
-function sectionReviewHTML(muscleId) {
+function sectionReviewHTML(muscleId, round) {
   const muscle = MTC_MUSCLES.find((m) => m.id === muscleId);
   if (!muscle) return `<div class="panel"><p>Section not found.</p><a class="btn" href="#/path">The course</a></div>`;
-  const all = MTC.sectionChallenges(muscleId);
-  const queue = MTC.sectionReviewQueue(STATE, muscleId);
+  const section = MTC.learningPath(STATE).find((s) => s.key === `${muscleId}:${round}`);
+  const all = MTC.sectionChallenges(STATE, muscleId, round);
+  const queue = MTC.sectionReviewQueue(STATE, muscleId, round);
   const solid = all.length - queue.length;
   return `<div class="panel">
     <div class="level-hero">
       <div class="emoji-badge">${muscle.emoji}</div>
-      <div><h2 class="page-title" style="font-size:20px">${esc(muscle.name)} review</h2><p class="subtle" style="margin:2px 0 0">${solid} of ${all.length} at 80% or better</p></div>
+      <div><h2 class="page-title" style="font-size:20px">${esc(section ? section.title : muscle.name)} review</h2><p class="subtle" style="margin:2px 0 0">${solid} of ${all.length} at 80% or better</p></div>
     </div>
     <div class="progress" style="margin-top:12px"><div class="fill" style="width:${all.length ? Math.round((solid / all.length) * 100) : 0}%"></div></div>
   </div>
@@ -1322,7 +1341,7 @@ function render() {
   else if (r.startsWith("gym/learn/")) { const [, , kind, id, resumeId] = r.split("/"); body = walkthroughHTML(kind, id, resumeId); }
   else if (r === "guides") body = guidesHTML();
   else if (r === "path") body = pathHTML();
-  else if (r.startsWith("path/review/")) body = sectionReviewHTML(r.split("/")[2]);
+  else if (r.startsWith("path/review/")) { const [, , m, round] = r.split("/"); body = sectionReviewHTML(m, Number(round) || 0); }
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();
   else if (r === "review") body = reviewHTML();
@@ -1406,7 +1425,7 @@ document.addEventListener("click", (e) => {
     // a format guide read from the library returns to the library.
     if (resume) { navigate(`gym/play/${resume}`); return; }
     if (kind === "muscle") {
-      const next = MTC.nextNodeInSection(STATE, id, id);
+      const next = MTC.nextNodeInSection(STATE, `${id}:0`, id);
       navigate(next ? next.href : "path");
       return;
     }
@@ -1417,7 +1436,8 @@ document.addEventListener("click", (e) => {
   const lifeFocusButton = e.target.closest("[data-set-life-focus]");
   if (lifeFocusButton) {
     STATE.lifeFocus = lifeFocusButton.dataset.setLifeFocus;
-    // Choosing a new focus is an intentional request for a different daily mix.
+    // Choosing a new focus is an intentional request for a different mix. It re-plans
+    // the course sections not yet started; the ones already under way stay put.
     STATE.dailyGymSession = null;
     MTC.saveState(STATE);
     render();

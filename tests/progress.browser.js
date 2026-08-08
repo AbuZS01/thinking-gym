@@ -16,7 +16,7 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('mtc_state_v1'));
     s.seenWalkthroughs = { muscle: MTC_MUSCLES.map((m) => m.id), format: Object.keys(MTC_GYM_FORMATS) };
-    const ids = MTC.sectionChallenges('notice').map((c) => c.id);
+    const ids = MTC.sectionChallenges(MTC.loadState(), 'notice', 0).map((c) => c.id);
     s.gym = {};
     ids.slice(0, 3).forEach((id) => { s.gym[id] = { plays: 1, bestScore: 95, lastScore: 95, lastPlayed: MTC.todayStr() }; });
     s.gym[ids[3]] = { plays: 1, bestScore: 60, lastScore: 60, lastPlayed: MTC.todayStr() };

@@ -198,11 +198,28 @@ assert.equal(state.gym[challenge.id].plays, 1, "editing a note must not change p
 
 state.lifeFocus = "safety";
 state.dailyGymSession = null;
-const focusedSession = MTC.gymSession(state, 3);
-assert.ok(focusedSession.every((item) => item.lifeAreas.includes("safety") || state.gym[item.id]?.due <= MTC.todayStr()), "daily session should prefer the chosen life area");
-const focusedIds = focusedSession.map((item) => item.id);
+const focusedIds = MTC.gymSession(state, 3).map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
-assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
+assert.equal(MTC.gymSession(state, 3).map((item) => item.id).join(","), focusedIds.join(","), "today's practice must stay stable after a challenge is completed");
+
+// A life focus used to filter the daily mix. Now that today's practice IS the course,
+// it steers the course instead: sections not yet started put that area first, and a
+// section already under way is left exactly as it was, so nobody's place moves.
+const focusState = MTC.loadState();
+focusState.gym = {};
+focusState.course = null;
+focusState.lifeFocus = null;
+const noticeBefore = MTC.sectionChallenges(focusState, "notice", 0).map((c) => c.id);
+const judgeLocked = MTC.sectionChallenges(focusState, "judge", 0).map((c) => c.id);
+MTC.submitGymChallenge(focusState, judgeLocked[0], 90, "");
+focusState.lifeFocus = "safety";
+assert.equal(MTC.sectionChallenges(focusState, "judge", 0).map((c) => c.id).join(","), judgeLocked.join(","),
+  "a section already under way must not be re-planned when the focus changes");
+const noticeAfter = MTC.sectionChallenges(focusState, "notice", 0);
+assert.notEqual(noticeAfter.map((c) => c.id).join(","), noticeBefore.join(","),
+  "a section not yet started is re-planned around the new focus");
+assert.ok(noticeAfter.every((c) => c.lifeAreas.includes("safety")),
+  `the re-planned section should be all safety scenarios, got ${noticeAfter.map((c) => c.lifeAreas.join("/")).join(" | ")}`);
 
 // The library. Challenges have been held to plain, globally readable English for a
 // while; the Toolbox and Frameworks never were, and it showed. The example field was
@@ -238,20 +255,62 @@ for (const t of toolbox) {
 // The course. Sections are derived from the muscles, so they cannot drift from the
 // content bank, but they can drift into sameness: sorting on difficulty alone gave
 // Notice five Work It Outs in a row, which is the repetition a section should avoid.
+// It used to stop at thirty challenges -- a fifth of the bank -- and now walks all of
+// them in the same five-board rhythm.
 const pathState = MTC.loadState();
+pathState.gym = {};
+pathState.course = null;
+pathState.lifeFocus = null;
 const course = MTC.learningPath(pathState);
-assert.equal(course.length, muscles.length, "one section per muscle");
+const courseBoards = course.flatMap((s) => s.nodes.filter((n) => n.kind === "challenge").map((n) => n.id));
+assert.equal(courseBoards.length, challenges.length, "the course must reach every challenge in the bank");
+assert.equal(new Set(courseBoards).size, courseBoards.length, "and must not serve any of them twice");
+assert.equal(course.filter((s) => s.round === 0).length, muscles.length, "the first pass is one section per muscle");
+// The passes interleave: all six muscles, then round again. Six Judge sections back
+// to back would be the sameness problem one level up.
+assert.equal(course.slice(0, muscles.length).map((s) => s.muscle.id).join(","), muscles.map((m) => m.id).join(","),
+  "the first pass covers every muscle before any of them comes round again");
 for (const section of course) {
   const kinds = section.nodes.map((node) => node.kind);
-  assert.equal(kinds[0], "walkthrough", `${section.muscle.id}: a section opens with its walk-through`);
-  assert.equal(kinds[kinds.length - 1], "review", `${section.muscle.id}: and ends with its review`);
-  const picks = MTC.sectionChallenges(section.muscle.id);
-  assert.ok(picks.length >= 3, `${section.muscle.id}: a section needs challenges`);
-  const used = new Set(picks.map((c) => c.format)).size;
-  assert.equal(used, picks.length, `${section.muscle.id}: every challenge in a section must use a different board, but ${picks.length - used} repeat`);
+  assert.equal(kinds[0], section.round === 0 ? "walkthrough" : "challenge",
+    `${section.key}: only the first section of a muscle opens with its walk-through`);
+  assert.equal(kinds[kinds.length - 1], "review", `${section.key}: every section ends with its review`);
+  const picks = MTC.sectionChallenges(pathState, section.muscle.id, section.round);
+  assert.ok(picks.length >= 1 && picks.length <= 5, `${section.key}: a section holds up to five boards`);
+  assert.ok(picks.every((c) => c.muscle === section.muscle.id), `${section.key}: a section only holds its own muscle`);
   assert.ok(section.nodes.find((n) => n.kind === "review").ready === false, "the review waits until the challenges are played");
 }
+// Format variety is what the five-board rhythm is for. The first section of a muscle
+// is where the formats are introduced, so it gets one of each. Later sections cannot
+// manage five distinct -- Notice is 20 Work It Outs out of 32 -- but they must not
+// collapse into one board shape either, which is what filling sections in order did.
+for (const section of course.filter((s) => s.round === 0)) {
+  const picks = MTC.sectionChallenges(pathState, section.muscle.id, 0);
+  const used = new Set(picks.map((c) => c.format)).size;
+  assert.equal(used, picks.length, `${section.key}: the first section of a muscle introduces one of each format, but ${picks.length - used} repeat`);
+}
+for (const section of course.filter((s) => s.round > 0)) {
+  const picks = MTC.sectionChallenges(pathState, section.muscle.id, section.round);
+  if (picks.length < 5) continue; // the last section of a muscle is the remainder
+  const counts = {};
+  for (const c of picks) counts[c.format] = (counts[c.format] || 0) + 1;
+  assert.ok(Object.keys(counts).length >= 2, `${section.key}: a full section of one board shape is the sameness sections exist to avoid`);
+  assert.ok(Math.max(...Object.values(counts)) <= 4, `${section.key}: ${JSON.stringify(counts)} leans too hard on one board`);
+}
 assert.ok(MTC.nextPathNode(pathState).node.kind === "walkthrough", "a new player is pointed at the first walk-through");
+
+// One queue. Today's practice used to be ranked by its own rules while the course
+// was walked separately, so over sixty days the mix served a board the course also
+// owned on 33 of them -- the same challenge behind two prompts, counted twice.
+const oneQueue = MTC.loadState();
+oneQueue.gym = {};
+oneQueue.course = null;
+oneQueue.lifeFocus = null;
+oneQueue.dailyGymSession = null;
+const todayIds = MTC.gymSession(oneQueue, 3).map((c) => c.id);
+const queueIds = MTC.courseQueue(oneQueue).slice(0, 3).map((c) => c.id);
+assert.equal(todayIds.join(","), queueIds.join(","), "today's practice is the next three boards the course teaches");
+assert.equal(new Set(todayIds).size, 3, "and never serves the same board twice in one day");
 
 // Progress must not fall when the library grows. It used to be measured against
 // every challenge carrying the muscle, so adding sixteen challenges moved a player
@@ -282,17 +341,16 @@ flowState.seenWalkthroughs = { muscle: [], format: [] };
 const firstNode = MTC.nextPathNode(flowState).node;
 assert.equal(firstNode.kind, "walkthrough", "a new player starts at the first walk-through");
 MTC.markWalkthroughSeen(flowState, "muscle", "notice");
-const afterGuide = MTC.nextNodeInSection(flowState, "notice", "notice");
+const afterGuide = MTC.nextNodeInSection(flowState, "notice:0", "notice");
 assert.ok(afterGuide && afterGuide.kind === "challenge", "finishing the guide leads into the section's first challenge, not back to a list");
-const sectionIds = MTC.sectionChallenges("notice").map((c) => c.id);
+const sectionIds = MTC.sectionChallenges(flowState, "notice", 0).map((c) => c.id);
 for (const id of sectionIds.slice(0, 2)) flowState.gym[id] = { plays: 1, bestScore: 90, lastScore: 90, lastPlayed: MTC.todayStr() };
-const afterTwo = MTC.nextNodeInSection(flowState, "notice", sectionIds[1]);
+const afterTwo = MTC.nextNodeInSection(flowState, "notice:0", sectionIds[1]);
 assert.equal(afterTwo.id, sectionIds[2], "each challenge leads to the next one in the same section");
-assert.ok(MTC.courseSectionFor(sectionIds[0]) === "notice", "a course challenge knows which section it belongs to");
-const courseIds = new Set(muscles.flatMap((m) => MTC.sectionChallenges(m.id).map((c) => c.id)));
-const offCourse = challenges.find((c) => !courseIds.has(c.id));
-assert.ok(offCourse, "the library must hold more than the course, or the library tab has nothing to offer");
-assert.equal(MTC.courseSectionFor(offCourse.id), null, "a challenge outside the course reports no section");
+assert.equal((MTC.courseSectionFor(flowState, sectionIds[0]) || {}).key, "notice:0", "a course challenge knows which section it belongs to");
+for (const c of challenges) {
+  assert.ok(MTC.courseSectionFor(flowState, c.id), `${c.id}: every challenge belongs to a section now that the course covers the bank`);
+}
 
 // The section review exists to close gaps. Finish the last board with one still weak
 // and the review must be what comes next; finish with all of them solid and there is
@@ -301,11 +359,11 @@ const gapState = MTC.loadState();
 gapState.gym = {};
 for (const id of sectionIds) gapState.gym[id] = { plays: 1, bestScore: 90, lastScore: 90, lastPlayed: MTC.todayStr() };
 gapState.gym[sectionIds[1]].bestScore = 50;
-const afterLastWithGap = MTC.nextNodeInSection(gapState, "notice", sectionIds[sectionIds.length - 1]);
+const afterLastWithGap = MTC.nextNodeInSection(gapState, "notice:0", sectionIds[sectionIds.length - 1]);
 assert.equal(afterLastWithGap && afterLastWithGap.kind, "review", "a section finished with a weak board leads to its review");
-assert.equal(MTC.sectionReviewQueue(gapState, "notice").map((c) => c.id).join(","), sectionIds[1], "the review queues exactly the board that is short of mastery");
+assert.equal(MTC.sectionReviewQueue(gapState, "notice", 0).map((c) => c.id).join(","), sectionIds[1], "the review queues exactly the board that is short of mastery");
 gapState.gym[sectionIds[1]].bestScore = 90;
-assert.equal(MTC.nextNodeInSection(gapState, "notice", sectionIds[sectionIds.length - 1]), null, "a fully mastered section has nothing left to review");
+assert.equal(MTC.nextNodeInSection(gapState, "notice:0", sectionIds[sectionIds.length - 1]), null, "a fully mastered section has nothing left to review");
 
 // Closing the loop. The app's whole claim to reach real life rests on this, and the
 // half that matters happens a day later, so the behaviour has to survive a reload

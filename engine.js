@@ -636,6 +636,12 @@ const MTC = (() => {
   // Ties break on a date-seeded key so the trio is stable through the day but
   // differs day to day, and formats are kept varied so you never get three of
   // the same game in a row.
+  // Today's practice IS the course. There used to be two queues -- a daily mix
+  // ranked by its own rules and a course walked separately -- and over sixty days
+  // the mix served a board the course also owned on 33 of them. Two doors to the
+  // same room, each with its own "what next" prompt, and progress that counted
+  // twice. One queue now: anything due for replay first, then the next boards the
+  // course teaches, in its order.
   function gymSession(state, size = 3) {
     const today = todayStr();
     const focus = MTC_GYM_LIFE_AREAS.some((area) => area.id === state.lifeFocus) ? state.lifeFocus : null;
@@ -644,44 +650,39 @@ const MTC = (() => {
       const restored = cached.ids.map(getGymChallenge).filter(Boolean);
       if (restored.length === size) return restored;
     }
-    // FNV-1a, but with the date FIRST and a final avalanche. Both matter: hashing
-    // "id" + "date" puts the only varying bytes last, where they shift the high
-    // bits too little to reorder the sort — which froze the daily pick to the same
-    // handful of challenges for days at a time.
-    const seed = (s) => {
-      let h = 2166136261;
-      const str = today + "|" + s;
-      for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-      h ^= h >>> 16; h = Math.imul(h, 2246822507);
-      h ^= h >>> 13; h = Math.imul(h, 3266489909);
-      h ^= h >>> 16;
-      return (h >>> 0) / 4294967295;
-    };
-    const ranked = MTC_GYM_CHALLENGES.map((c) => {
-      const g = state.gym[c.id];
-      let rank;
-      if (g && g.due && g.due <= today) rank = 0;      // due for replay
-      else if (!g) rank = 1;                            // never played
-      else rank = 2 + g.bestScore / 100;                // weakest first
-      const focusRank = focus && c.lifeAreas.includes(focus) ? 0 : 1;
-      const dueRank = rank === 0 ? 0 : 1;
-      return { c, rank, dueRank, focusRank, key: seed(c.id) };
-    }).sort((a, b) => a.dueRank - b.dueRank || a.focusRank - b.focusRank || a.rank - b.rank || a.key - b.key);
 
     const picked = [];
     const formats = new Set();
-    for (const r of ranked) {
-      if (picked.length >= size) break;
-      // Relevance beats format variety when the user has chosen a life focus.
-      // Some areas currently have several strong scenarios in the same format.
-      if (formats.has(r.c.format) && !(focus && r.c.lifeAreas.includes(focus))) continue;
-      picked.push(r.c);
-      formats.add(r.c.format);
+    const add = (c) => { picked.push(c); formats.add(c.format); };
+
+    // At most one replay a day. Spaced repetition earns its slot, but three of them
+    // would stall the course for someone who has been away.
+    const due = dueGymReplays(state)
+      .sort((a, b) => (state.gym[a.id].due < state.gym[b.id].due ? -1 : 1));
+    if (due.length) add(due[0]);
+
+    // Course order, with a short lookahead so the day is not three of the same
+    // board shape. It never reaches past the section you are in.
+    const queue = courseQueue(state);
+    while (picked.length < size && queue.length) {
+      let i = queue.findIndex((c, idx) => idx < 4 && !formats.has(c.format));
+      if (i < 0) i = 0;
+      const [next] = queue.splice(i, 1);
+      if (!picked.some((c) => c.id === next.id)) add(next);
     }
-    for (const r of ranked) {                            // top up if formats ran out
-      if (picked.length >= size) break;
-      if (!picked.includes(r.c)) picked.push(r.c);
+
+    // The course has run out of unplayed boards: fall back to the weakest work.
+    if (picked.length < size) {
+      const rest = MTC_GYM_CHALLENGES
+        .filter((c) => !picked.some((p) => p.id === c.id))
+        .sort((a, b) => ((state.gym[a.id] || {}).bestScore || 0) - ((state.gym[b.id] || {}).bestScore || 0));
+      for (const c of rest) {
+        if (picked.length >= size) break;
+        if (formats.has(c.format) && rest.some((x) => !formats.has(x.format) && !picked.includes(x))) continue;
+        add(c);
+      }
     }
+
     state.dailyGymSession = { date: today, size, focus, ids: picked.map((challenge) => challenge.id) };
     saveState(state);
     return picked;
@@ -719,12 +720,17 @@ const MTC = (() => {
   // course section, which has a fixed size. The size of the library is reported
   // separately, as a library, rather than as a denominator you are failing against.
   function muscleProgress(state) {
+    const path = learningPath(state);
     return MTC_MUSCLES.map((t) => {
       const all = gymChallengesForMuscle(t.id);
       const played = all.filter((c) => state.gym[c.id]);
       const mastered = played.filter((c) => state.gym[c.id].bestScore >= PATH_MASTERY);
-      const section = sectionChallenges(t.id);
-      const sectionDone = section.filter((c) => ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY);
+      // The course section this muscle is actually on, not its first one: "3/5" has
+      // to mean the part you are working through, or it stalls at 5/5 forever.
+      const mine = path.filter((s) => s.muscle.id === t.id);
+      const section = mine.find((s) => !s.complete) || mine[mine.length - 1] || null;
+      const boards = section ? section.nodes.filter((n) => n.kind === "challenge") : [];
+      const sectionDone = boards.filter((n) => ((state.gym[n.id] || {}).bestScore || 0) >= PATH_MASTERY);
       const avg = played.length
         ? Math.round(played.reduce((s, c) => s + state.gym[c.id].bestScore, 0) / played.length)
         : null;
@@ -736,9 +742,10 @@ const MTC = (() => {
         mastered: mastered.length,
         avgBest: avg,
         pct: played.length ? Math.round((mastered.length / played.length) * 100) : 0,
-        sectionTotal: section.length,
+        sectionTitle: section ? section.title : t.name,
+        sectionTotal: boards.length,
         sectionDone: sectionDone.length,
-        sectionPct: section.length ? Math.round((sectionDone.length / section.length) * 100) : 0,
+        sectionPct: boards.length ? Math.round((sectionDone.length / boards.length) * 100) : 0,
       };
     });
   }
@@ -912,62 +919,180 @@ const MTC = (() => {
   const PATH_SECTION_SIZE = 5;
   const PATH_MASTERY = 80;
 
-  // Easiest first, but never the same board twice while another is available.
-  // Sorting on difficulty alone handed Notice five Work It Outs in a row, because
-  // the everyday rewrites are all difficulty 1 and all that format — which is the
-  // sameness a section is supposed to avoid.
-  function sectionChallenges(muscleId) {
-    const pool = gymChallengesForMuscle(muscleId)
-      .slice()
-      .sort((a, b) => a.difficulty - b.difficulty || (a.id < b.id ? -1 : 1));
-    const picked = [];
-    const used = new Set();
-    while (picked.length < PATH_SECTION_SIZE && picked.length < pool.length) {
-      const next = pool.find((c) => !picked.includes(c) && !used.has(c.format))
-        || pool.find((c) => !picked.includes(c));
-      if (!next) break;
-      picked.push(next);
-      used.add(next.format);
-      if (used.size >= new Set(pool.map((c) => c.format)).size) used.clear();
+  // The order the course walks one muscle's whole library in: easiest first,
+  // rotating formats so no run of five is the same board shape, and -- when a life
+  // focus is set -- that area's scenarios ahead of the rest. Sorting on difficulty
+  // alone handed Notice five Work It Outs in a row, because the everyday rewrites
+  // are all difficulty 1 and all that format, which is the sameness a section
+  // exists to avoid.
+  // Deal a muscle's library into five-board sections, scarcest format first and
+  // round-robin across sections, so the rare boards are spread instead of spent in
+  // the first section. Notice is 20 Work It Outs out of 32: filling sections in
+  // order gave the first one all five formats and the last four nothing but Work
+  // It Out, which is the sameness a section exists to avoid, just later on.
+  function dealIntoSections(pool, sections, cursor) {
+    const byFormat = new Map();
+    for (const c of pool.slice().sort((a, b) => a.difficulty - b.difficulty || (a.id < b.id ? -1 : 1))) {
+      if (!byFormat.has(c.format)) byFormat.set(c.format, []);
+      byFormat.get(c.format).push(c);
     }
-    return picked;
+    const order = [...byFormat.values()].sort((a, b) => a.length - b.length);
+    let at = cursor;
+    for (const bucket of order) {
+      for (const c of bucket) {
+        let tries = 0;
+        while (sections[at % sections.length].length >= PATH_SECTION_SIZE && tries++ <= sections.length) at++;
+        sections[at % sections.length].push(c);
+        at++;
+      }
+    }
+    return at;
+  }
+
+  function muscleSections(muscleId, focus) {
+    const pool = gymChallengesForMuscle(muscleId);
+    const count = Math.ceil(pool.length / PATH_SECTION_SIZE) || 0;
+    const sections = Array.from({ length: count }, () => []);
+    if (!count) return sections;
+    // A chosen life area goes first, so the sections you have not started are the
+    // ones about the thing you said you wanted help with.
+    const matches = focus ? pool.filter((c) => (c.lifeAreas || []).includes(focus)) : pool;
+    const rest = focus ? pool.filter((c) => !(c.lifeAreas || []).includes(focus)) : [];
+
+    // The first section of a muscle is the one a new player meets, and it is where
+    // the five formats are introduced, so it gets one of each before anything else
+    // is dealt. Spreading alone put three Work It Outs in it.
+    const seedFrom = (matches.length >= PATH_SECTION_SIZE ? matches : pool)
+      .slice().sort((a, b) => a.difficulty - b.difficulty || (a.id < b.id ? -1 : 1));
+    const seeded = new Set();
+    const seed = (freshFormatOnly) => {
+      for (const c of seedFrom) {
+        if (sections[0].length >= PATH_SECTION_SIZE) return;
+        if (seeded.has(c.id)) continue;
+        if (freshFormatOnly && sections[0].some((x) => x.format === c.format)) continue;
+        sections[0].push(c);
+        seeded.add(c.id);
+      }
+    };
+    seed(true);   // one of each format first
+    seed(false);  // then top up from the same group, rather than diluting a chosen focus
+    const cursor = dealIntoSections(matches.filter((c) => !seeded.has(c.id)), sections, 1);
+    if (rest.length) dealIntoSections(rest.filter((c) => !seeded.has(c.id)), sections, cursor);
+    // Easiest first inside a section: the ramp is the point of the five.
+    return sections.map((sec) => sec.sort((a, b) => a.difficulty - b.difficulty || (a.id < b.id ? -1 : 1)));
+  }
+
+  function sectionKey(muscleId, round) { return muscleId + ":" + round; }
+
+  // The course used to stop at thirty challenges -- five per muscle, a fifth of the
+  // bank -- and everything else could only be found by browsing. It now walks the
+  // whole library in the same five-board rhythm: Notice, Judge, ... then Notice
+  // Part 2, and so on, so there is always a next thing and it is always taught in
+  // the order the sections established.
+  //
+  // The plan is stored rather than recomputed on every read, because it must not
+  // move under someone mid-way. Changing your life focus re-plans the sections you
+  // have not started yet and leaves the ones you have exactly as they were.
+  function coursePlan(state) {
+    const focus = MTC_GYM_LIFE_AREAS.some((area) => area.id === state.lifeFocus) ? state.lifeFocus : null;
+    const saved = (state.course && state.course.plan) || {};
+    const plan = {};
+    for (const muscle of MTC_MUSCLES) {
+      const kept = [];
+      for (let r = 0; saved[sectionKey(muscle.id, r)]; r++) {
+        const ids = saved[sectionKey(muscle.id, r)].filter(getGymChallenge);
+        if (ids.some((id) => state.gym[id])) kept[r] = ids;
+      }
+      const locked = new Set(kept.filter(Boolean).flat());
+      const free = muscleSections(muscle.id, focus)
+        .map((sec) => sec.map((c) => c.id).filter((id) => !locked.has(id)))
+        .filter((ids) => ids.length);
+      let round = 0;
+      for (const ids of free) {
+        while (kept[round]) round++;
+        plan[sectionKey(muscle.id, round)] = ids;
+        round++;
+      }
+      kept.forEach((ids, r) => { if (ids) plan[sectionKey(muscle.id, r)] = ids; });
+    }
+    return plan;
+  }
+
+  // Read-and-write, deliberately: the point of the plan is that it stays put, so the
+  // first read of a new one is also when it is committed.
+  function ensureCoursePlan(state) {
+    const plan = coursePlan(state);
+    const before = JSON.stringify((state.course || {}).plan || null);
+    if (JSON.stringify(plan) !== before) {
+      state.course = { plan };
+      saveState(state);
+    }
+    return plan;
+  }
+
+  function sectionChallenges(state, muscleId, round = 0) {
+    const ids = ensureCoursePlan(state)[sectionKey(muscleId, round)] || [];
+    return ids.map(getGymChallenge).filter(Boolean);
   }
 
   // Weakest first: a review exists to close gaps, not to replay what already works.
-  function sectionReviewQueue(state, muscleId) {
-    return sectionChallenges(muscleId)
-      .filter((c) => (state.gym[c.id] || {}).bestScore < PATH_MASTERY)
+  function sectionReviewQueue(state, muscleId, round = 0) {
+    return sectionChallenges(state, muscleId, round)
+      .filter((c) => ((state.gym[c.id] || {}).bestScore || 0) < PATH_MASTERY)
       .sort((a, b) => ((state.gym[a.id] || {}).bestScore || 0) - ((state.gym[b.id] || {}).bestScore || 0));
   }
 
-  function learningPath(state) {
-    return MTC_MUSCLES.map((muscle, i) => {
-      const picks = sectionChallenges(muscle.id);
-      const mastered = picks.filter((c) => ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY);
-      const nodes = [
-        {
-          kind: "walkthrough", id: muscle.id, title: muscle.name, subtitle: "Walk-through",
-          href: `gym/learn/muscle/${muscle.id}`,
-          done: hasSeenWalkthrough(state, "muscle", muscle.id),
-        },
-        ...picks.map((c) => ({
-          kind: "challenge", id: c.id, title: c.title,
-          subtitle: (MTC_GYM_FORMATS[c.format] || {}).name || c.format,
-          href: `gym/play/${c.id}`,
-          done: Boolean(state.gym[c.id]),
-          strong: ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY,
-        })),
-        {
-          kind: "review", id: muscle.id, title: "Section review",
-          subtitle: `${mastered.length}/${picks.length} at ${PATH_MASTERY}%+`,
-          href: `path/review/${muscle.id}`,
-          done: picks.length > 0 && mastered.length === picks.length,
-          ready: picks.length > 0 && picks.every((c) => state.gym[c.id]),
-        },
-      ];
-      const done = nodes.filter((n) => n.done).length;
-      return { index: i + 1, muscle, nodes, done, total: nodes.length, complete: done === nodes.length };
+  function buildSection(state, muscle, round, picks, index) {
+    const mastered = picks.filter((c) => ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY);
+    const title = round === 0 ? muscle.name : `${muscle.name} \u00b7 Part ${round + 1}`;
+    const nodes = [];
+    // The guide is a one-off. Part 2 of a muscle is more practice, not a re-teach.
+    if (round === 0) {
+      nodes.push({
+        kind: "walkthrough", id: muscle.id, title: muscle.name, subtitle: "Walk-through",
+        href: `gym/learn/muscle/${muscle.id}`,
+        done: hasSeenWalkthrough(state, "muscle", muscle.id),
+      });
+    }
+    for (const c of picks) {
+      nodes.push({
+        kind: "challenge", id: c.id, title: c.title,
+        subtitle: (MTC_GYM_FORMATS[c.format] || {}).name || c.format,
+        href: `gym/play/${c.id}`,
+        done: Boolean(state.gym[c.id]),
+        strong: ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY,
+      });
+    }
+    nodes.push({
+      kind: "review", id: sectionKey(muscle.id, round), title: "Section review",
+      subtitle: `${mastered.length}/${picks.length} at ${PATH_MASTERY}%+`,
+      href: `path/review/${muscle.id}/${round}`,
+      done: picks.length > 0 && mastered.length === picks.length,
+      ready: picks.length > 0 && picks.every((c) => state.gym[c.id]),
     });
+    const done = nodes.filter((n) => n.done).length;
+    return {
+      index, round, key: sectionKey(muscle.id, round), muscle, title,
+      nodes, done, total: nodes.length, complete: done === nodes.length,
+    };
+  }
+
+  // Sections are interleaved by round, so the first pass covers all six muscles
+  // before any of them comes round again. Six Judge sections back to back would be
+  // the sameness problem all over, one level up.
+  function learningPath(state) {
+    const plan = ensureCoursePlan(state);
+    const rounds = Math.max(...MTC_MUSCLES.map((m) =>
+      Object.keys(plan).filter((k) => k.startsWith(m.id + ":")).length));
+    const sections = [];
+    for (let r = 0; r < rounds; r++) {
+      for (const muscle of MTC_MUSCLES) {
+        const ids = plan[sectionKey(muscle.id, r)];
+        if (!ids || !ids.length) continue;
+        sections.push(buildSection(state, muscle, r, ids.map(getGymChallenge).filter(Boolean), sections.length + 1));
+      }
+    }
+    return sections;
   }
 
   // Finishing a node used to return you to the course list, where you had to find
@@ -975,19 +1100,28 @@ const MTC = (() => {
   // stopped the path feeling like one. This is what carries you on instead: the
   // next unfinished node in the SAME section, so a section is completed in one go
   // rather than bouncing through an index between every step.
-  function nextNodeInSection(state, muscleId, afterId) {
-    const section = learningPath(state).find((s) => s.muscle.id === muscleId);
+  function nextNodeInSection(state, key, afterId) {
+    const section = learningPath(state).find((s) => s.key === key);
     if (!section) return null;
     const from = afterId ? section.nodes.findIndex((n) => n.id === afterId) : -1;
     const rest = section.nodes.slice(from + 1);
     return rest.find((n) => !n.done && (n.kind !== "review" || n.ready)) || null;
   }
 
-  // The section a challenge belongs to, if the course reaches it at all.
-  function courseSectionFor(challengeId) {
-    const ch = getGymChallenge(challengeId);
-    if (!ch) return null;
-    return sectionChallenges(ch.muscle).some((c) => c.id === challengeId) ? ch.muscle : null;
+  // The section a challenge belongs to. Every challenge is in exactly one.
+  function courseSectionFor(state, challengeId) {
+    return learningPath(state).find((s) => s.nodes.some((n) => n.kind === "challenge" && n.id === challengeId)) || null;
+  }
+
+  // The course, flattened to the boards not yet played, in the order it teaches them.
+  function courseQueue(state) {
+    const out = [];
+    for (const section of learningPath(state)) {
+      for (const node of section.nodes) {
+        if (node.kind === "challenge" && !node.done) out.push(getGymChallenge(node.id));
+      }
+    }
+    return out.filter(Boolean);
   }
 
   // Where to send someone who just wants to be told what is next.
@@ -1084,6 +1218,7 @@ const MTC = (() => {
     courseSectionFor,
     sectionChallenges,
     sectionReviewQueue,
+    courseQueue,
     makeCommitment,
     hasOpenCommitment,
     dueCommitments,

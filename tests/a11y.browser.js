@@ -20,7 +20,7 @@ const MIN_TAP = 44;    // WCAG 2.5.5 target size
   await page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem('mtc_state_v1'));
     s.seenWalkthroughs = { muscle: MTC_MUSCLES.map((m) => m.id), format: Object.keys(MTC_GYM_FORMATS) };
-    const ids = MTC.sectionChallenges('notice').map((c) => c.id);
+    const ids = MTC.sectionChallenges(MTC.loadState(), 'notice', 0).map((c) => c.id);
     s.gym = {};
     ids.slice(0, 3).forEach((id) => { s.gym[id] = { plays: 2, bestScore: 95, lastScore: 95, lastPlayed: MTC.todayStr() }; });
     localStorage.setItem('mtc_state_v1', JSON.stringify(s));
