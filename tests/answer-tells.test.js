@@ -50,20 +50,32 @@ for (const challenge of challenges) {
 // Chance is not a flat 25%: option counts vary, so the baseline is the mean of 1/n.
 const chance = optionSets.reduce((total, set) => total + 1 / set.options.length, 0) / optionSets.length;
 
+// Score a strategy as the PROBABILITY it lands on the answer, not as a boolean.
+// Options are shuffled for display (gym.js optionOrder), so when several options
+// tie on the measure the strategy is really guessing between them: four numeric
+// options like "£150 / £650 / £50 / £25" carry no length tell at all, and taking
+// the first maximum would score them as a win and overstate the problem.
 const strategies = {
-  "longest option": (options) => options.reduce((best, o, i) => (o.length > options[best].length ? i : best), 0),
-  "shortest option": (options) => options.reduce((best, o, i) => (o.length < options[best].length ? i : best), 0),
-  "most words": (options) => options.reduce((best, o, i) => (words(o) > words(options[best]) ? i : best), 0),
-  "most hedging words": (options) => options.reduce((best, o, i) => (hedges(o) > hedges(options[best]) ? i : best), 0),
+  "longest option": (o) => o.length,
+  "shortest option": (o) => -o.length,
+  "most words": (o) => words(o),
+  "most hedging words": (o) => hedges(o),
 };
+
+function winChance(options, answer, measure) {
+  const scores = options.map(measure);
+  const best = Math.max(...scores);
+  if (scores[answer] !== best) return 0;
+  return 1 / scores.filter((s) => s === best).length;
+}
 
 const CEILING = 0.40; // chance is ~0.25; anything at or above this is a systematic tell
 const report = [];
 const failures = [];
-for (const [name, pick] of Object.entries(strategies)) {
-  const wins = optionSets.filter((set) => pick(set.options) === set.answer).length;
+for (const [name, measure] of Object.entries(strategies)) {
+  const wins = optionSets.reduce((total, set) => total + winChance(set.options, set.answer, measure), 0);
   const rate = wins / optionSets.length;
-  report.push(`  ${name.padEnd(20)} ${String(wins).padStart(4)}/${optionSets.length} = ${(rate * 100).toFixed(1)}%`);
+  report.push(`  ${name.padEnd(20)} ${wins.toFixed(1).padStart(6)}/${optionSets.length} = ${(rate * 100).toFixed(1)}%`);
   if (rate >= CEILING) failures.push(`"${name}" wins ${(rate * 100).toFixed(1)}% of scored option sets (chance ${(chance * 100).toFixed(1)}%, ceiling ${CEILING * 100}%)`);
 }
 
