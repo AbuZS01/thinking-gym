@@ -322,7 +322,7 @@ function dashboardHTML() {
 
   <div class="panel">
     <div class="subtle">${STATE.history.length ? "Welcome back" : "Welcome"}, ${esc(STATE.name)}</div>
-    <h1 style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h1>
+    <h2 class="page-title" style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h2>
     <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
       ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"}` : ""}</p>
@@ -549,7 +549,7 @@ function profileHTML() {
     <div class="level-hero">
       <div class="level-num">${li.level}<sup>LVL</sup></div>
       <div style="flex:1">
-        <h1 style="font-size:20px">${esc(STATE.name)}</h1>
+        <h2 class="page-title" style="font-size:20px">${esc(STATE.name)}</h2>
         <p class="subtle" style="margin:2px 0 8px">${esc(li.title)}</p>
         <span class="badge">Level ${li.level}</span>
       </div>
@@ -607,7 +607,7 @@ function questHTML() {
   const items = quest.items.filter((item) => MTC.getExercise(item.exerciseId));
   const hasCore = items.some((i) => i.core);
   return `<div class="panel">
-    <h1>Daily Quest</h1>
+    <h2 class="page-title">Daily Quest</h2>
     <p class="subtle">One of each type &middot; 20&ndash;30 min &middot; ${quest.completed.length}/${items.length} done.${hasCore ? ` Short on time? Do the <span style="color:var(--accent)">&#9733; core</span> three.` : ""}</p>
   </div>
   <div class="grid">
@@ -636,7 +636,7 @@ function exerciseHTML(id) {
   const header = `<div class="panel">
     <a class="crumb" href="#/quest">&larr; Daily Quest</a>
     <div><span class="pill">${TYPE_LABELS[ex.type]}</span><span class="pill">${fwNames}</span></div>
-    <h1>${esc(ex.title)}</h1>
+    <h2 class="page-title">${esc(ex.title)}</h2>
     <p>${esc(ex.prompt)}</p>
   </div>`;
 
@@ -717,7 +717,7 @@ function bossHTML() {
     const record = MTC.lastRecordFor(STATE, battle.id, "boss");
     return `<div class="panel">
       <span class="pill">${esc(battle.domain)}</span>
-      <h1>${esc(battle.name)}</h1>
+      <h2 class="page-title">${esc(battle.name)}</h2>
       <p>${esc(battle.briefing)}</p>
       ${record && record.answer ? `<div class="model-answer"><div class="lbl">Your Answer</div><div class="journal-answer">${esc(record.answer)}</div></div>` : ""}
       <div class="model-answer"><div class="lbl">Expert Framing</div>${esc(battle.noPerfectAnswerNote)}</div>
@@ -770,12 +770,12 @@ function bossHTML() {
 
   return `<div class="panel">
     <span class="pill">${esc(battle.domain)}</span><span class="pill">Week ${esc(battleState.week)}</span>
-    <h1>${esc(battle.name)}</h1>
+    <h2 class="page-title">${esc(battle.name)}</h2>
     <p>${esc(battle.briefing)}</p>
     ${stagesHTML}
   </div>
   <div class="panel">
-    <textarea id="boss-draft" placeholder="Work through your reasoning &mdash; saved to your journal on submit.">${esc(bossUI.draft)}</textarea>
+    <textarea id="boss-draft" aria-label="Your reasoning" placeholder="Work through your reasoning &mdash; saved to your journal on submit.">${esc(bossUI.draft)}</textarea>
     ${vagueTipHTML()}
     <div class="field draft-tools">
       <button class="btn ghost" data-outline="boss">Insert outline</button>
@@ -802,8 +802,8 @@ function toolboxResultsHTML() {
 
 function toolboxHTML() {
   return `<div class="panel">
-    <h1>Toolbox</h1>
-    <input type="text" id="toolbox-search" placeholder="Search tools..." value="${esc(toolboxFilter)}" />
+    <h2 class="page-title">Toolbox</h2>
+    <input type="text" id="toolbox-search" aria-label="Search tools" placeholder="Search tools..." value="${esc(toolboxFilter)}" />
   </div>
   <div class="grid" id="toolbox-results">${toolboxResultsHTML()}</div>`;
 }
@@ -816,7 +816,7 @@ function usedInLifeHTML() {
   const used = STATE.commitments.filter((c) => c.status === "used").slice().reverse();
   const open = STATE.commitments.filter((c) => c.status === "open");
   return `<div class="panel">
-    <h1>Used in life</h1>
+    <h2 class="page-title">Used in life</h2>
     <p class="subtle">Practice only counts when it reaches a real decision. This is the record of times you said it did.</p>
   </div>
   <div class="stat-strip">
@@ -846,7 +846,7 @@ function pathHTML() {
   const sectionsDone = path.filter((s) => s.complete).length;
   const icon = { walkthrough: "\u{1F4D6}", challenge: "\u{1F9E9}", review: "\u{1F3CB}️" };
   return `<div class="panel">
-    <h1>The course</h1>
+    <h2 class="page-title">The course</h2>
     <p class="subtle">Six sections, one for each kind of thinking. Each opens with a short walk-through, then challenges, then a review that clears once every one of them is solid. Nothing is locked, so you can still browse and play anything.</p>
   </div>
   ${next
@@ -882,7 +882,7 @@ function sectionReviewHTML(muscleId) {
   return `<div class="panel">
     <div class="level-hero">
       <div class="emoji-badge">${muscle.emoji}</div>
-      <div><h1 style="font-size:20px">${esc(muscle.name)} review</h1><p class="subtle" style="margin:2px 0 0">${solid} of ${all.length} at 80% or better</p></div>
+      <div><h2 class="page-title" style="font-size:20px">${esc(muscle.name)} review</h2><p class="subtle" style="margin:2px 0 0">${solid} of ${all.length} at 80% or better</p></div>
     </div>
     <div class="progress" style="margin-top:12px"><div class="fill" style="width:${all.length ? Math.round((solid / all.length) * 100) : 0}%"></div></div>
   </div>
@@ -908,7 +908,7 @@ function guidesHTML() {
     <span class="val">${(seen[kind] || []).includes(id) ? "Seen" : "New"}</span><span class="chev">&#8250;</span>
   </a>`;
   return `<div class="panel">
-    <h1>Thinking Guides</h1>
+    <h2 class="page-title">Thinking Guides</h2>
     <p class="subtle">Short explainers for each type of thinking and each challenge format, each with a worked example. The first one for a new type or format shows automatically before your first challenge &mdash; revisit any of them here anytime.</p>
   </div>
   <div class="section-head"><h2>Types of thinking</h2></div>
@@ -925,7 +925,7 @@ function walkthroughHTML(kind, id, resumeId) {
   return `<div class="panel">
     <div class="level-hero">
       <div class="emoji-badge">${w.emoji}</div>
-      <div><h1 style="font-size:20px">${esc(w.title)}</h1><p class="subtle" style="margin:2px 0 0">${isMuscle ? "A type of thinking" : "A challenge format"}</p></div>
+      <div><h2 class="page-title" style="font-size:20px">${esc(w.title)}</h2><p class="subtle" style="margin:2px 0 0">${isMuscle ? "A type of thinking" : "A challenge format"}</p></div>
     </div>
     <p style="margin-top:14px">${esc(w.lede)}</p>
   </div>
@@ -956,8 +956,8 @@ function frameworksResultsHTML() {
 
 function frameworksListHTML() {
   return `<div class="panel">
-    <h1>Frameworks</h1>
-    <input type="text" id="frameworks-search" placeholder="Search frameworks..." value="${esc(frameworksFilter)}" />
+    <h2 class="page-title">Frameworks</h2>
+    <input type="text" id="frameworks-search" aria-label="Search frameworks" placeholder="Search frameworks..." value="${esc(frameworksFilter)}" />
   </div>
   <div class="grid" id="frameworks-results">${frameworksResultsHTML()}</div>`;
 }
@@ -968,7 +968,7 @@ function frameworkDetailHTML(id) {
   const row = (label, val) => `<div class="panel"><h2>${label}</h2><p>${esc(val)}</p></div>`;
   return `<div class="panel">
       <a class="crumb" href="#/frameworks">&larr; Frameworks</a>
-      <h1>${esc(f.name)}</h1>
+      <h2 class="page-title">${esc(f.name)}</h2>
       <p class="subtle">${esc(f.core)}</p>
     </div>
     ${row("What is it for?", f.problem)}
@@ -983,7 +983,7 @@ function frameworkDetailHTML(id) {
 
 function achievementsHTML() {
   return `<div class="panel">
-    <h1>Achievements</h1>
+    <h2 class="page-title">Achievements</h2>
     <p class="subtle">${STATE.achievements.length} / ${MTC_ACHIEVEMENTS.length} unlocked</p>
   </div>
   <div class="grid tight">
@@ -1025,7 +1025,7 @@ function calibrationLandingHTML() {
     trendHTML = `<p class="subtle">Your week-by-week trend appears after a second week of sessions.</p>`;
   }
   return `<div class="panel">
-    <h1>Calibration</h1>
+    <h2 class="page-title">Calibration</h2>
     <p class="subtle">Checked against written answers. Honest confidence earns the most points; overconfidence loses points.</p>
     ${exGap ? `<p class="subtle">Daily exercises: your pre-reveal confidence differs from your rubric score by <b>${exGap.gap}</b> points on average (${exGap.n} exercise${exGap.n === 1 ? "" : "s"}).</p>` : ""}
   </div>
@@ -1043,7 +1043,7 @@ function calibrationHTML() {
   if (!calUI) return calibrationLandingHTML();
 
   if (calUI.results) {
-    return `<div class="panel"><h1>Session results</h1></div>` + calUI.results.map((g) => {
+    return `<div class="panel"><h2 class="page-title">Session results</h2></div>` + calUI.results.map((g) => {
       if (g.kind === "binary") {
         return `<div class="panel">
           <p>${esc(g.statement)}</p>
@@ -1064,7 +1064,7 @@ function calibrationHTML() {
     return `<div class="panel">
       <button class="crumb" data-cal-quit>&larr; Calibration</button>
       ${progress}
-      <h1>True or false?</h1>
+      <h2 class="page-title">True or false?</h2>
       <p>${esc(q.statement)}</p>
       <label class="rubric-item"><input type="radio" name="cal-answer" value="true" /> <span>True</span></label>
       <label class="rubric-item"><input type="radio" name="cal-answer" value="false" /> <span>False</span></label>
@@ -1078,7 +1078,7 @@ function calibrationHTML() {
   return `<div class="panel">
     <button class="crumb" data-cal-quit>&larr; Calibration</button>
     ${progress}
-    <h1>Estimate a range</h1>
+    <h2 class="page-title">Estimate a range</h2>
     <p>${esc(q.prompt)}, in <b>${esc(q.unit)}</b>. Give a range you're 90% sure contains the answer &mdash; too narrow and you'll miss, too wide and you're not saying much.</p>
     <div class="field"><input type="number" id="cal-low" placeholder="Low" step="any" /></div>
     <div class="field"><input type="number" id="cal-high" placeholder="High" step="any" /></div>
@@ -1093,7 +1093,7 @@ function reviewHTML() {
     const due = MTC.dueReviewCards(STATE);
     const next = MTC.nextReviewDue(STATE);
     return `<div class="panel">
-      <h1>Review</h1>
+      <h2 class="page-title">Review</h2>
       <p class="subtle">Spaced repetition for the frameworks and tools. Cards you find hard come back sooner.</p>
     </div>
     <div class="panel">
@@ -1108,7 +1108,7 @@ function reviewHTML() {
     <button class="crumb" data-rev-quit>&larr; Review</button>
     <p class="subtle">Card ${revUI.idx + 1} of ${revUI.queue.length}</p>
     <div><span class="pill">${esc(card.kind)}</span></div>
-    <h1>${esc(card.front)}</h1>
+    <h2 class="page-title">${esc(card.front)}</h2>
     <p style="font-style:italic; color:var(--text-dim)">${esc(card.hint)}</p>
     ${revUI.revealed
       ? `<div class="model-answer"><div class="lbl">Answer</div>${esc(card.back)}</div>
@@ -1129,7 +1129,7 @@ function reportHTML() {
   const row = (label, cur, prev) => `<div class="weak-row"><span class="name">${label}</span><span><b>${cur}</b></span><span class="subtle">last week: ${prev}</span></div>`;
   return `<div class="panel">
     <a class="crumb" href="#/dashboard">&larr; Dashboard</a>
-    <h1>Weekly Report</h1>
+    <h2 class="page-title">Weekly Report</h2>
     <p class="subtle">Week ${esc(r.week)}</p>
   </div>
   <div class="panel">
@@ -1165,13 +1165,13 @@ function workbenchHTML(toolId) {
   const ready = wbUI.draft.replace(/[^]*?:/g, "").trim().length >= 40;
   return `<div class="panel">
     <a class="crumb" href="#/toolbox">&larr; Toolbox</a>
-    <h1>${esc(tool.name)} &mdash; on your problem</h1>
+    <h2 class="page-title">${esc(tool.name)} &mdash; on your problem</h2>
     ${tool.formalName ? `<span class="tag neutral">Also called ${esc(tool.formalName)}</span>` : ""}
     <p class="subtle">${esc(tool.summary)}</p>
     <p class="subtle"><b>When:</b> ${esc(tool.when)}</p>
   </div>
   <div class="panel">
-    <textarea id="wb-draft" style="min-height:260px">${esc(wbUI.draft)}</textarea>
+    <textarea id="wb-draft" aria-label="Your working" style="min-height:260px">${esc(wbUI.draft)}</textarea>
     <div class="field draft-tools">
       ${SpeechRec ? `<button class="btn ghost" data-mic="wb-draft">&#127908; Dictate</button>` : ""}
     </div>
@@ -1265,8 +1265,8 @@ function journalMarkdown() {
 
 function journalHTML() {
   return `<div class="panel">
-    <h1>Journal</h1>
-    <input type="text" id="journal-search" placeholder="Search your answers..." value="${esc(journalFilter)}" />
+    <h2 class="page-title">Journal</h2>
+    <input type="text" id="journal-search" aria-label="Search your answers" placeholder="Search your answers..." value="${esc(journalFilter)}" />
     <div class="field"><button class="btn ghost" data-export-journal>Export journal (.md)</button></div>
   </div>
   <div id="journal-results">${journalResultsHTML()}</div>`;
@@ -1347,16 +1347,39 @@ function render() {
   }
   bar.innerHTML = tabbarHTML();
   if (pendingResult) app.insertAdjacentHTML("beforeend", resultToastHTML(pendingResult));
+  liveRegion();
   if (r !== lastRenderedRoute) {
     lastRenderedRoute = r;
     requestAnimationFrame(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
   }
 }
 
+function liveRegion() {
+  let node = document.getElementById("a11y-status");
+  if (!node) {
+    node = document.createElement("p");
+    node.id = "a11y-status";
+    node.className = "sr-only";
+    node.setAttribute("role", "status");
+    node.setAttribute("aria-live", "polite");
+    document.body.appendChild(node);
+  }
+  return node;
+}
+
+// Say what just changed. Playing a board is all taps that rewrite the screen --
+// a card moves, a stage opens, a score appears -- and none of it is visible to
+// someone listening unless it is said out loud.
+function announce(message) {
+  const node = liveRegion();
+  if (!message || node.textContent === message) return;
+  node.textContent = message;
+}
+
 /* ---------- Events ---------- */
 
 document.addEventListener("click", (e) => {
-  if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); return; }
+  if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); announce(GYM.playStatus()); return; }
 
   const checkinYes = e.target.closest("[data-checkin-yes]");
   if (checkinYes) {

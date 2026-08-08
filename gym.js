@@ -481,7 +481,7 @@ const GYM = (() => {
     return `<div class="panel">
       <h2>${creative ? "Try your own idea" : "Your thinking"} <span class="subtle">(optional)</span></h2>
       <p class="subtle">${creative ? "Your idea is not graded. Use the limits in the challenge to check whether it is safe, clear and practical." : "You can save this as a private journal note after you check the answer."}</p>
-      <textarea id="gym-note" placeholder="${creative ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
+      <textarea id="gym-note" aria-label="Your journal note for this challenge" placeholder="${creative ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
     </div>`;
   }
 
@@ -657,7 +657,7 @@ const GYM = (() => {
       <div class="result-hero">
         <div class="tick${tone}">${p >= 50 ? "&#10003;" : "!"}</div>
         <div>
-          <h1>${headline}</h1>
+          <h2 class="page-title">${headline}</h2>
           <p class="subtle">You earned <b>${sc.points}</b> of ${sc.max} points &middot; <span class="score-num">${p}<span>%</span></span></p>
         </div>
       </div>
@@ -683,7 +683,7 @@ const GYM = (() => {
     <div class="panel">
       <h2>${ch.payload.creativity ? "Save your idea" : "Save a journal note"} <span class="subtle">(optional, +5 points)</span></h2>
       <p class="subtle">The score is already saved. This note is private, never graded and can help you remember what you learned.</p>
-      <textarea id="gym-note" placeholder="${ch.payload.creativity ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
+      <textarea id="gym-note" aria-label="Your journal note for this challenge" placeholder="${ch.payload.creativity ? "Write another idea here..." : "Type your ideas here..."}">${e(play.note)}</textarea>
       <div class="field"><button class="btn ghost" data-gym-save-note="${ch.id}" ${play.note.trim() && !play.noteSaved ? "" : "disabled"}>${play.noteSaved ? "Note saved" : "Save note"}</button></div>
       ${play.noteSaved ? `<p class="save-status" role="status">&#10003; Saved to your journal</p>` : ""}
     </div>
@@ -716,7 +716,7 @@ const GYM = (() => {
         <span class="label">Challenge</span>
         <div class="head">
           <div class="emoji-badge">${ch.emoji || (typeof muscleIcon === "function" ? muscleIcon(ch.muscle) : "\u{1F9E0}")}</div>
-          <div><h1>${e(ch.title)}</h1><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
+          <div><h2 class="page-title">${e(ch.title)}</h2><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
         </div>
         <p>${e(ch.scenario)}</p>
         ${ch.payload && ch.payload.fairnessNote ? `<p class="fairness-note"><b>How this is scored:</b> ${e(ch.payload.fairnessNote)}</p>` : ""}
@@ -926,5 +926,53 @@ const GYM = (() => {
 
   function reset() { play = null; }
 
-  return { playHTML, handleClick, handleInput, reset, muscleTip: (id) => TOMORROW_TIPS[id] };
+  // What a tap just did, said in words. The boards are all tap-and-redraw: a card
+  // lands in a slot, a stage opens, the score appears. Someone using a screen reader
+  // gets none of that from the redraw itself, so this is what gets read out.
+  function playStatus() {
+    const ch = current();
+    if (!ch || !play) return "";
+    if (play.result) {
+      return `Result: ${pct(play.result)} per cent, ${play.result.points} of ${play.result.max} points.`;
+    }
+    if (play.stage === "confidence") return "How sure are you? Pick one to see your score.";
+    const p = ch.payload;
+    if (ch.format === "map") {
+      if (play.stage === "misleads") return `All ${p.pairs.length} rows filled. Now pick every claim that misleads.`;
+      const filled = Object.keys(play.placed).length;
+      if (play.selectedSlot !== null) return `Row ${play.selectedSlot + 1} selected. Choose a card for it.`;
+      return `${filled} of ${p.pairs.length} rows filled.`;
+    }
+    if (ch.format === "flaw") {
+      if (play.stage === "name") {
+        return play.shown && play.shown.sentence
+          ? "Shown to you. Now name what is wrong with it."
+          : "Sentence chosen. Now name what is wrong with it.";
+      }
+      return play.attempts ? "Not that one. One try left." : `Pick the sentence that does not hold up. ${p.argument.length} to choose from.`;
+    }
+    if (ch.format === "chain") {
+      const left = p.steps.length + 1 - play.order.length;
+      return play.order.length
+        ? `${play.order.length} placed in order, ${left} left. Last placed: ${play.order[play.order.length - 1]}`
+        : "Tap the cards in the order they happen.";
+    }
+    if (ch.format === "workout") {
+      const i = play.stepIdx;
+      if (i >= p.steps.length) return "Last step answered.";
+      if (play.lastWrong !== null && play.lastWrong !== undefined) return `Not right. One try left on step ${i + 1}.`;
+      return `Step ${i + 1} of ${p.steps.length}. ${p.steps[i].ask || ""}`.trim();
+    }
+    if (ch.format === "ask") {
+      if (play.stage === "deciding") return "Questions used up. All the answers are shown. Now make the call.";
+      const left = p.budget - play.asked.length;
+      return `Answer shown. ${left} question${left === 1 ? "" : "s"} left.`;
+    }
+    const cards = ch.format === "triage" ? p.items : p.evidence;
+    const done = Object.keys(play.assign).length;
+    if (play.selectedCard !== null) return `Card selected. Choose where it goes.`;
+    return `${done} of ${cards.length} sorted.`;
+  }
+
+  return { playHTML, handleClick, handleInput, reset, playStatus, muscleTip: (id) => TOMORROW_TIPS[id] };
 })();
