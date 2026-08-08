@@ -36,7 +36,7 @@ const walkthroughs = context.__walkthroughs;
 const MTC = context.__engine;
 const areaIds = new Set(areas.map((area) => area.id));
 
-assert.equal(challenges.length, 145, "README and onboarding count must match the content bank");
+assert.equal(challenges.length, 152, "README and onboarding count must match the content bank");
 assert.equal(new Set(challenges.map((challenge) => challenge.id)).size, challenges.length, "challenge IDs must be unique");
 assert.equal(areaIds.size, 8, "life-area IDs must be unique");
 for (const [format, minimum] of [["flaw", 5], ["map", 5], ["chain", 5], ["signal", 5], ["triage", 5], ["ask", 5], ["workout", 5]]) {
@@ -55,7 +55,7 @@ for (const area of areas) {
 
 assert.deepEqual(
   Object.fromEntries([...new Set(challenges.map((challenge) => challenge.muscle))].sort().map((muscle) => [muscle, challenges.filter((challenge) => challenge.muscle === muscle).length])),
-  { adapt: 28, connect: 17, judge: 34, notice: 30, prioritise: 17, question: 19 },
+  { adapt: 28, connect: 17, judge: 36, notice: 32, prioritise: 19, question: 20 },
   "documented muscle counts must match the content bank",
 );
 
@@ -216,9 +216,8 @@ for (const section of course) {
   assert.equal(kinds[kinds.length - 1], "review", `${section.muscle.id}: and ends with its review`);
   const picks = MTC.sectionChallenges(section.muscle.id);
   assert.ok(picks.length >= 3, `${section.muscle.id}: a section needs challenges`);
-  const available = new Set(challenges.filter((c) => c.muscle === section.muscle.id).map((c) => c.format)).size;
   const used = new Set(picks.map((c) => c.format)).size;
-  assert.equal(used, Math.min(available, picks.length), `${section.muscle.id}: a section must use every format its muscle offers, not repeat one`);
+  assert.equal(used, picks.length, `${section.muscle.id}: every challenge in a section must use a different board, but ${picks.length - used} repeat`);
   assert.ok(section.nodes.find((n) => n.kind === "review").ready === false, "the review waits until the challenges are played");
 }
 assert.ok(MTC.nextPathNode(pathState).node.kind === "walkthrough", "a new player is pointed at the first walk-through");
