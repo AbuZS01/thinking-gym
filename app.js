@@ -964,12 +964,12 @@ function frameworkDetailHTML(id) {
       <h1>${esc(f.name)}</h1>
       <p class="subtle">${esc(f.core)}</p>
     </div>
-    ${row("What problem does this solve?", f.problem)}
-    ${row("Why do smart people get this wrong?", f.whyWrong)}
+    ${row("What is it for?", f.problem)}
+    ${row("What it looks like", f.example)}
+    ${row("Where it goes wrong", f.whyWrong)}
     ${row("Mistakes to avoid", f.avoid)}
-    ${row("When is this dangerous?", f.danger)}
-    ${row("Famous example", f.example)}
-    ${row("How an expert uses it", f.expertUse)}`;
+    ${row("When not to use it", f.danger)}
+    ${row("Doing it well", f.expertUse)}`;
 }
 
 /* ---------- Achievements ---------- */

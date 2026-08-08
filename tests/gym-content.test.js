@@ -204,6 +204,32 @@ const focusedIds = focusedSession.map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
 assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
 
+// The library. Challenges have been held to plain, globally readable English for a
+// while; the Toolbox and Frameworks never were, and it showed. The example field was
+// labelled "Famous example" and leaned on Semmelweis, cobra bounties, Airbnb and the
+// 2003 Iraq estimate -- references a reader either has or has not, with nothing to
+// work out either way.
+const libraryText = [
+  ...frameworks.flatMap((f) => [f.core, f.problem, f.whyWrong, f.avoid, f.danger, f.example, f.expertUse]),
+  ...toolbox.flatMap((t) => [t.summary, t.when]),
+].filter(Boolean);
+
+for (const text of libraryText) {
+  for (const sentence of text.split(/(?<=[.!?])\s+/)) {
+    assert.ok(wordCount(sentence) <= 30, `library sentence is too long to read at a glance: "${sentence.slice(0, 60)}..."`);
+  }
+}
+const libraryJoined = libraryText.join(" ");
+assert.doesNotMatch(libraryJoined, /\b(?:Semmelweis|Airbnb|Amazon|Titanic|de Bono|Cynefin framework|Prisoner's Dilemma|Iraq|WMD)\b/i,
+  "a library entry must not lean on a name the reader either knows or does not");
+assert.doesNotMatch(libraryJoined, /\b(?:paralysis-by-analysis|performative|nonlinear\w*|emergent|canonical|priors|epistemic|decompos\w*|reflexive|falsifiab\w*|disconfirm\w*|tractable|heurist\w*|skillful\w*)\b/i,
+  "a library entry must not fall back on academic vocabulary");
+assert.doesNotMatch(libraryJoined, /\w+(?:iz(?:e|es|ed|ing|ation))\b|\bbehavior\b|\bcolor\b/i,
+  "the library should use the same spelling as the rest of the app");
+for (const f of frameworks) {
+  assert.ok(f.example && f.example.length > 40, `${f.id}: needs a concrete example of what it looks like`);
+}
+
 // The course. Sections are derived from the muscles, so they cannot drift from the
 // content bank, but they can drift into sameness: sorting on difficulty alone gave
 // Notice five Work It Outs in a row, which is the repetition a section should avoid.
