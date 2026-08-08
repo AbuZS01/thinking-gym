@@ -204,6 +204,25 @@ const focusedIds = focusedSession.map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
 assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
 
+// The course. Sections are derived from the muscles, so they cannot drift from the
+// content bank, but they can drift into sameness: sorting on difficulty alone gave
+// Notice five Work It Outs in a row, which is the repetition a section should avoid.
+const pathState = MTC.loadState();
+const course = MTC.learningPath(pathState);
+assert.equal(course.length, muscles.length, "one section per muscle");
+for (const section of course) {
+  const kinds = section.nodes.map((node) => node.kind);
+  assert.equal(kinds[0], "walkthrough", `${section.muscle.id}: a section opens with its walk-through`);
+  assert.equal(kinds[kinds.length - 1], "review", `${section.muscle.id}: and ends with its review`);
+  const picks = MTC.sectionChallenges(section.muscle.id);
+  assert.ok(picks.length >= 3, `${section.muscle.id}: a section needs challenges`);
+  const available = new Set(challenges.filter((c) => c.muscle === section.muscle.id).map((c) => c.format)).size;
+  const used = new Set(picks.map((c) => c.format)).size;
+  assert.equal(used, Math.min(available, picks.length), `${section.muscle.id}: a section must use every format its muscle offers, not repeat one`);
+  assert.ok(section.nodes.find((n) => n.kind === "review").ready === false, "the review waits until the challenges are played");
+}
+assert.ok(MTC.nextPathNode(pathState).node.kind === "walkthrough", "a new player is pointed at the first walk-through");
+
 // Closing the loop. The app's whole claim to reach real life rests on this, and the
 // half that matters happens a day later, so the behaviour has to survive a reload
 // and has to treat "not yet" as a reopen rather than a failure.

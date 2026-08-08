@@ -883,6 +883,85 @@ const MTC = (() => {
     };
   }
 
+  /* ---------- The learning path ---------- */
+
+  // A section is one muscle: its guide, a handful of challenges, then a review that
+  // only clears once every one of them is genuinely solid. Six sections make the
+  // course. Derived rather than authored, so it cannot drift from the content bank.
+  //
+  // Nothing here locks. A structured route helps people who want one, but the app
+  // has always let you open it and play, and taking that away would cost more than
+  // the structure gains.
+  const PATH_SECTION_SIZE = 5;
+  const PATH_MASTERY = 80;
+
+  // Easiest first, but never the same board twice while another is available.
+  // Sorting on difficulty alone handed Notice five Work It Outs in a row, because
+  // the everyday rewrites are all difficulty 1 and all that format — which is the
+  // sameness a section is supposed to avoid.
+  function sectionChallenges(muscleId) {
+    const pool = gymChallengesForMuscle(muscleId)
+      .slice()
+      .sort((a, b) => a.difficulty - b.difficulty || (a.id < b.id ? -1 : 1));
+    const picked = [];
+    const used = new Set();
+    while (picked.length < PATH_SECTION_SIZE && picked.length < pool.length) {
+      const next = pool.find((c) => !picked.includes(c) && !used.has(c.format))
+        || pool.find((c) => !picked.includes(c));
+      if (!next) break;
+      picked.push(next);
+      used.add(next.format);
+      if (used.size >= new Set(pool.map((c) => c.format)).size) used.clear();
+    }
+    return picked;
+  }
+
+  // Weakest first: a review exists to close gaps, not to replay what already works.
+  function sectionReviewQueue(state, muscleId) {
+    return sectionChallenges(muscleId)
+      .filter((c) => (state.gym[c.id] || {}).bestScore < PATH_MASTERY)
+      .sort((a, b) => ((state.gym[a.id] || {}).bestScore || 0) - ((state.gym[b.id] || {}).bestScore || 0));
+  }
+
+  function learningPath(state) {
+    return MTC_MUSCLES.map((muscle, i) => {
+      const picks = sectionChallenges(muscle.id);
+      const mastered = picks.filter((c) => ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY);
+      const nodes = [
+        {
+          kind: "walkthrough", id: muscle.id, title: muscle.name, subtitle: "Walk-through",
+          href: `gym/learn/muscle/${muscle.id}`,
+          done: hasSeenWalkthrough(state, "muscle", muscle.id),
+        },
+        ...picks.map((c) => ({
+          kind: "challenge", id: c.id, title: c.title,
+          subtitle: (MTC_GYM_FORMATS[c.format] || {}).name || c.format,
+          href: `gym/play/${c.id}`,
+          done: Boolean(state.gym[c.id]),
+          strong: ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY,
+        })),
+        {
+          kind: "review", id: muscle.id, title: "Section review",
+          subtitle: `${mastered.length}/${picks.length} at ${PATH_MASTERY}%+`,
+          href: `path/review/${muscle.id}`,
+          done: picks.length > 0 && mastered.length === picks.length,
+          ready: picks.length > 0 && picks.every((c) => state.gym[c.id]),
+        },
+      ];
+      const done = nodes.filter((n) => n.done).length;
+      return { index: i + 1, muscle, nodes, done, total: nodes.length, complete: done === nodes.length };
+    });
+  }
+
+  // Where to send someone who just wants to be told what is next.
+  function nextPathNode(state) {
+    for (const section of learningPath(state)) {
+      const node = section.nodes.find((n) => !n.done && (n.kind !== "review" || n.ready));
+      if (node) return { section, node };
+    }
+    return null;
+  }
+
   /* ---------- Walkthroughs: one-off intro guides per muscle/format ---------- */
 
   function getWalkthrough(kind, id) {
@@ -962,6 +1041,10 @@ const MTC = (() => {
     saveGymNote,
     dueGymReplays,
     shieldInfo,
+    learningPath,
+    nextPathNode,
+    sectionChallenges,
+    sectionReviewQueue,
     makeCommitment,
     hasOpenCommitment,
     dueCommitments,

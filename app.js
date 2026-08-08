@@ -13,10 +13,6 @@ let gymAreaFilter = "all";
 let gymLevelFilter = "all";
 let gymTimeFilter = "all";
 let lastRenderedRoute = null;
-// Challenge id whose guide was just read. Marking a guide seen and returning to the
-// challenge would otherwise re-enter the redirect below and hand over the second
-// guide immediately, which is the stacking this is meant to prevent.
-let guideJustShownFor = null;
 
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let activeRec = null;
@@ -171,7 +167,7 @@ function levelInfo() {
 
 const TABS = [
   { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
-  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review"] },
+  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review", "path"] },
   { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report", "used"] },
   { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides"] },
 ];
@@ -216,9 +212,11 @@ function chromeFor(r) {
   if (r.startsWith("gym/learn/")) {
     const [, , kind, id, resumeId] = r.split("/");
     const w = MTC.getWalkthrough(kind, id);
-    return [w ? w.title : "Guide", resumeId ? "gym" : "guides"];
+    return [w ? w.title : "Guide", resumeId ? "gym" : (kind === "muscle" ? "path" : "guides")];
   }
   if (r === "guides") return ["Thinking Guides", "profile"];
+  if (r === "path") return ["The course", null];
+  if (r.startsWith("path/review/")) return ["Section review", "path"];
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
@@ -363,6 +361,7 @@ function dashboardHTML() {
 
   <div class="section-head"><h2>Keep going</h2></div>
   <div class="panel">
+    <a class="list-row" href="#/path"><span class="ico">&#127891;</span><span class="label">The course</span><span class="val">${MTC.learningPath(STATE).filter((s) => s.complete).length}/6</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">Browse challenges</span><span class="val">${session.length} today</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
@@ -383,6 +382,12 @@ function challengesHTML() {
   const reviewLabel = review.due ? `${review.due} due` : review.fresh ? `${review.fresh} new` : "up to date";
 
   return `
+  ${MTC.nextPathNode(STATE) ? `<a class="panel path-nudge" href="#/path">
+    <span class="emoji-badge">&#127891;</span>
+    <span><b>Following the course?</b><small>${esc(MTC.nextPathNode(STATE).node.title)} is next in ${esc(MTC.nextPathNode(STATE).section.muscle.name)}.</small></span>
+    <span class="chev">&#8250;</span>
+  </a>` : ""}
+
   <div class="section-head"><h2>Today's session</h2><span class="subtle">${session.length} challenges &middot; ~10 min</span></div>
   <div class="grid">
     ${session.map((c) => {
@@ -825,6 +830,70 @@ function usedInLifeHTML() {
   : `<div class="panel"><p class="subtle">Nothing here yet. Finish a challenge, tap <b>I will try this</b>, and the app will ask you afterwards whether it came up.</p></div>`}`;
 }
 
+// The course. A walk-through is a node you choose to enter, not something that
+// fires at you on the way to a challenge — which is what it used to be, and the
+// reason a first session read guide, challenge, guide, challenge.
+function pathHTML() {
+  const path = MTC.learningPath(STATE);
+  const next = MTC.nextPathNode(STATE);
+  const sectionsDone = path.filter((s) => s.complete).length;
+  const icon = { walkthrough: "\u{1F4D6}", challenge: "\u{1F9E9}", review: "\u{1F3CB}️" };
+  return `<div class="panel">
+    <h1>The course</h1>
+    <p class="subtle">Six sections, one for each kind of thinking. Each opens with a short walk-through, then challenges, then a review that clears once every one of them is solid. Nothing is locked, so you can still browse and play anything.</p>
+  </div>
+  ${next
+    ? `<div class="field"><a class="btn block" href="#/${next.node.href}">Continue: ${esc(next.node.title)} <span aria-hidden="true">&rarr;</span></a></div>`
+    : `<div class="panel"><p class="subtle">Every section is complete. Replays keep them sharp.</p></div>`}
+  <div class="section-head"><h2>Sections</h2><span class="subtle">${sectionsDone}/${path.length} complete</span></div>
+  ${path.map((s) => `<div class="panel path-section">
+    <div class="path-head">
+      <div><b>${s.index}. ${esc(s.muscle.name)}</b><p class="subtle" style="margin:2px 0 0">${s.done}/${s.total} done &middot; ${esc(s.muscle.blurb)}</p></div>
+      <div class="emoji-badge">${s.muscle.emoji}</div>
+    </div>
+    <div class="path-nodes">
+      ${s.nodes.map((n) => {
+        const st = n.done ? "done" : (n.kind === "review" && !n.ready) ? "waiting" : "open";
+        const inner = `<span class="node-dot ${st}">${n.done ? "&#10003;" : icon[n.kind]}</span>
+          <span class="node-text"><b>${esc(n.title)}</b><small>${esc(n.subtitle)}</small></span>`;
+        return st === "waiting"
+          ? `<div class="path-node waiting">${inner}<span class="subtle">after the challenges</span></div>`
+          : `<a class="path-node" href="#/${n.href}">${inner}<span class="chev">&#8250;</span></a>`;
+      }).join("")}
+    </div>
+  </div>`).join("")}`;
+}
+
+// The section review. Weakest first, and it only clears when every challenge in
+// the section is genuinely solid, so it is a mastery gate rather than a lap.
+function sectionReviewHTML(muscleId) {
+  const muscle = MTC_MUSCLES.find((m) => m.id === muscleId);
+  if (!muscle) return `<div class="panel"><p>Section not found.</p><a class="btn" href="#/path">The course</a></div>`;
+  const all = MTC.sectionChallenges(muscleId);
+  const queue = MTC.sectionReviewQueue(STATE, muscleId);
+  const solid = all.length - queue.length;
+  return `<div class="panel">
+    <div class="level-hero">
+      <div class="emoji-badge">${muscle.emoji}</div>
+      <div><h1 style="font-size:20px">${esc(muscle.name)} review</h1><p class="subtle" style="margin:2px 0 0">${solid} of ${all.length} at 80% or better</p></div>
+    </div>
+    <div class="progress" style="margin-top:12px"><div class="fill" style="width:${all.length ? Math.round((solid / all.length) * 100) : 0}%"></div></div>
+  </div>
+  ${queue.length ? `<div class="panel">
+    <p class="subtle">These are the ones still short of 80%, weakest first. A review is for closing gaps, not replaying what already works.</p>
+  </div>
+  <div class="grid">${queue.map((c) => {
+    const best = (STATE.gym[c.id] || {}).bestScore;
+    return `<a class="panel card" href="#/gym/play/${c.id}">
+      <div class="card-tags"><span class="tag">${esc((MTC_GYM_FORMATS[c.format] || {}).name || c.format)}</span><span class="tag neutral">${best === undefined ? "not played" : `best ${best}%`}</span></div>
+      <h2>${esc(c.title)}</h2>
+      <span class="cta">${best === undefined ? "Play" : "Try again"} &rarr;</span>
+    </a>`;
+  }).join("")}</div>`
+  : `<div class="panel"><p>&#10003; Every challenge in this section is at 80% or better. Section complete.</p>
+     <div class="field"><a class="btn block" href="#/path">Back to the course</a></div></div>`}`;
+}
+
 function guidesHTML() {
   const seen = STATE.seenWalkthroughs || { muscle: [], format: [] };
   const row = (kind, id, name, emoji) => `<a class="list-row" href="#/gym/learn/${kind}/${id}">
@@ -1232,16 +1301,6 @@ function render() {
 
   // First time this challenge's muscle or format is encountered, detour through
   // its one-off guide before the (scored) challenge itself.
-  if (r.startsWith("gym/play/")) {
-    const id = r.split("/")[2];
-    if (guideJustShownFor && guideJustShownFor !== id) guideJustShownFor = null;
-    const ch = MTC.getGymChallenge(id);
-    const need = ch && guideJustShownFor !== id && MTC.nextRequiredWalkthrough(STATE, ch);
-    if (need) { navigate(`gym/learn/${need.kind}/${need.id}/${ch.id}`); return; }
-  } else if (!r.startsWith("gym/learn/")) {
-    guideJustShownFor = null;
-  }
-
   let body;
   if (r === "dashboard") body = dashboardHTML();
   else if (r === "progress") body = progressHTML();
@@ -1255,6 +1314,8 @@ function render() {
   else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
   else if (r.startsWith("gym/learn/")) { const [, , kind, id, resumeId] = r.split("/"); body = walkthroughHTML(kind, id, resumeId); }
   else if (r === "guides") body = guidesHTML();
+  else if (r === "path") body = pathHTML();
+  else if (r.startsWith("path/review/")) body = sectionReviewHTML(r.split("/")[2]);
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();
   else if (r === "review") body = reviewHTML();
@@ -1310,11 +1371,9 @@ document.addEventListener("click", (e) => {
   if (wtContinue) {
     const { kind, id, resume } = wtContinue.dataset;
     MTC.markWalkthroughSeen(STATE, kind, id);
-    // Straight into the challenge, never on to a second guide: chaining them made
-    // a first session read guide, guide, challenge, guide, guide, challenge. Any
-    // guide still owed is picked up before a later challenge instead.
-    guideJustShownFor = resume || null;
-    navigate(resume ? `gym/play/${resume}` : "guides");
+    // A guide reached from the course returns to the course; one reached with a
+    // challenge in hand goes on to it.
+    navigate(resume ? `gym/play/${resume}` : (kind === "muscle" ? "path" : "guides"));
     return;
   }
 
@@ -1675,9 +1734,7 @@ document.addEventListener("submit", (e) => {
     STATE.name = (name && name.trim()) || "Thinker";
     STATE.lifeFocus = lifeArea(selectedFocus) ? selectedFocus : null;
     MTC.saveState(STATE);
-    const first = MTC.gymSession(STATE)[0];
-    if (first) navigate(`gym/play/${first.id}`);
-    else render();
+    navigate("path"); // teach first: the course opens on its first walk-through
   }
 });
 
