@@ -355,7 +355,7 @@ function dashboardHTML() {
     ${muscles.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
-      <div class="meta">${t.mastered}/${t.total} at 80%+</div>
+      <div class="meta">${t.sectionDone ? `${t.sectionDone}/${t.sectionTotal} in the course` : t.played ? `${t.mastered} of ${t.played} solid` : "not started"}</div>
     </a>`).join("")}
   </div>
 
@@ -421,7 +421,7 @@ function challengesHTML() {
     ${muscles.map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
-      <div class="meta">${t.total} challenges &middot; ${t.mastered} at 80%+</div>
+      <div class="meta">${t.library} challenges${t.played ? ` &middot; ${t.mastered} of ${t.played} solid` : ""}</div>
     </a>`).join("")}
   </div>
 
@@ -501,8 +501,8 @@ function progressHTML() {
   <div class="panel">
     ${muscles.map((t) => `<a class="weak-row" href="#/gym/muscle/${t.id}">
       <span class="name">${muscleIcon(t.id)} ${esc(t.name)}</span>
-      <div class="weak-meter" role="progressbar" aria-label="${esc(t.name)} challenges scored at 80 percent or more" aria-valuemin="0" aria-valuemax="${t.total}" aria-valuenow="${t.mastered}"><div class="fill" style="width:${t.pct}%"></div></div>
-      <span class="subtle">${t.mastered}/${t.total} strong</span>
+      <div class="weak-meter" role="progressbar" aria-label="${esc(t.name)}: challenges you have played that are scored at 80 percent or more" aria-valuemin="0" aria-valuemax="${t.played || 1}" aria-valuenow="${t.mastered}"><div class="fill" style="width:${t.pct}%"></div></div>
+      <span class="subtle">${t.played ? `${t.mastered}/${t.played} solid` : "not started"}</span>
     </a>`).join("")}
   </div>
 
@@ -1378,9 +1378,16 @@ document.addEventListener("click", (e) => {
   if (wtContinue) {
     const { kind, id, resume } = wtContinue.dataset;
     MTC.markWalkthroughSeen(STATE, kind, id);
-    // A guide reached from the course returns to the course; one reached with a
-    // challenge in hand goes on to it.
-    navigate(resume ? `gym/play/${resume}` : (kind === "muscle" ? "path" : "guides"));
+    // Carry on rather than bouncing back to an index. A guide opened with a
+    // challenge in hand goes to it; a muscle guide continues into its section;
+    // a format guide read from the library returns to the library.
+    if (resume) { navigate(`gym/play/${resume}`); return; }
+    if (kind === "muscle") {
+      const next = MTC.nextNodeInSection(STATE, id, id);
+      navigate(next ? next.href : "path");
+      return;
+    }
+    navigate("guides");
     return;
   }
 

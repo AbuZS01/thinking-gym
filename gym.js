@@ -646,6 +646,11 @@ const GYM = (() => {
     const nailedIt = { map: "Great connection!", flaw: "You found it!", chain: "Chain nailed!", signal: "Sorted correctly!", workout: "Worked it out!", triage: "Sorted under pressure!", ask: "You asked the right things!" };
     const headline = p >= 90 ? (nailedIt[ch.format] || "Nailed it!")
       : p >= 70 ? "Solid thinking" : p >= 40 ? "Partly there" : "Worth a rebuild";
+    // If this challenge sits in a course section, continue the course rather than
+    // handing back a challenge from the unrelated daily pick. Finishing a section
+    // in one run is the whole point of having sections.
+    const inCourse = MTC.courseSectionFor(ch.id);
+    const courseNext = inCourse ? MTC.nextNodeInSection(STATE, inCourse, ch.id) : null;
     const nextCh = (MTC.gymSession(STATE).find((c) => c.id !== ch.id) || null);
     const unlocked = (play.savedResult && play.savedResult.achievementsUnlocked) || [];
     return `<div class="panel">
@@ -683,9 +688,11 @@ const GYM = (() => {
       ${play.noteSaved ? `<p class="save-status" role="status">&#10003; Saved to your journal</p>` : ""}
     </div>
     <div class="field">
-      <button class="btn block" data-gym-next="${nextCh ? nextCh.id : ""}">
-        ${nextCh ? "Next challenge" : "Back to challenges"}
-      </button>
+      ${courseNext
+        ? `<a class="btn block" href="#/${courseNext.href}">${courseNext.kind === "review" ? "Section review" : "Next in " + e((MTC_MUSCLES.find((m) => m.id === inCourse) || {}).name || inCourse)} &rarr;</a>`
+        : inCourse
+          ? `<a class="btn block" href="#/path">Section complete &mdash; back to the course &rarr;</a>`
+          : `<button class="btn block" data-gym-next="${nextCh ? nextCh.id : ""}">${nextCh ? "Next challenge" : "Back to challenges"}</button>`}
     </div>`;
   }
 

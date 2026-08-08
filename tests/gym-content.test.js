@@ -253,6 +253,60 @@ for (const section of course) {
 }
 assert.ok(MTC.nextPathNode(pathState).node.kind === "walkthrough", "a new player is pointed at the first walk-through");
 
+// Progress must not fall when the library grows. It used to be measured against
+// every challenge carrying the muscle, so adding sixteen challenges moved a player
+// from 10/24 to 10/32 without them doing anything. Measure against what has
+// actually been attempted, and against the fixed-size course section.
+const growthState = MTC.loadState();
+growthState.name = "Growth tester";
+growthState.gym = {}; // the localStorage shim is shared across this file
+const noticeAll = challenges.filter((c) => c.muscle === "notice");
+for (const c of noticeAll.slice(0, 4)) growthState.gym[c.id] = { plays: 1, bestScore: 90, lastScore: 90, lastPlayed: MTC.todayStr() };
+const before = MTC.muscleProgress(growthState).find((m) => m.id === "notice");
+assert.equal(before.played, 4, "four attempted");
+assert.equal(before.pct, 100, "four attempted and all solid should read 100%, not 4 out of the whole library");
+assert.ok(before.library >= before.played, "the library size is reported separately from the score");
+assert.ok(before.sectionTotal > 0 && before.sectionTotal <= 5, "the course section is a fixed size");
+// A player who has attempted nothing is "not started", not zero per cent of hundreds.
+const cleanState = MTC.loadState();
+cleanState.gym = {};
+const untouched = MTC.muscleProgress(cleanState).find((m) => m.id === "judge");
+assert.equal(untouched.played, 0);
+assert.equal(untouched.pct, 0, "nothing attempted reads as zero, and the UI shows 'not started'");
+
+// The course has to carry you forward, or every node ends by dumping you at an index.
+const flowState = MTC.loadState();
+flowState.name = "Flow tester";
+flowState.gym = {};
+flowState.seenWalkthroughs = { muscle: [], format: [] };
+const firstNode = MTC.nextPathNode(flowState).node;
+assert.equal(firstNode.kind, "walkthrough", "a new player starts at the first walk-through");
+MTC.markWalkthroughSeen(flowState, "muscle", "notice");
+const afterGuide = MTC.nextNodeInSection(flowState, "notice", "notice");
+assert.ok(afterGuide && afterGuide.kind === "challenge", "finishing the guide leads into the section's first challenge, not back to a list");
+const sectionIds = MTC.sectionChallenges("notice").map((c) => c.id);
+for (const id of sectionIds.slice(0, 2)) flowState.gym[id] = { plays: 1, bestScore: 90, lastScore: 90, lastPlayed: MTC.todayStr() };
+const afterTwo = MTC.nextNodeInSection(flowState, "notice", sectionIds[1]);
+assert.equal(afterTwo.id, sectionIds[2], "each challenge leads to the next one in the same section");
+assert.ok(MTC.courseSectionFor(sectionIds[0]) === "notice", "a course challenge knows which section it belongs to");
+const courseIds = new Set(muscles.flatMap((m) => MTC.sectionChallenges(m.id).map((c) => c.id)));
+const offCourse = challenges.find((c) => !courseIds.has(c.id));
+assert.ok(offCourse, "the library must hold more than the course, or the library tab has nothing to offer");
+assert.equal(MTC.courseSectionFor(offCourse.id), null, "a challenge outside the course reports no section");
+
+// The section review exists to close gaps. Finish the last board with one still weak
+// and the review must be what comes next; finish with all of them solid and there is
+// nothing left for a review to do, so the section is simply over.
+const gapState = MTC.loadState();
+gapState.gym = {};
+for (const id of sectionIds) gapState.gym[id] = { plays: 1, bestScore: 90, lastScore: 90, lastPlayed: MTC.todayStr() };
+gapState.gym[sectionIds[1]].bestScore = 50;
+const afterLastWithGap = MTC.nextNodeInSection(gapState, "notice", sectionIds[sectionIds.length - 1]);
+assert.equal(afterLastWithGap && afterLastWithGap.kind, "review", "a section finished with a weak board leads to its review");
+assert.equal(MTC.sectionReviewQueue(gapState, "notice").map((c) => c.id).join(","), sectionIds[1], "the review queues exactly the board that is short of mastery");
+gapState.gym[sectionIds[1]].bestScore = 90;
+assert.equal(MTC.nextNodeInSection(gapState, "notice", sectionIds[sectionIds.length - 1]), null, "a fully mastered section has nothing left to review");
+
 // Closing the loop. The app's whole claim to reach real life rests on this, and the
 // half that matters happens a day later, so the behaviour has to survive a reload
 // and has to treat "not yet" as a reopen rather than a failure.
@@ -287,6 +341,9 @@ assert.ok(!elsewhere.lifeAreas.some((area) => source.lifeAreas.includes(area)), 
 
 const freshState = MTC.loadState();
 freshState.name = "Walkthrough tester";
+// loadState() reads the shared localStorage shim, so earlier tests in this file have
+// already marked guides as seen. Start this one from a genuinely fresh player.
+freshState.seenWalkthroughs = { muscle: [], format: [] };
 const wtChallenge = challenges.find((item) => item.id === "gym-workout-24");
 const firstNeed = MTC.nextRequiredWalkthrough(freshState, wtChallenge);
 assert.deepEqual({ ...firstNeed }, { kind: "muscle", id: wtChallenge.muscle }, "muscle guide is shown before the format guide");

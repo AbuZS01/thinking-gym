@@ -709,19 +709,36 @@ const MTC = (() => {
     return candidates.reduce((best, c) => (cost(c) < cost(best) ? c : best), candidates[0]);
   }
 
+  // Progress used to be measured against every challenge tagged with the muscle, so
+  // the bar fell whenever the bank grew: adding sixteen challenges moved a player
+  // from 10/24 to 10/32 having done nothing wrong. A measure that punishes you for
+  // the author's work is worse than no measure.
+  //
+  // Two honest numbers instead. `pct` is how much of what you have ATTEMPTED is
+  // solid, which only moves when you play. `sectionPct` is progress through the
+  // course section, which has a fixed size. The size of the library is reported
+  // separately, as a library, rather than as a denominator you are failing against.
   function muscleProgress(state) {
     return MTC_MUSCLES.map((t) => {
       const all = gymChallengesForMuscle(t.id);
       const played = all.filter((c) => state.gym[c.id]);
-      const mastered = all.filter((c) => (state.gym[c.id] || {}).bestScore >= 80);
+      const mastered = played.filter((c) => state.gym[c.id].bestScore >= PATH_MASTERY);
+      const section = sectionChallenges(t.id);
+      const sectionDone = section.filter((c) => ((state.gym[c.id] || {}).bestScore || 0) >= PATH_MASTERY);
       const avg = played.length
         ? Math.round(played.reduce((s, c) => s + state.gym[c.id].bestScore, 0) / played.length)
         : null;
       return {
         id: t.id, name: t.name,
-        total: all.length, played: played.length, mastered: mastered.length,
+        library: all.length,          // how much exists, for browsing
+        total: played.length,         // the denominator you are actually measured against
+        played: played.length,
+        mastered: mastered.length,
         avgBest: avg,
-        pct: all.length ? Math.round((mastered.length / all.length) * 100) : 0,
+        pct: played.length ? Math.round((mastered.length / played.length) * 100) : 0,
+        sectionTotal: section.length,
+        sectionDone: sectionDone.length,
+        sectionPct: section.length ? Math.round((sectionDone.length / section.length) * 100) : 0,
       };
     });
   }
@@ -953,6 +970,26 @@ const MTC = (() => {
     });
   }
 
+  // Finishing a node used to return you to the course list, where you had to find
+  // your place again. Every node ended by dumping you out, which is most of what
+  // stopped the path feeling like one. This is what carries you on instead: the
+  // next unfinished node in the SAME section, so a section is completed in one go
+  // rather than bouncing through an index between every step.
+  function nextNodeInSection(state, muscleId, afterId) {
+    const section = learningPath(state).find((s) => s.muscle.id === muscleId);
+    if (!section) return null;
+    const from = afterId ? section.nodes.findIndex((n) => n.id === afterId) : -1;
+    const rest = section.nodes.slice(from + 1);
+    return rest.find((n) => !n.done && (n.kind !== "review" || n.ready)) || null;
+  }
+
+  // The section a challenge belongs to, if the course reaches it at all.
+  function courseSectionFor(challengeId) {
+    const ch = getGymChallenge(challengeId);
+    if (!ch) return null;
+    return sectionChallenges(ch.muscle).some((c) => c.id === challengeId) ? ch.muscle : null;
+  }
+
   // Where to send someone who just wants to be told what is next.
   function nextPathNode(state) {
     for (const section of learningPath(state)) {
@@ -1043,6 +1080,8 @@ const MTC = (() => {
     shieldInfo,
     learningPath,
     nextPathNode,
+    nextNodeInSection,
+    courseSectionFor,
     sectionChallenges,
     sectionReviewQueue,
     makeCommitment,
