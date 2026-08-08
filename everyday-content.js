@@ -685,25 +685,25 @@ const rentRise = mtcGymChallenge("gym-workout-19");
 rentRise.hint = "Slow the decision down. Check the rental agreement, the written details and your budget before making a specific request.";
 rentRise.payload.steps[0] = {
   ask: "What is the best first reply?",
-  options: ["I have received the message. I need time to check my rental agreement and budget before I respond", "Fine, I agree", "You are greedy and I will report you", "Ignore every message"],
+  options: ["I have received the message. I need time to check my rental agreement and budget before I respond", "I would like to talk this through in person before I agree to anything at all, if that is possible", "That is a large increase. Could you explain what has changed to justify it?", "Thank you for letting me know. Can you confirm when the new amount would start?"],
   answer: 0,
   because: "This confirms receipt without accepting the change and gives you time to check the facts.",
 };
 rentRise.payload.steps[1] = {
   ask: "What should you check next?",
-  options: ["The rental agreement, the written details of the increase and your budget", "What rent strangers pay in another city", "Whether the landlord sounds confident", "How quickly you can borrow the difference"],
+  options: ["The rental agreement, the written details of the increase and your budget", "How much of your monthly income the new amount would take once other costs are paid", "What similar homes on the same street are currently being advertised for", "Whether other tenants in the building have been sent the same message"],
   answer: 0,
   because: "These facts show what was agreed, what is being proposed and whether you can afford it.",
 };
 rentRise.payload.steps[2] = {
   ask: "The increase would stretch your budget. What is a useful request?",
-  options: ["Ask for the reason and propose a smaller increase or a later start date", "Threaten to damage the property", "Agree now and hope the cost becomes easier", "Stop paying rent without advice"],
+  options: ["Ask for the reason and propose a smaller increase or a later start date", "Explain that you would have to start looking for somewhere cheaper if it goes ahead", "Ask for the increase to be delayed until the end of the current agreement", "Accept the increase but ask for outstanding repairs to be finished first"],
   answer: 0,
   because: "A specific alternative gives both sides something clear to consider.",
 };
 rentRise.payload.steps[3] = {
   ask: "The rental agreement is unclear. What should you do?",
-  options: ["Use an independent housing advice service before signing or withholding anything", "Rely on the landlord's explanation alone", "Ask social media to vote", "Move out tonight"],
+  options: ["Use an independent housing advice service before signing or withholding anything", "Search online for guidance and follow whichever answer appears most often in the results", "Ask the landlord to put the reason for the increase in writing", "Compare what friends in similar homes are paying each month"],
   answer: 0,
   because: "Independent advice can help you understand the agreement before you make a risky decision.",
 };
@@ -950,9 +950,9 @@ const MTC_MENTAL_MODEL_ADDITIONS = [
         { text: "What happened on the three late days?", value: "high", answer: "The first bus was repeatedly cancelled during temporary road works.", because: "This gives a situation that could explain the repeated timing without proving the person does not care." },
         { text: "Did they tell anyone they would be late?", value: "high", answer: "They messaged the manager each time, but the rest of the team was not told.", because: "This changes the judgment that they ignored the effect on others." },
         { text: "What happens on shifts that start later?", value: "high", answer: "They usually arrive ten minutes early.", because: "The wider pattern helps separate a transport problem from general unreliability." },
-        { text: "What music do they listen to?", value: "low", answer: "They like several kinds of music.", because: "This does not explain the late arrivals or help solve them." },
-        { text: "What did they eat for breakfast?", value: "low", answer: "They had toast.", because: "This is personal but not useful to the decision." },
-        { text: "Do they like the colour of the staff room?", value: "low", answer: "They have no strong view.", because: "The answer cannot change how you understand or address the late arrivals." },
+        { text: "What do they usually listen to during a shift?", value: "low", answer: "They like several kinds of music.", because: "This does not explain the late arrivals or help solve them." },
+        { text: "How do they normally get to work in the morning?", value: "low", answer: "They had toast.", because: "This is personal but not useful to the decision." },
+        { text: "Do they get on well with the rest of the team?", value: "low", answer: "They have no strong view.", because: "The answer cannot change how you understand or address the late arrivals." },
       ],
       decision: {
         ask: "What is the best next step?",
