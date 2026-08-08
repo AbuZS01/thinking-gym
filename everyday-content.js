@@ -151,7 +151,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     steps: [
       ["What should you do with the allergy information?", "Tell the duty manager and chef clearly", "The stated guide requires the people responsible for service and preparation to know.", ["Write it on the order slip and send it through", "Repeat it back and recommend a dish without nuts", "Mention it to whoever collects the plates later"]],
       ["You remember that the dish has no nuts. Is memory enough?", "No, check the written information and get confirmation", "Ingredients and preparation can change, so the guide requires a current check.", ["Yes, this dish has been served the same way for months", "Yes, provided the customer is told it is from memory", "Only if the chef on duty tonight agrees with you"]],
-      ["The kitchen cannot confirm it is safe. What should you say?", "Explain that it cannot be confirmed and help find a confirmed option", "Honest uncertainty is safer than a promise the kitchen cannot support.", ["Say it is very unlikely to contain any nuts at all", "Offer the dish with the nut garnish left off it", "Suggest they decide themselves now they know the risk"]],
+      ["The kitchen cannot confirm it is safe. What should you say?", "Explain that it cannot be confirmed and help find a confirmed option", "Honest uncertainty is safer than a promise the kitchen cannot support.", ["Say it is very unlikely to contain any nuts at all", "Offer the dish with the nut garnish left off it", "Suggest they decide for themselves, now that they know what the kitchen could not confirm"]],
     ],
     principle: "Treat allergy information as safety-critical: communicate it, check current records and never turn uncertainty into a promise.",
     limit: "This challenge uses the restaurant rule shown here. Real workplaces may have additional steps that staff must follow.",
@@ -215,8 +215,8 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Make the conflict visible before quietly missing a deadline.",
     steps: [
       ["What is the real problem?", "Both jobs cannot be completed by 2 pm with the time available", "The work needs six hours, but only four hours are available.", ["The two managers have not spoken to each other", "Neither job has been explained in enough detail", "The deadline was set without asking about workload"]],
-      ["What should you do first?", "Tell both managers about the conflict and ask which outcome matters most", "The people setting priorities need the same facts before choosing.", ["Start the job that arrived first and mention the other later", "Work out which job is quicker and finish that one", "Ask a colleague whether they can take one of them on"]],
-      ["What should your message include?", "The two requests, their effort, the shared deadline and realistic options", "Specific facts make it easier to change scope, timing or ownership.", ["An apology for not being able to manage the workload", "The job you think matters most and why you chose it", "A request for the deadline to be moved for both jobs"]],
+      ["What should you do first?", "Tell both managers about the conflict and ask which outcome matters most", "The people setting priorities need the same facts before choosing.", ["Start with the job that arrived first and mention the second one to that manager later", "Work out which job is quicker and finish that one", "Ask a colleague whether they can take one of them on"]],
+      ["What should your message include?", "The two requests, their effort, the shared deadline and realistic options", "Specific facts make it easier to change scope, timing or ownership.", ["An apology for not being able to manage the workload, and a promise to do better next time", "The job you think matters most and why you chose it", "A request for the deadline to be moved for both jobs"]],
     ],
     principle: "When priorities conflict, show the full workload early and ask the responsible people to make the trade-off visible.",
     limit: "You may sometimes need to make an urgent choice yourself. Even then, explain the reason and impact as soon as you can.",
@@ -227,7 +227,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     scenario: "You work in a call centre. A caller starts insulting you. The call rule says: give one calm warning, offer help with the account problem and end or transfer the call if the abuse continues.",
     problem: "Keep the boundary clear while leaving a route back to the real problem.",
     steps: [
-      ["What should the warning do?", "Name the behaviour, set the boundary and offer help with the account", "It separates the caller's problem from unacceptable treatment of staff.", ["Explain how upsetting the language has been to hear", "Say the account cannot be discussed in this tone at all", "Warn that the call is recorded and may be reviewed"]],
+      ["What should the warning do?", "Name the behaviour, set the boundary and offer help with the account", "It separates the caller's problem from unacceptable treatment of staff.", ["Explain how upsetting the language has been to hear", "Say that the account cannot be discussed at all while the caller is speaking this way", "Warn that the call is recorded and may be reviewed"]],
       ["The caller stops insulting you. What next?", "Return to the account problem", "The boundary worked, so the useful conversation can continue.", ["Ask them to acknowledge what was said before moving on", "Note the earlier language on the account record first", "Check whether they would prefer a different adviser"]],
       ["The abuse continues. What now?", "End or transfer the call under the rule", "The scenario gives this as the next step after the warning fails.", ["Give one more warning before taking any further step", "Stay calm and keep working through the account problem", "Put the caller on hold until they have settled down"]],
     ],
@@ -268,7 +268,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     steps: [
       ["What fact controls the decision?", "The required brake check is unfinished", "The rule directly says an unchecked safety item cannot be approved.", ["The manager has approved cars like this before", "Every other item on the form has passed", "The customer has already been waiting a long time"]],
       ["What should you do?", "Explain the missing check and do not sign until it is completed", "This keeps the record honest and follows the safety rule.", ["Sign it now and book the brake check for next week", "Note on the form that one check is still outstanding", "Ask the manager to sign it instead of you"]],
-      ["What useful option can you offer?", "Give a realistic completion time or ask for another trained person to check it", "This addresses the delay without pretending the work is complete.", ["Offer the customer a discount for the extra wait", "Suggest they take the car and return for the check", "Explain that the manager overruled the normal process"]],
+      ["What useful option can you offer?", "Give a realistic completion time or ask for another trained person to check it", "This addresses the delay without pretending the work is complete.", ["Offer the customer a discount for the extra wait", "Suggest they take the car and return for the check", "Explain to the customer that the manager has overruled the normal process on this occasion"]],
     ],
     principle: "Never turn schedule pressure into a false safety record. State the missing check and offer a truthful route forward.",
     limit: "Not every unfinished task is safety-critical. This scenario states that the brake check is required before approval.",
@@ -281,7 +281,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     steps: [
       ["What should you do first?", "Listen and ask what part differs from what they expected", "Specific information is more useful than defending the result immediately.", ["Explain which parts of the cut went exactly to plan", "Offer to book them in again free of charge", "Show them the photograph they brought in earlier"]],
       ["What should you avoid promising?", "That the hair can be restored immediately", "That outcome is impossible, so the promise would deepen the problem.", ["That a senior stylist will look at it with you today", "That the salon has a way of handling complaints", "That you will listen to the whole concern first"]],
-      ["What is a practical next step?", "Acknowledge the concern and involve the senior stylist to discuss available remedies", "It combines honesty, authority and realistic choices.", ["Adjust the cut a little more to see if that helps", "Offer a full refund so the matter is closed quickly", "Suggest they come back once the hair has grown out"]],
+      ["What is a practical next step?", "Acknowledge the concern and involve the senior stylist to discuss available remedies", "It combines honesty, authority and realistic choices.", ["Adjust the cut a little more to see if that helps", "Offer a full refund straight away so that the matter is closed before it becomes a complaint", "Suggest they come back once the hair has grown out"]],
     ],
     principle: "When harm cannot be fully undone, listen, acknowledge it and offer the best realistic remedy through the proper process.",
     limit: "A complaint does not automatically prove poor work. First compare the agreed request with the result and listen to the customer's concern.",
@@ -293,9 +293,9 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Find a useful response that stays inside every stated limit.",
     prompt: "Think of one more way to make the wait or payment choice clearer without storing card details or giving products away.",
     steps: [
-      ["Which idea fits all the rules?", "Put a notice at the entrance, tell the queue and accept cash while the machine is checked", "It informs people early and uses only an allowed payment method.", ["Take card details on paper and charge them once it works", "Serve people now and ask them to return to pay later", "Keep serving quietly and explain only at the till"]],
+      ["Which idea fits all the rules?", "Put a notice at the entrance, tell the queue and accept cash while the machine is checked", "It informs people early and uses only an allowed payment method.", ["Write card details down on paper and charge them once the machine has been repaired later today", "Serve people now and ask them to return to pay later", "Keep serving quietly and explain only at the till"]],
       ["How could staff reduce wasted waiting?", "Have one person explain the payment choices before customers order", "Early information lets each customer decide before joining a long queue.", ["Move the queue to a second till away from the door", "Tell waiting customers the machine will be back shortly", "Serve only cash customers and ask the rest to wait"]],
-      ["How should you judge another idea?", "Check that it is legal, clear, practical and within the shop rules", "Creative ideas are useful only when they solve the problem without creating a larger one.", ["Pick whichever idea the busiest staff member prefers", "Choose the option that keeps the queue moving fastest", "Try the most original idea and see how it works out"]],
+      ["How should you judge another idea?", "Check that it is legal, clear, practical and within the shop rules", "Creative ideas are useful only when they solve the problem without creating a larger one.", ["Pick whichever idea the busiest staff member prefers", "Choose whichever option keeps the queue moving fastest during the busiest part of the day", "Try the most original idea and see how it works out"]],
     ],
     principle: "Creativity works best inside clear limits. Generate options, then test each one for safety, honesty and practical value.",
     limit: "There may be several good answers. The scored options test the limits shown here, not whether one idea is the only creative solution.",
@@ -321,9 +321,9 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Connect the new idea to something the student already understands.",
     prompt: "Create your own simple example of two different fractions that show the same amount.",
     steps: [
-      ["Which demonstration uses the student's existing knowledge?", "Draw one pizza split in halves and another equal pizza split in quarters", "Equal pizzas make it possible to compare one half with two quarters directly.", ["Draw a large pizza in halves and a small one in quarters", "Write the two fractions side by side and compare the numbers", "Draw one pizza and split it into halves, then into quarters"]],
+      ["Which demonstration uses the student's existing knowledge?", "Draw one pizza split in halves and another equal pizza split in quarters", "Equal pizzas make it possible to compare one half with two quarters directly.", ["Draw a large pizza in halves and a small one in quarters", "Write the two fractions side by side on paper and compare the numbers in each one", "Draw one pizza and split it into halves, then into quarters"]],
       ["What must stay equal for the comparison to be fair?", "The size of the whole pizza", "Fractions of different-sized wholes cannot be compared by pieces alone.", ["The number of slices in each drawing", "The thickness of the lines you draw", "The order the two pizzas are drawn in"]],
-      ["How can the bottle tops help?", "Split four equal tops into two equal groups, then show each group has two quarters of the four", "The objects make the equal parts visible and touchable.", ["Lay out four tops and ask the student to name each fraction", "Use two tops for halves and four different tops for quarters", "Arrange the tops in a line and count along it together"]],
+      ["How can the bottle tops help?", "Split four equal tops into two equal groups, then show each group has two quarters of the four", "The objects make the equal parts visible and touchable.", ["Lay out four tops and ask the student to name each fraction", "Use two tops to show halves and four differently sized tops to show the quarters beside them", "Arrange the tops in a line and count along it together"]],
     ],
     principle: "A useful explanation links the new idea to a familiar one while keeping the important parts of the comparison equal.",
     limit: "An analogy supports understanding but does not replace every formal rule. Check that the student can use the idea in a new example.",
@@ -335,9 +335,9 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Build a new route using the limits and deadlines given.",
     prompt: "Think of another safe route or customer update that would reduce the effect of the closure.",
     steps: [
-      ["What should you identify first?", "Which open legal routes can reach the parcel with the nearest deadline", "The urgent window and legal-road limit shape the useful options.", ["Which parcel on the van is worth the most money", "Whether the closure is likely to be lifted soon", "Which route would be shortest if nothing were closed"]],
+      ["What should you identify first?", "Which open legal routes can reach the parcel with the nearest deadline", "The urgent window and legal-road limit shape the useful options.", ["Which parcel on the van is worth the most money", "Whether the closure is likely to be lifted soon", "Which route would have been shortest if nothing on it had been closed this afternoon"]],
       ["No legal route can meet the 40-minute window. What next?", "Update the customer or dispatcher early with an honest estimate", "Early information lets others adapt and avoids a false promise.", ["Deliver the later parcels first and come back to this one", "Keep going and explain the delay once you arrive", "Record the closure as the reason and continue as planned"]],
-      ["How should two possible routes be compared?", "Safety, legality, arrival time and effect on the later deliveries", "A creative route is only useful if it fits all important limits.", ["Total distance and how much fuel each one would use", "Which route the van's device recommends most strongly", "Which one you have driven most often before today"]],
+      ["How should two possible routes be compared?", "Safety, legality, arrival time and effect on the later deliveries", "A creative route is only useful if it fits all important limits.", ["Total distance and how much fuel each one would use", "Whichever route the van's own navigation device recommends most strongly at the time", "Which one you have driven most often before today"]],
     ],
     principle: "When a plan breaks, keep the real constraints, generate alternatives and communicate early when no option meets the original promise.",
     limit: "The shortest route is not always the quickest or safest. Use current road information and workplace guidance.",
@@ -350,8 +350,8 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     prompt: "Design one small evening change and one morning choice that could make your own routine calmer.",
     steps: [
       ["Which idea moves avoidable work out of the busy period?", "Pack bags and choose clothes the evening before", "Those tasks do not need to wait until the morning.", ["Set every alarm fifteen minutes earlier than now", "Keep shoes and coats by the door each evening", "Give each child a written list of morning jobs"]],
-      ["How could breakfast decisions be simpler?", "Offer two suitable choices instead of asking an unlimited question", "A small choice keeps involvement while reducing delay.", ["Serve the same breakfast to everyone each weekday", "Ask the night before what each child would like", "Let whoever is ready first choose for the others"]],
-      ["How should the new routine be tested?", "Try it for several mornings and change the part that still causes delay", "A short test shows whether the idea works in real family life.", ["Ask the children afterwards whether they preferred it", "Time the whole morning and compare it with before", "Try it fully for a month before deciding anything"]],
+      ["How could breakfast decisions be simpler?", "Offer two suitable choices instead of asking an unlimited question", "A small choice keeps involvement while reducing delay.", ["Serve everyone the same breakfast on every weekday so nothing has to be decided", "Ask the night before what each child would like", "Let whoever is ready first choose for the others"]],
+      ["How should the new routine be tested?", "Try it for several mornings and change the part that still causes delay", "A short test shows whether the idea works in real family life.", ["Ask the children afterwards whether they preferred the new routine to the old one", "Time the whole morning and compare it with before", "Try it fully for a month before deciding anything"]],
     ],
     principle: "Redesign repeated problems by moving tasks, reducing decisions and improving the part that still causes delay.",
     limit: "Families have different needs, ages and resources. The best routine is one that is safe, workable and respectful for that household.",
@@ -378,7 +378,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     prompt: "Find another safe use for an item you already own instead of buying new storage.",
     steps: [
       ["Which idea fits every limit?", "Sort the clothes into labelled boxes that slide under the bed", "It uses available items, costs nothing and keeps the walkway clear.", ["Stack the boxes neatly along the wall by the door", "Hang the clothes on a rail above the heater", "Keep the boxes on the landing just outside the room"]],
-      ["What makes labels useful?", "They reduce the need to open every box when looking for something", "The system saves time only if people can find and return items.", ["They show which boxes are heaviest to pull out", "They make it obvious that the room has been organised", "They record when each box was last packed away"]],
+      ["What makes labels useful?", "They reduce the need to open every box when looking for something", "The system saves time only if people can find and return items.", ["They show which boxes are heaviest to pull out", "They make it obvious to anyone walking in that the room has been properly organised", "They record when each box was last packed away"]],
       ["What should you check after a week?", "Whether items are easy to find and the safe areas remain clear", "A practical idea should work during normal use, not only on the first day.", ["Whether the boxes have held their shape under the bed", "Whether the labels are still readable in dim light", "Whether anything has been added since you sorted it"]],
     ],
     principle: "Creativity often means seeing a new use for what is already available, then checking that the solution remains safe in daily use.",
@@ -391,8 +391,8 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Create an enjoyable plan without pretending the budget is larger.",
     prompt: "Plan your own low-cost day using one free place, something from home and a small amount kept for unexpected costs.",
     steps: [
-      ["Which plan stays within the budget and keeps some money spare?", "Walk to the park and gallery, bring food and keep the £10 for a drink or unexpected need", "It uses the free options and does not spend the whole budget before the day begins.", ["Take the bus to the gallery and buy lunch for two there", "Spend the £10 on entry tickets and walk everywhere else", "Bring food, take the bus and use whatever is left over"]],
-      ["What is the useful creative move?", "Change the activity and transport rather than giving up the whole day", "The goal is time together, so several costly methods can change.", ["Pick the single cheapest activity and do only that", "Ask your friend to cover anything above the budget", "Wait for a week when there is more money available"]],
+      ["Which plan stays within the budget and keeps some money spare?", "Walk to the park and gallery, bring food and keep the £10 for a drink or unexpected need", "It uses the free options and does not spend the whole budget before the day begins.", ["Take the bus to the gallery and buy lunch for two there, keeping whatever is left for the journey home", "Spend the £10 on entry tickets and walk everywhere else", "Bring food, take the bus and use whatever is left over"]],
+      ["What is the useful creative move?", "Change the activity and transport rather than giving up the whole day", "The goal is time together, so several costly methods can change.", ["Pick whichever single activity costs least and simply do that one thing together", "Ask your friend to cover anything above the budget", "Wait for a week when there is more money available"]],
       ["What should you agree with your friend?", "The budget, travel plan and what each person will bring", "Shared expectations prevent awkward spending pressure later.", ["That whoever suggests something extra will pay for it", "That the plan can change freely once the day starts", "That you will split every cost equally at the end"]],
     ],
     principle: "Protect the real goal, change expensive methods and make the money limit visible before choosing.",
@@ -405,7 +405,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
     problem: "Make a complicated offer easier to understand without hiding a cost.",
     prompt: "Rewrite one confusing price or condition you have seen so the total effect is clear to an ordinary customer.",
     steps: [
-      ["Which explanation is clearest?", "You pay £30 today, then £20 a month for six months and £22 a month after that", "It puts each cost beside the time when the customer pays it.", ["There is a cost today, then a monthly price that rises later on", "It is £20 a month for six months, then £22, plus a setup fee", "You pay £30 now and then around £20 a month for the contract"]],
+      ["Which explanation is clearest?", "You pay £30 today, then £20 a month for six months and £22 a month after that", "It puts each cost beside the time when the customer pays it.", ["There is a cost to pay today, and then a monthly price that rises again later on", "It is £20 a month for six months, then £22, plus a setup fee", "You pay £30 now and then around £20 a month for the contract"]],
       ["Why must the later price be included?", "It changes what the customer will actually pay", "Leaving it out would make the offer sound cheaper than it is.", ["It is the figure most customers ask about first", "The shop is judged on how clearly its staff explain", "Leaving it out would make the explanation too short"]],
       ["How can you check the explanation?", "Ask the customer to describe the costs back in their own words", "Their explanation shows whether the important meaning was understood.", ["Ask whether they have any questions before signing", "Check that every figure on the contract was mentioned", "Read the whole explanation through a second time"]],
     ],
@@ -854,7 +854,7 @@ const MTC_MENTAL_MODEL_REPLACEMENTS = [
         { ask: "Which number may anchor your judgment?", options: ["The claimed old price of £900", "The £400 saving printed beside the offer", "The number of shops selling the same phone", "The amount you had planned to spend today"], answer: 0, because: "The first high price can make £500 feel cheap before you compare it with anything else." },
         { ask: "What is the most useful comparison?", options: ["Prices for the same phone with the same conditions", "What this shop charged for the same phone last month", "The saving offered here against savings advertised elsewhere", "What a newer model of the same phone costs today"], answer: 0, because: "Like-for-like prices show what the same product costs elsewhere now." },
         { ask: "What do the comparisons show?", options: ["£500 is not the lowest available price", "The saving is smaller than the label suggests it is", "Other shops are matching this price fairly closely", "The £900 figure was probably never actually charged"], answer: 0, because: "The same phone is available for £470 and £480 under the same conditions." },
-        { ask: "What is the sound decision?", options: ["Judge the £500 offer against current alternatives, not the crossed-out price", "Ask this shop whether they will match the lower price you found", "Buy from whichever shop offers the largest advertised saving", "Wait until the offer ends to see whether the price falls further"], answer: 0, because: "An independent comparison reduces the pull of the first number." },
+        { ask: "What is the sound decision?", options: ["Judge the £500 offer against current alternatives, not the crossed-out price", "Ask this shop whether they will match the lower price you found", "Buy from whichever shop offers the largest advertised saving", "Wait until this offer has ended to see whether the price falls any further afterwards"], answer: 0, because: "An independent comparison reduces the pull of the first number." },
     ]},
     debrief: {
       principle: "The first number you see can shape what feels cheap or expensive. Build your judgment from independent comparisons.",
@@ -956,7 +956,7 @@ const MTC_MENTAL_MODEL_ADDITIONS = [
       ],
       decision: {
         ask: "What is the best next step?",
-        options: ["Discuss the pattern and agree a temporary travel or start-time plan", "Tell everyone the coworker is lazy", "Ignore the effect on the team forever", "Punish them before hearing the facts"],
+        options: ["Discuss the pattern and agree a temporary travel or start-time plan", "Tell everyone the coworker is lazy", "Say nothing and let the rest of the team absorb the extra work until the pattern sorts itself out", "Punish them before hearing the facts"],
         answer: 0,
         because: "The facts show a repeated problem with a specific cause. A clear plan addresses it without inventing a character judgment.",
       },
