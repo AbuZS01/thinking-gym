@@ -140,9 +140,14 @@ const GYM = (() => {
     return { points: correct * 5, max: ev.length * 5, correct };
   }
 
+  // A hint used to cost a flat 15%. One wrong step on a four-step Work It Out costs
+  // 12.5%, so the cheapest play was to guess rather than ask for help — exactly
+  // backwards for a learning tool. 10% keeps a hint cheaper than a miss everywhere.
+  const HINT_COST = 0.10;
+
   function pct(sc) {
     const raw = (sc.points / sc.max) * 100;
-    return Math.max(0, Math.round(play.hintShown ? raw * 0.85 : raw));
+    return Math.max(0, Math.round(play.hintShown ? raw * (1 - HINT_COST) : raw));
   }
 
   // One tap between the last move and the score. It buys two things the transfer
@@ -292,13 +297,16 @@ const GYM = (() => {
           return `<button class="sentence ${isWrong ? "wrong" : ""}" data-gym-sentence="${i}">${e(s)}</button>`;
         }).join("")}
         ${wrongPick ? `<p class="subtle nudge">Not that one &mdash; that sentence is just reporting what was found. Look for where a conclusion outruns the evidence. Try again (half marks now).</p>` : ""}
+        <button class="btn ghost block" data-gym-dunno>I do not know &mdash; show me</button>
       </div>
       ${ideasHTML()}
       ${hintRowHTML()}`;
     }
     return `<div class="panel">
       <h2>Name the error</h2>
-      <p class="subtle">You found it: <i>${e(p.argument[p.flawIdx])}</i></p>
+      <p class="subtle">${play.pickedSentence === p.flawIdx
+        ? `You found it: <i>${e(p.argument[p.flawIdx])}</i>`
+        : `The broken step was: <i>${e(p.argument[p.flawIdx])}</i>`}</p>
       ${optionOrder(p.flawOptions.length, ch.id + ":flaw").map((oi) =>
         `<button class="opt" data-gym-flaw="${oi}">${e(p.flawOptions[oi])}</button>`).join("")}
     </div>
@@ -453,6 +461,7 @@ const GYM = (() => {
         }).join("")}
         ${tries >= 1 && play.lastWrong !== null
           ? `<p class="subtle nudge">Not that one &mdash; one more try, for half marks on this step.</p>` : ""}
+        <button class="btn ghost block" data-gym-dunno>I do not know &mdash; show me this one</button>
       </div>` : "";
 
     return `<div class="panel">
@@ -481,7 +490,7 @@ const GYM = (() => {
     if (!ch.hint) return "";
     return play.hintShown
       ? `<div class="hint-box">${e(ch.hint)}</div>`
-      : `<div class="field"><button class="btn ghost" data-gym-hint>&#128161; Hint (costs 15%)</button></div>`;
+      : `<div class="field"><button class="btn ghost" data-gym-hint>&#128161; Hint (costs 10%)</button></div>`;
   }
 
   function actionRowHTML(label, ready) {
@@ -523,6 +532,7 @@ const GYM = (() => {
       const p = ch.payload;
       return `<div class="review-row ${sc.sentencePts ? "ok" : "no"}">
           ${sc.sentencePts ? "&#10003;" : "&#10007;"} The broken step: <i>${e(p.argument[p.flawIdx])}</i>
+          ${play.shown && play.shown.sentence ? " <span class='subtle'>(you asked to be shown)</span>" : ""}
           ${sc.sentencePts === 10 ? " <span class='subtle'>(first try)</span>" : sc.sentencePts === 5 ? " <span class='subtle'>(second try)</span>" : ""}
         </div>
         <div class="review-row ${sc.namePts ? "ok" : "no"}">
@@ -580,12 +590,15 @@ const GYM = (() => {
       return ch.payload.steps.map((s, i) => {
         const pick = play.picks[i];
         const right = pick === s.answer;
+        const wasShown = play.shown && play.shown[i];
         const label = pick === null || pick === undefined ? "nothing" : s.options[pick];
         return `<div class="review-row ${right ? "ok" : "no"}">
           ${right ? "&#10003;" : "&#10007;"} <b>${i + 1}.</b> ${e(s.ask)}
           ${right
             ? `<div class="subtle">${e(s.options[s.answer])}${(play.tries[i] || 1) > 1 ? " (second try)" : ""}</div>`
-            : `<div class="subtle">You chose: ${e(label)}<br>Answer: ${e(s.options[s.answer])}</div>`}
+            : wasShown
+              ? `<div class="subtle">You asked to be shown this one.<br>Answer: ${e(s.options[s.answer])}</div>`
+              : `<div class="subtle">You chose: ${e(label)}<br>Answer: ${e(s.options[s.answer])}</div>`}
           <div class="subtle">${e(s.because)}</div>
         </div>`;
       }).join("");
@@ -643,7 +656,7 @@ const GYM = (() => {
           <p class="subtle">You earned <b>${sc.points}</b> of ${sc.max} points &middot; <span class="score-num">${p}<span>%</span></span></p>
         </div>
       </div>
-      ${play.hintShown ? `<p class="subtle nudge">Hint used &mdash; 15% off this score.</p>` : ""}
+      ${play.hintShown ? `<p class="subtle nudge">Hint used &mdash; 10% off this score.</p>` : ""}
       ${confidenceNoteHTML()}
       <p class="save-status" role="status">&#10003; Result saved automatically</p>
       ${unlocked.map((achievement) => `<p class="achievement-note">&#127942; ${e(achievement.name)} unlocked</p>`).join("")}
@@ -833,6 +846,25 @@ const GYM = (() => {
     if (hit("data-gym-check")) {
       if (ch.format === "map" && play.stage === "board") play.stage = "misleads";
       else finish(ch);
+      return true;
+    }
+
+    // Asking to be shown is honest and should read that way: no points for the step,
+    // no pretence that a guess was made, and the reason shown either way.
+    if (hit("data-gym-dunno")) {
+      play.shown = play.shown || {};
+      if (ch.format === "workout") {
+        const i = play.stepIdx;
+        play.picks[i] = null;
+        play.shown[i] = true;
+        play.lastWrong = null;
+        play.stepIdx++;
+        if (play.stepIdx >= ch.payload.steps.length) finish(ch);
+      } else if (ch.format === "flaw") {
+        play.pickedSentence = -1;
+        play.shown.sentence = true;
+        play.stage = "name";
+      }
       return true;
     }
 

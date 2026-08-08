@@ -327,7 +327,7 @@ function dashboardHTML() {
     <h1 style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h1>
     <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
-      ${STATE.graceShields > 0 ? "&middot; &#128737;&#65039; grace day ready" : ""}</p>
+      ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"}` : ""}</p>
   </div>
 
   ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
@@ -518,6 +518,22 @@ function progressHTML() {
 
 /* ---------- Profile tab ---------- */
 
+// The engine has always spent a shield to save a streak from one missed day. The
+// only sign of it was five words appended to a subtitle, so nobody knew it existed
+// or that finishing a day's practice earns another.
+function shieldCardHTML() {
+  const { held, max } = MTC.shieldInfo(STATE);
+  return `<div class="panel shield-card">
+    <div class="shield-row">
+      <div class="emoji-badge">&#128737;&#65039;</div>
+      <div>
+        <b>${held} of ${max} streak covers</b>
+        <p class="subtle" style="margin:2px 0 0">Miss a day, then practise again, and one of these covers the gap so your streak survives. Finish a day's practice to earn another.</p>
+      </div>
+    </div>
+  </div>`;
+}
+
 function profileHTML() {
   const li = levelInfo();
   const done = Object.values(STATE.gym).reduce((t, g) => t + g.plays, 0);
@@ -540,6 +556,8 @@ function profileHTML() {
     <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
     <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
   </div>
+
+  ${shieldCardHTML()}
 
   <div class="section-head"><h2>Achievements</h2><a href="#/achievements">View all</a></div>
   <div class="panel">
@@ -1185,6 +1203,7 @@ function resultToastHTML(result) {
     <div class="toast-card">
       <div class="subtle">${result.loopClosed ? "You used it" : "Exercise complete"}</div>
       <div class="xp-gain">+${result.xpAwarded} points</div>
+      ${result.shieldEarned ? `<div class="unlock">&#128737;&#65039; Day complete &mdash; you earned a <b>streak cover</b></div>` : ""}
       ${result.leveledUp ? `<p>&#127881; Level up! You're now <b>Level ${result.newLevel}</b> &mdash; ${esc(MTC.titleForLevel(result.newLevel))}</p>` : ""}
       ${result.missed && result.missed.length ? `<div class="unlock" style="text-align:left"><b>Focus next time:</b>${result.missed.map((m) => `<div>&middot; ${esc(m)}</div>`).join("")}</div>` : ""}
       ${result.achievementsUnlocked.length ? result.achievementsUnlocked.map((a) => `<div class="unlock">&#127942; Achievement unlocked: <b>${esc(a.name)}</b> (+${a.xp} points)</div>`).join("") : ""}

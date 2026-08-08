@@ -154,6 +154,25 @@ const MTC = (() => {
     };
   }
 
+  // A missed day should not erase a month of work. updateStreak already spends a
+  // shield automatically; the gap was earning one. Only the Deep Work trio ever
+  // restored it, so anybody who just plays challenges spent their single shield
+  // and never saw another. Finishing a day's practice now earns one, up to two.
+  const MAX_SHIELDS = 2;
+
+  function awardShieldForFullDay(state) {
+    if ((state.graceShields || 0) >= MAX_SHIELDS) return false;
+    const today = todayStr();
+    const session = gymSession(state);
+    if (!session.every((c) => state.gym[c.id] && state.gym[c.id].lastPlayed === today)) return false;
+    state.graceShields = (state.graceShields || 0) + 1;
+    return true;
+  }
+
+  function shieldInfo(state) {
+    return { held: state.graceShields || 0, max: MAX_SHIELDS };
+  }
+
   function updateStreak(state) {
     const today = todayStr();
     if (state.lastActiveDate === today) return;
@@ -743,6 +762,8 @@ const MTC = (() => {
       noteBonusAwarded: Boolean(cleanNote),
     }, ch.muscle);
     result.nextDue = state.gym[challengeId].due;
+    result.shieldEarned = awardShieldForFullDay(state);
+    if (result.shieldEarned) saveState(state);
     return result;
   }
 
@@ -940,6 +961,7 @@ const MTC = (() => {
     submitGymChallenge,
     saveGymNote,
     dueGymReplays,
+    shieldInfo,
     makeCommitment,
     hasOpenCommitment,
     dueCommitments,

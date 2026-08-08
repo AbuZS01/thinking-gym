@@ -619,3 +619,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .panel.checkin h2 { font-size: 17px; margin-bottom: 2px; }
 .panel.checkin textarea { margin-top: 10px; min-height: 64px; }
 .panel.checkin .action-row { margin-top: 10px; }
+
+/* Streak covers. The mechanic already existed in the engine; this is the first
+   time it has been visible enough for anyone to rely on it. */
+.shield-card { padding: 14px 16px; }
+.shield-row { display: flex; align-items: flex-start; gap: 12px; }
+.shield-row b { font-size: 15px; }

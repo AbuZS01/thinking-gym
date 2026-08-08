@@ -2,8 +2,7 @@
    and confirm it lands in the record. The whole point of the feature is the
    day-later half, so the test has to cross a day boundary. */
 const { chromium } = require('/opt/node22/lib/node_modules/playwright');
-const BASE = 'http://localhost:8942/index.html'; // start a static server on this port first
-const _NOTE = '';
+const BASE = 'http://localhost:8943/index.html';
 
 (async () => {
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
