@@ -72,6 +72,7 @@ const MTC = (() => {
       history: [], // {date, exerciseId, type, score, xp, hintsUsed}
       dailyQuest: null, // {date, items: [{exerciseId, type}], completed: [exerciseId]}
       bossBattle: null, // {week, battleId, completed, stageNotes: []}
+      seenWalkthroughs: { muscle: [], format: [] }, // ids of the one-off intro guides already shown
     };
   }
 
@@ -762,6 +763,32 @@ const MTC = (() => {
     return MTC_GYM_CHALLENGES.filter((c) => state.gym[c.id] && state.gym[c.id].due <= today);
   }
 
+  /* ---------- Walkthroughs: one-off intro guides per muscle/format ---------- */
+
+  function getWalkthrough(kind, id) {
+    return (MTC_WALKTHROUGHS[kind] || {})[id] || null;
+  }
+
+  function hasSeenWalkthrough(state, kind, id) {
+    return ((state.seenWalkthroughs || {})[kind] || []).includes(id);
+  }
+
+  function markWalkthroughSeen(state, kind, id) {
+    if (!state.seenWalkthroughs) state.seenWalkthroughs = { muscle: [], format: [] };
+    if (!state.seenWalkthroughs[kind]) state.seenWalkthroughs[kind] = [];
+    if (!state.seenWalkthroughs[kind].includes(id)) state.seenWalkthroughs[kind].push(id);
+    saveState(state);
+  }
+
+  // A challenge trains a muscle and is played through a format; the muscle is the
+  // "type of thinking" the player asked to see explained first, so it goes ahead
+  // of the format's how-to-play guide. Returns null once both have been seen.
+  function nextRequiredWalkthrough(state, challenge) {
+    if (!hasSeenWalkthrough(state, "muscle", challenge.muscle)) return { kind: "muscle", id: challenge.muscle };
+    if (!hasSeenWalkthrough(state, "format", challenge.format)) return { kind: "format", id: challenge.format };
+    return null;
+  }
+
   /* ---------- Weekly report ---------- */
 
   function weeklyReport(state) {
@@ -813,6 +840,10 @@ const MTC = (() => {
     submitGymChallenge,
     saveGymNote,
     dueGymReplays,
+    getWalkthrough,
+    hasSeenWalkthrough,
+    markWalkthroughSeen,
+    nextRequiredWalkthrough,
     submitWorkbench,
     calibrationTrend,
     exerciseConfidenceGap,

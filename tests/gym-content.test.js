@@ -24,13 +24,15 @@ function run(file, expose) {
   vm.runInContext(`${source}\n;globalThis.${expose.name} = ${expose.value};`, context, { filename: file });
 }
 
-run("content.js", { name: "__contentData", value: "({ frameworks: MTC_FRAMEWORKS, toolbox: MTC_TOOLBOX, skills: MTC_SKILL_CATALOG, exercises: MTC_EXERCISES, templates: MTC_TOOL_TEMPLATES })" });
+run("content.js", { name: "__contentData", value: "({ frameworks: MTC_FRAMEWORKS, toolbox: MTC_TOOLBOX, skills: MTC_SKILL_CATALOG, exercises: MTC_EXERCISES, templates: MTC_TOOL_TEMPLATES, muscles: MTC_MUSCLES })" });
 run("gym-content.js", { name: "__gymData", value: "({ formats: MTC_GYM_FORMATS, challenges: MTC_GYM_CHALLENGES, areas: MTC_GYM_LIFE_AREAS })" });
+run("walkthroughs.js", { name: "__walkthroughs", value: "MTC_WALKTHROUGHS" });
 run("everyday-content.js", { name: "__everydayLoaded", value: "true" });
 run("engine.js", { name: "__engine", value: "MTC" });
 
 const { formats, challenges, areas } = context.__gymData;
-const { frameworks, toolbox, skills, exercises, templates } = context.__contentData;
+const { frameworks, toolbox, skills, exercises, templates, muscles } = context.__contentData;
+const walkthroughs = context.__walkthroughs;
 const MTC = context.__engine;
 const areaIds = new Set(areas.map((area) => area.id));
 
@@ -148,6 +150,20 @@ const runtimeText = challenges.flatMap((item) => visibleStrings(item)).join(" ")
 assert.doesNotMatch(runtimeText, /Pixar|\bBadr\b|Maginot|Coca-Cola|\bKodak\b|\bUmar\b/i, "brand or history knowledge must not be assumed by a Gym card");
 assert.doesNotMatch(runtimeText, /\b(?:law|laws|legal|legally|rights)\b/i, "a Gym card must not test or imply unstated local rules");
 
+// Values crossing the vm boundary keep their origin realm's Array constructor, so
+// deepEqual on them directly fails on reference identity even with matching content.
+// Rebuilding plain arrays in this realm compares by value as intended.
+assert.deepEqual([...Object.keys(walkthroughs.muscle)].sort(), [...muscles].map((m) => m.id).sort(), "every muscle needs exactly one walkthrough, and no orphans");
+assert.deepEqual([...Object.keys(walkthroughs.format)].sort(), [...Object.keys(formats)].sort(), "every format needs exactly one walkthrough, and no orphans");
+for (const kind of ["muscle", "format"]) {
+  for (const [id, w] of Object.entries(walkthroughs[kind])) {
+    assert.ok(w.title && w.emoji && w.lede, `${kind}:${id} walkthrough needs a title, emoji and lede`);
+    assert.ok(Array.isArray(w.explain) && w.explain.length >= 1, `${kind}:${id} walkthrough needs at least one explanation paragraph`);
+    assert.ok(w.example && w.example.scenario && Array.isArray(w.example.walk) && w.example.walk.length >= 1 && w.example.answer,
+      `${kind}:${id} walkthrough needs a full worked example (scenario, walk, answer)`);
+  }
+}
+
 const state = MTC.loadState();
 state.name = "Test user";
 const challenge = challenges.find((item) => item.id === "gym-workout-24");
@@ -174,4 +190,19 @@ const focusedIds = focusedSession.map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
 assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
 
-console.log(`Validated ${challenges.length} globally clear challenges, ${everydayReplacements.length} everyday replacements, 10 creativity tasks, answer keys, fair scoring notes, stable daily sessions and autosave.`);
+const freshState = MTC.loadState();
+freshState.name = "Walkthrough tester";
+const wtChallenge = challenges.find((item) => item.id === "gym-workout-24");
+const firstNeed = MTC.nextRequiredWalkthrough(freshState, wtChallenge);
+assert.deepEqual({ ...firstNeed }, { kind: "muscle", id: wtChallenge.muscle }, "muscle guide is shown before the format guide");
+MTC.markWalkthroughSeen(freshState, "muscle", wtChallenge.muscle);
+const secondNeed = MTC.nextRequiredWalkthrough(freshState, wtChallenge);
+assert.deepEqual({ ...secondNeed }, { kind: "format", id: wtChallenge.format }, "format guide follows once the muscle guide is seen");
+MTC.markWalkthroughSeen(freshState, "format", wtChallenge.format);
+assert.equal(MTC.nextRequiredWalkthrough(freshState, wtChallenge), null, "no more guides once both are seen");
+MTC.markWalkthroughSeen(freshState, "muscle", wtChallenge.muscle);
+assert.equal(freshState.seenWalkthroughs.muscle.length, 1, "marking an already-seen guide must not duplicate it");
+const reloaded = JSON.parse(JSON.stringify(freshState));
+assert.equal(MTC.nextRequiredWalkthrough(reloaded, wtChallenge), null, "a saved-and-reloaded state keeps its seen guides");
+
+console.log(`Validated ${challenges.length} globally clear challenges, ${everydayReplacements.length} everyday replacements, 10 creativity tasks, answer keys, fair scoring notes, stable daily sessions and autosave, and all 13 thinking-guide walkthroughs.`);

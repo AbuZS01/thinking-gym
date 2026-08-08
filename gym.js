@@ -811,5 +811,5 @@ const GYM = (() => {
 
   function reset() { play = null; }
 
-  return { playHTML, handleClick, handleInput, reset };
+  return { playHTML, handleClick, handleInput, reset, muscleTip: (id) => TOMORROW_TIPS[id] };
 })();

@@ -145,7 +145,7 @@ const TABS = [
   { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
   { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review"] },
   { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report"] },
-  { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench"] },
+  { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides"] },
 ];
 
 function activeTab() {
@@ -185,6 +185,12 @@ function chromeFor(r) {
   if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
   if (r.startsWith("gym/muscle/") || r.startsWith("gym/track/")) return ["Muscle", "gym"];
   if (r.startsWith("gym/life/")) return ["Real-life challenges", "gym"];
+  if (r.startsWith("gym/learn/")) {
+    const [, , kind, id, resumeId] = r.split("/");
+    const w = MTC.getWalkthrough(kind, id);
+    return [w ? w.title : "Guide", resumeId ? "gym" : "guides"];
+  }
+  if (r === "guides") return ["Thinking Guides", "profile"];
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
@@ -484,6 +490,7 @@ function profileHTML() {
 
   <div class="section-head"><h2>Library</h2></div>
   <div class="panel">
+    <a class="list-row" href="#/guides"><span class="ico">\u{1F9E0}</span><span class="label">Thinking Guides</span><span class="val">${(STATE.seenWalkthroughs.muscle || []).length + (STATE.seenWalkthroughs.format || []).length}/13</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/toolbox"><span class="ico">&#129520;</span><span class="label">Thinking Toolbox</span><span class="val">${MTC_TOOLBOX.length}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/frameworks"><span class="ico">&#128218;</span><span class="label">Frameworks</span><span class="val">${MTC_FRAMEWORKS.length}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/achievements"><span class="ico">&#127941;</span><span class="label">All achievements</span><span class="val">${STATE.achievements.length}/${MTC_ACHIEVEMENTS.length}</span><span class="chev">&#8250;</span></a>
@@ -709,6 +716,55 @@ function toolboxHTML() {
     <input type="text" id="toolbox-search" placeholder="Search tools..." value="${esc(toolboxFilter)}" />
   </div>
   <div class="grid" id="toolbox-results">${toolboxResultsHTML()}</div>`;
+}
+
+/* ---------- Thinking Guides: one-off walkthroughs, revisitable anytime ---------- */
+
+function guidesHTML() {
+  const seen = STATE.seenWalkthroughs || { muscle: [], format: [] };
+  const row = (kind, id, name, emoji) => `<a class="list-row" href="#/gym/learn/${kind}/${id}">
+    <span class="ico">${emoji}</span><span class="label">${esc(name)}</span>
+    <span class="val">${(seen[kind] || []).includes(id) ? "Seen" : "New"}</span><span class="chev">&#8250;</span>
+  </a>`;
+  return `<div class="panel">
+    <h1>Thinking Guides</h1>
+    <p class="subtle">Short explainers for each type of thinking and each challenge format, each with a worked example. The first one for a new type or format shows automatically before your first challenge &mdash; revisit any of them here anytime.</p>
+  </div>
+  <div class="section-head"><h2>Types of thinking</h2></div>
+  <div class="panel">${MTC_MUSCLES.map((m) => row("muscle", m.id, m.name, m.emoji)).join("")}</div>
+  <div class="section-head"><h2>Challenge formats</h2></div>
+  <div class="panel">${Object.keys(MTC_GYM_FORMATS).map((id) => row("format", id, MTC_GYM_FORMATS[id].name, FORMAT_ICONS[id])).join("")}</div>`;
+}
+
+function walkthroughHTML(kind, id, resumeId) {
+  const w = MTC.getWalkthrough(kind, id);
+  if (!w) return `<div class="panel"><p>Guide not found.</p><a class="btn" href="#/guides">Thinking Guides</a></div>`;
+  const isMuscle = kind === "muscle";
+  const how = !isMuscle ? MTC_GYM_FORMATS[id].how : null;
+  const tip = isMuscle ? GYM.muscleTip(id) : null;
+  return `<div class="panel">
+    <div class="level-hero">
+      <div class="emoji-badge">${w.emoji}</div>
+      <div><h1 style="font-size:20px">${esc(w.title)}</h1><p class="subtle" style="margin:2px 0 0">${isMuscle ? "A type of thinking" : "A challenge format"}</p></div>
+    </div>
+    <p style="margin-top:14px">${esc(w.lede)}</p>
+  </div>
+  <div class="panel">
+    ${w.explain.map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}
+    ${how ? `<p class="subtle" style="margin-top:10px"><b>How it works:</b> ${esc(how)}</p>` : ""}
+  </div>
+  <div class="panel">
+    <h2>Worked example</h2>
+    <p style="font-style:italic">${esc(w.example.scenario)}</p>
+    ${w.example.walk.map((step) => `<div class="review-row"><div>${esc(step)}</div></div>`).join("")}
+    <p style="margin-top:10px"><b>${esc(w.example.answer)}</b></p>
+  </div>
+  ${tip ? `<div class="panel"><div class="info-panel blue"><div class="lbl">Use this tomorrow</div>${esc(tip)}</div></div>` : ""}
+  <div class="field">
+    <button class="btn block" data-walkthrough-continue data-kind="${kind}" data-id="${id}" ${resumeId ? `data-resume="${resumeId}"` : ""}>
+      ${resumeId ? "Start the challenge →" : "Got it"}
+    </button>
+  </div>`;
 }
 
 /* ---------- Framework encyclopedia ---------- */
@@ -1069,6 +1125,15 @@ function render() {
   }
   document.body.classList.remove("landing");
   const r = route();
+
+  // First time this challenge's muscle or format is encountered, detour through
+  // its one-off guide before the (scored) challenge itself.
+  if (r.startsWith("gym/play/")) {
+    const ch = MTC.getGymChallenge(r.split("/")[2]);
+    const need = ch && MTC.nextRequiredWalkthrough(STATE, ch);
+    if (need) { navigate(`gym/learn/${need.kind}/${need.id}/${ch.id}`); return; }
+  }
+
   let body;
   if (r === "dashboard") body = dashboardHTML();
   else if (r === "progress") body = progressHTML();
@@ -1080,6 +1145,8 @@ function render() {
   else if (r.startsWith("gym/track/")) body = gymMuscleHTML(r.split("/")[2]); // pre-muscle links
   else if (r.startsWith("gym/life/")) body = gymLifeAreaHTML(r.split("/")[2]);
   else if (r.startsWith("gym/play/")) body = GYM.playHTML(r.split("/")[2]);
+  else if (r.startsWith("gym/learn/")) { const [, , kind, id, resumeId] = r.split("/"); body = walkthroughHTML(kind, id, resumeId); }
+  else if (r === "guides") body = guidesHTML();
   else if (r === "boss") body = bossHTML();
   else if (r === "calibration") body = calibrationHTML();
   else if (r === "review") body = reviewHTML();
@@ -1113,6 +1180,20 @@ function render() {
 
 document.addEventListener("click", (e) => {
   if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); return; }
+
+  const wtContinue = e.target.closest("[data-walkthrough-continue]");
+  if (wtContinue) {
+    const { kind, id, resume } = wtContinue.dataset;
+    MTC.markWalkthroughSeen(STATE, kind, id);
+    if (resume) {
+      const ch = MTC.getGymChallenge(resume);
+      const need = ch && MTC.nextRequiredWalkthrough(STATE, ch);
+      navigate(need ? `gym/learn/${need.kind}/${need.id}/${resume}` : `gym/play/${resume}`);
+    } else {
+      navigate("guides");
+    }
+    return;
+  }
 
   const lifeFocusButton = e.target.closest("[data-set-life-focus]");
   if (lifeFocusButton) {
