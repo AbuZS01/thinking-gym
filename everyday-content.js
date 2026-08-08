@@ -1,9 +1,29 @@
-/* Everyday job and creativity replacements.
+/* Final pass over the challenge bank.
  *
- * These replace thirty abstract challenges without increasing the size of the
- * challenge bank. Every fact or workplace rule needed to answer is included in
- * the scenario. Creative challenges score how well an idea fits clear limits;
- * the player's own idea remains optional and is never graded.
+ * Despite the name, this file is not a standalone content list: it MUTATES
+ * MTC_GYM_CHALLENGES in place and must load AFTER gym-content.js. Dropping the
+ * script tag does not merely remove some extra content — it silently reverts
+ * thirty challenges, strips every fairness note and reintroduces the brand and
+ * history references the test suite forbids. It does three separate jobs:
+ *
+ * 1. Everyday replacements. MTC_EVERYDAY_REPLACEMENTS rewrites thirty abstract
+ *    challenges in place as everyday job or creativity scenarios, switching them
+ *    to the "workout" format. Every fact or workplace rule needed to answer is
+ *    included in the scenario. Creative challenges score how well an idea fits
+ *    clear limits; the player's own idea stays optional and is never graded.
+ *
+ * 2. Global-English pass. Individual edits scrub references that assume brand or
+ *    local history knowledge (Pixar, Badr), pair UK/US terms a reader may only
+ *    know one version of, and end by stamping globalClarityChecked and a default
+ *    fairnessNote onto every card in the bank.
+ *
+ * 3. Mental-model additions. MTC_MENTAL_MODEL_ADDITIONS appends seven new
+ *    challenges, so the bank finishes at 122 rather than the 115 authored in
+ *    gym-content.js.
+ *
+ * The replacement loop skips ids it cannot find, so renaming a challenge in
+ * gym-content.js would quietly drop its rewrite. The exact counts asserted in
+ * tests/gym-content.test.js are what catch that.
  */
 const MTC_EVERYDAY_REPLACEMENTS = [
   {
