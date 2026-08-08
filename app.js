@@ -789,8 +789,15 @@ function bossHTML() {
 
 function toolboxResultsHTML() {
   const q = toolboxFilter.toLowerCase();
-  const items = MTC_TOOLBOX.filter((t) => !q || [t.name, t.formalName, t.summary].some((value) => String(value || "").toLowerCase().includes(q)));
-  return items.map((t) => `<div class="panel"><h2>${esc(t.name)}</h2>${t.formalName ? `<span class="tag neutral">Also called ${esc(t.formalName)}</span>` : ""}<p>${esc(t.summary)}</p><p class="subtle"><b>When:</b> ${esc(t.when)}</p><a class="cta" href="#/workbench/${t.id}">Apply to my problem &rarr;</a></div>`).join("") || `<p class="subtle">No tools match.</p>`;
+  const items = MTC_TOOLBOX.filter((t) => !q || [t.name, t.formalName, t.summary, t.example].some((value) => String(value || "").toLowerCase().includes(q)));
+  return items.map((t) => `<div class="panel">
+    <h2>${esc(t.name)}</h2>
+    ${t.formalName ? `<span class="tag neutral">Also called ${esc(t.formalName)}</span>` : ""}
+    <p>${esc(t.summary)}</p>
+    ${t.example ? `<div class="info-panel green"><div class="lbl">What it looks like</div>${esc(t.example)}</div>` : ""}
+    <p class="subtle"><b>When:</b> ${esc(t.when)}</p>
+    <a class="cta" href="#/workbench/${t.id}">Apply to my problem &rarr;</a>
+  </div>`).join("") || `<p class="subtle">No tools match.</p>`;
 }
 
 function toolboxHTML() {

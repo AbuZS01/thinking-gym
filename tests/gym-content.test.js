@@ -211,7 +211,7 @@ assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "t
 // work out either way.
 const libraryText = [
   ...frameworks.flatMap((f) => [f.core, f.problem, f.whyWrong, f.avoid, f.danger, f.example, f.expertUse]),
-  ...toolbox.flatMap((t) => [t.summary, t.when]),
+  ...toolbox.flatMap((t) => [t.summary, t.when, t.example]),
 ].filter(Boolean);
 
 for (const text of libraryText) {
@@ -224,10 +224,15 @@ assert.doesNotMatch(libraryJoined, /\b(?:Semmelweis|Airbnb|Amazon|Titanic|de Bon
   "a library entry must not lean on a name the reader either knows or does not");
 assert.doesNotMatch(libraryJoined, /\b(?:paralysis-by-analysis|performative|nonlinear\w*|emergent|canonical|priors|epistemic|decompos\w*|reflexive|falsifiab\w*|disconfirm\w*|tractable|heurist\w*|skillful\w*)\b/i,
   "a library entry must not fall back on academic vocabulary");
-assert.doesNotMatch(libraryJoined, /\w+(?:iz(?:e|es|ed|ing|ation))\b|\bbehavior\b|\bcolor\b/i,
+// Match known -ize verbs by stem rather than any word ending in "ize", which
+// flagged "prize" and would flag "size" and "seize" too.
+assert.doesNotMatch(libraryJoined, /\b(?:organiz|recogniz|realiz|prioritiz|optimiz|generaliz|rationaliz|empathiz|materializ|apologiz|summariz|categoriz|criticiz|emphasiz|minimiz|maximiz|utiliz|stabiliz|intellectualiz|specializ|normaliz|visualiz|memoriz|analyz)\w*\b|\bbehavior\b|\bcolor\b|\bjudgment\b/i,
   "the library should use the same spelling as the rest of the app");
 for (const f of frameworks) {
   assert.ok(f.example && f.example.length > 40, `${f.id}: needs a concrete example of what it looks like`);
+}
+for (const t of toolbox) {
+  assert.ok(t.example && t.example.length > 40, `${t.id}: a toolbox card needs a concrete example, or it stays abstract`);
 }
 
 // The course. Sections are derived from the muscles, so they cannot drift from the
