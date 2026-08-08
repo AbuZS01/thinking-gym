@@ -149,6 +149,19 @@ function challengeBrowseCardHTML(challenge) {
   </a>`;
 }
 
+// Deep Work and Boss Battle are graded by ticking your own checklist, and their
+// points land in the same total as challenges scored against an answer key. That
+// is fine as long as the player can see it, otherwise the level quietly stops
+// meaning "how well I did" and starts meaning "how generously I ticked".
+const SELF_ASSESSED_TYPES = new Set([...MTC_QUEST_TYPES, "boss"]);
+
+function selfAssessedNoteHTML() {
+  const total = STATE.history.reduce((sum, h) => sum + (h.xp || 0), 0);
+  const own = STATE.history.filter((h) => SELF_ASSESSED_TYPES.has(h.type)).reduce((sum, h) => sum + (h.xp || 0), 0);
+  if (!own || !total) return "";
+  return `<p class="subtle" style="margin-top:8px">${Math.round((own / total) * 100)}% of your points come from written practice you scored yourself. The rest were scored against an answer key.</p>`;
+}
+
 function levelInfo() {
   const { level, xpIntoLevel, xpForNext } = MTC.deriveLevel(STATE.totalXp);
   return { level, xpIntoLevel, xpForNext, title: MTC.titleForLevel(level), pct: Math.min(100, Math.round((xpIntoLevel / xpForNext) * 100)) };
@@ -243,7 +256,10 @@ function onboardingHTML() {
       <label class="onboard-label" for="life-focus">What would help most right now? <span>Optional</span></label>
       <select id="life-focus" name="lifeFocus">
         <option value="">A mix of everyday situations</option>
-        ${MTC_GYM_LIFE_AREAS.map((area) => `<option value="${area.id}">${area.emoji} ${esc(area.name)}</option>`).join("")}
+        ${MTC_GYM_LIFE_AREAS.map((area) => {
+          const n = MTC.gymChallengesForLifeArea(area.id).length;
+          return `<option value="${area.id}">${area.emoji} ${esc(area.name)} (${n})</option>`;
+        }).join("")}
       </select>
       <p class="form-help">This shapes your daily mix. You can still browse every challenge.</p>
       <div class="field"><button class="btn block" type="submit">Get started <span aria-hidden="true">&rarr;</span></button></div>
@@ -380,6 +396,7 @@ function challengesHTML() {
   </div>
 
   <div class="section-head"><h2>Other training</h2></div>
+  <p class="subtle" style="margin:-4px 0 10px">Written practice. Deep Work and Boss Battle are scored by ticking your own checklist, not against an answer key like the challenges above.</p>
   <div class="panel">
     <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">${quest.completed.length}/${quest.items.length}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/boss"><span class="ico">&#128121;</span><span class="label">Boss Battle</span><span class="val">${battleState.completed ? "done" : esc(truncateWords(battle.name, 18))}</span><span class="chev">&#8250;</span></a>
@@ -447,6 +464,7 @@ function progressHTML() {
     <p class="subtle">Practice level ${li.level} &middot; ${esc(li.title)}</p>
     <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle">${li.xpIntoLevel} of ${li.xpForNext} points toward the next level</p>
+    ${selfAssessedNoteHTML()}
   </div>
 
   <div class="section-head"><h2>Skills you are building</h2><a href="#/gym">Practise</a></div>

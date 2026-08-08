@@ -249,7 +249,7 @@ const MTC_EVERYDAY_REPLACEMENTS = [
   },
   {
     id: "gym-flaw-18", title: "Someone Asks for a Hotel Guest's Room", emoji: "🏨", difficulty: 1,
-    areas: ["work", "safety"], frameworks: ["privacy", "verification", "communication"],
+    areas: ["work", "safety", "scams"], frameworks: ["privacy", "verification", "communication"],
     scenario: "At a hotel desk, a person asks for a guest's room number and says they are a close friend. Hotel policy says never reveal whether someone is staying or give their room number. Staff may offer to take a message.",
     problem: "Protect the guest's privacy without accusing the visitor.",
     steps: [

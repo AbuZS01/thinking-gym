@@ -1639,6 +1639,7 @@ const MTC_GYM_CHALLENGES = [
     title: "Is This Account a Real Person?",
     scenario: "You want to know whether a social media account belongs to an ordinary person or is controlled as part of an organised campaign. Decide whether each fact supports the campaign claim, weakens it, or tells us nothing useful.",
     frameworks: ["intelligence-analysis", "red-team-thinking", "pattern-recognition"],
+    lifeAreas: ["scams"],
     emoji: "🕵️",
     hint: "Ask how hard each detail would be for the person running a fake account to copy.",
     payload: {
@@ -2442,6 +2443,7 @@ const MTC_GYM_CHALLENGES = [
     title: "This Offer Expires Friday",
     scenario: "A salesperson says a lower price is available only until Friday. Decide whether each fact supports the claim that the deadline is real, weakens it, or is not useful.",
     frameworks: ["game-theory", "red-team-thinking", "intelligence-analysis"],
+    lifeAreas: ["money", "scams"],
     emoji: "⏰",
     hint: "A real deadline usually has a reason outside this conversation, such as a public price change. Ask whether that reason can be checked.",
     payload: {
@@ -2517,6 +2519,7 @@ const MTC_GYM_CHALLENGES = [
     title: "The Other Buyer",
     scenario: "An estate agent says another buyer is preparing an offer on a house you want. Decide whether each fact supports that claim, weakens it, or is not useful.",
     frameworks: ["intelligence-analysis", "game-theory", "critical-thinking"],
+    lifeAreas: ["home", "money", "scams"],
     emoji: "🏡",
     hint: "Ask whether the agent benefits if you believe the claim. Then separate facts you can check from statements you cannot check.",
     payload: {
@@ -3276,6 +3279,7 @@ const MTC_GYM_CHALLENGES = [
     title: "Deposit Before You View the Room",
     scenario: "You find a room online at a good price. The person says several people want it and asks for a £250 deposit before you can view it. Choose what to check before paying.",
     frameworks: ["critical-thinking", "risk-assessment", "decision-making"],
+    lifeAreas: ["money", "scams", "home"],
     emoji: "🏠",
     hint: "Ask questions that test whether the room and the person are real, and whether your money has any protection. A good story is not proof.",
     payload: {
@@ -3488,6 +3492,7 @@ const MTC_GYM_CHALLENGES = [
     title: "Your Grandchild Needs Money Now",
     scenario: "A caller sounds like your grandchild. They say they are in trouble, need £1,200 today and do not want you to tell their parents. Work through how to respond safely.",
     frameworks: ["critical-thinking", "risk-assessment", "decision-making"],
+    lifeAreas: ["money", "scams", "relationships"],
     emoji: "📞",
     hint: "A familiar voice and an urgent story are not proof. Leave the call and verify the person through contact details you already had.",
     payload: {
@@ -3509,6 +3514,7 @@ const MTC_GYM_CHALLENGES = [
     title: "The Online Relationship Emergency",
     scenario: "Someone you met online says they love you, but you have never met. They now need money for emergency treatment. Treat each clue as a separate possible finding.",
     frameworks: ["critical-thinking", "risk-assessment", "cognitive-bias-detection"],
+    lifeAreas: ["money", "scams", "relationships"],
     emoji: "💔",
     hint: "Long messages and strong feelings do not verify identity. Look for independent contact, real-world connections, secrecy and unusual payment methods.",
     payload: {
@@ -3610,6 +3616,7 @@ const MTC_GYM_CHALLENGES = [
     title: "The Utility Worker at the Door",
     scenario: "A person in a uniform says they must enter your home immediately to inspect a dangerous gas problem. You were not expecting a visit. Choose what to check before opening the door.",
     frameworks: ["critical-thinking", "risk-assessment", "situational-awareness"],
+    lifeAreas: ["home", "scams", "safety"],
     emoji: "🚪",
     hint: "A uniform, van or knowledge of your address can be copied. Keep the door closed and verify the visit through contact details you find yourself.",
     payload: {
@@ -3770,7 +3777,7 @@ const MTC_GYM_CHALLENGES = [
     title: "A Stranger Wants to Borrow Your Phone",
     scenario: "At a busy station, a stranger says their phone has died and asks to borrow yours for an urgent call. They want to hold it and walk a few steps away because the station is noisy.",
     frameworks: ["situational-awareness", "risk-assessment", "decision-making"],
-    lifeAreas: ["safety"],
+    lifeAreas: ["safety", "scams"],
     emoji: "🚉",
     hint: "You can help without handing over control of an unlocked phone.",
     payload: {
@@ -4031,9 +4038,17 @@ mtcSimplifyGymContent(MTC_GYM_CHALLENGES);
 // Older challenges predate life-area browsing. Tag them from the situation the
 // player sees, while allowing authored tags above to take priority. A challenge
 // can live in more than one area because real problems rarely fit one drawer.
+//
+// Two known weaknesses, which is why the areas that matter now carry authored
+// tags on the challenge rather than trusting inference:
+//   - `work` is both a very broad pattern AND the fallback when nothing matches,
+//     so it absorbs everything unclassified and dwarfs the other areas.
+//   - spotting a scam needs its MECHANICS, not the word. A well-written
+//     grandparent-scam scenario never says "scam", scored nothing here and fell
+//     through to `work`, which is why the scams area held only seven challenges.
 const MTC_GYM_LIFE_AREA_RULES = {
   money: /money|bank|bill|budget|price|cost|loan|credit|debt|rent|deposit|invoice|payment|salary|income|contract|subscription|phone plan|car|crypto|invest|marketplace|freelanc/i,
-  scams: /scam|fraud|fake|phish|suspicious|impersonat|marketplace|bank text|romance|gift card|invoice|recruiter|pressure tactic|identity/i,
+  scams: /scam|fraud|fake|phish|suspicious|impersonat|marketplace|bank text|romance|gift card|invoice|recruiter|pressure tactic|identity|says they are|claims to be|before you (?:view|see|meet)|pay(?:ing)? (?:up ?front|in advance)|cannot be undone|too good to be true|guaranteed job|out of the blue|unsolicited/i,
   relationships: /friend|family|partner|relationship|coworker|colleague|neighbour|gossip|text message|borrow|boundary|credit for my idea/i,
   work: /\b(job|team|manager|boss|office|warehouse|driver|delivery|company|business|customer|shop|clinic|hospital|meeting|project|supplier|freelanc\w*|workplace|work shift|at work|work task|work deadline|workload|coworker|colleague)\b/i,
   home: /home|house|flat|apartment|rent|landlord|tenant|repair|contractor|warranty|utility|doorstep|property/i,

@@ -43,6 +43,16 @@ for (const [format, minimum] of [["flaw", 5], ["map", 5], ["chain", 5], ["signal
   const live = challenges.filter((challenge) => challenge.format === format).length;
   assert.ok(live >= minimum, `${format}: only ${live} challenges ship in this format, but it is still advertised with a tagline, a board and a guide`);
 }
+// Life areas are offered as a choice at onboarding, and the daily session honours
+// that choice, so an area with a handful of challenges runs dry within days. Areas
+// are mostly inferred from keywords, which once left "scams" -- a headline area --
+// holding seven challenges while "work" absorbed everything unmatched.
+const MIN_PER_AREA = 12; // 3 a day for at least four days before anything repeats
+for (const area of areas) {
+  const live = challenges.filter((challenge) => challenge.lifeAreas.includes(area.id)).length;
+  assert.ok(live >= MIN_PER_AREA, `${area.id}: only ${live} challenges, but it is offered as a focus at onboarding (need ${MIN_PER_AREA})`);
+}
+
 assert.deepEqual(
   Object.fromEntries([...new Set(challenges.map((challenge) => challenge.muscle))].sort().map((muscle) => [muscle, challenges.filter((challenge) => challenge.muscle === muscle).length])),
   { adapt: 23, connect: 13, judge: 31, notice: 27, prioritise: 16, question: 18 },

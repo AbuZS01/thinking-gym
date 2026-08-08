@@ -1418,22 +1418,22 @@ const MTC_MUSCLES = [
   {
     id: "notice", name: "Notice", emoji: "\u{1F575}️",
     blurb: "Spot what's easy to miss.",
-    frameworks: ["pattern-recognition", "cognitive-bias-detection", "critical-thinking", "analytical-thinking", "signal-noise", "survivorship-bias"],
+    frameworks: ["pattern-recognition", "cognitive-bias-detection", "critical-thinking", "analytical-thinking", "signal-noise", "survivorship-bias", "map-territory", "anchoring", "social-proof", "attribution-error"],
   },
   {
     id: "judge", name: "Judge", emoji: "⚖️",
     blurb: "Weigh conflicting evidence.",
-    frameworks: ["probabilistic-thinking", "bayesian-thinking", "base-rates", "scientific-thinking", "deductive-reasoning", "inductive-reasoning", "abductive-reasoning", "intelligence-analysis", "critical-thinking", "regression-mean", "expected-value"],
+    frameworks: ["probabilistic-thinking", "bayesian-thinking", "base-rates", "scientific-thinking", "deductive-reasoning", "inductive-reasoning", "abductive-reasoning", "intelligence-analysis", "critical-thinking", "regression-mean", "expected-value", "sampling", "loss-aversion"],
   },
   {
     id: "connect", name: "Connect", emoji: "\u{1F9E9}",
     blurb: "Find patterns across unrelated domains.",
-    frameworks: ["lateral-thinking", "design-thinking", "first-principles-thinking", "divergent-thinking", "pattern-recognition", "systems-thinking"],
+    frameworks: ["lateral-thinking", "design-thinking", "first-principles-thinking", "divergent-thinking", "pattern-recognition", "systems-thinking", "incentives"],
   },
   {
     id: "prioritise", name: "Prioritise", emoji: "\u{1F3AF}",
     blurb: "Choose under pressure.",
-    frameworks: ["decision-theory", "risk-assessment", "opportunity-cost", "convergent-thinking", "eisenhower", "constraints", "pareto"],
+    frameworks: ["decision-theory", "risk-assessment", "opportunity-cost", "convergent-thinking", "eisenhower", "constraints", "pareto", "margin-of-safety", "working-backward", "diminishing-returns"],
   },
   {
     id: "question", name: "Question", emoji: "\u{1F50D}",
@@ -1443,7 +1443,7 @@ const MTC_MUSCLES = [
   {
     id: "adapt", name: "Adapt", emoji: "\u{1F504}",
     blurb: "Change the plan when reality changes.",
-    frameworks: ["second-order-thinking", "systems-thinking", "scenario-planning", "strategic-thinking", "game-theory", "red-team-thinking", "feedback-loops", "ooda"],
+    frameworks: ["second-order-thinking", "systems-thinking", "scenario-planning", "strategic-thinking", "game-theory", "red-team-thinking", "feedback-loops", "ooda", "scale", "diversification", "activation-energy", "action-bias"],
   },
 ];
 
