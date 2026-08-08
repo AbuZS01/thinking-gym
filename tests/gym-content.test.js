@@ -204,6 +204,38 @@ const focusedIds = focusedSession.map((item) => item.id);
 MTC.submitGymChallenge(state, focusedIds[0], 90, "");
 assert.deepEqual(MTC.gymSession(state, 3).map((item) => item.id), focusedIds, "today's daily session must stay stable after a challenge is completed");
 
+// Closing the loop. The app's whole claim to reach real life rests on this, and the
+// half that matters happens a day later, so the behaviour has to survive a reload
+// and has to treat "not yet" as a reopen rather than a failure.
+const loopState = MTC.loadState();
+loopState.name = "Loop tester";
+const loopChallenge = challenges.find((item) => item.id === "gym-workout-13");
+const commitment = MTC.makeCommitment(loopState, loopChallenge.id, "Ring them on a number you already had.");
+assert.ok(commitment.id && commitment.status === "open", "a commitment starts open");
+assert.equal(MTC.makeCommitment(loopState, loopChallenge.id, "again").id, commitment.id, "committing twice must not create a duplicate");
+assert.equal(MTC.dueCommitments(loopState).length, 0, "a commitment is not due the day it is made");
+commitment.dueOn = "2000-01-01";
+assert.equal(MTC.dueCommitments(loopState).length, 1, "it becomes due once the date passes");
+
+const notYet = MTC.closeCommitment(loopState, commitment.id, false, "");
+assert.equal(notYet.xpAwarded, 0, "'not yet' awards nothing");
+assert.ok(notYet.reopened, "'not yet' reopens rather than failing the commitment");
+assert.equal(MTC.commitmentStats(loopState).used, 0, "'not yet' does not count as used");
+
+commitment.dueOn = "2000-01-01";
+const used = MTC.closeCommitment(loopState, commitment.id, true, "A caller claimed to be family. I rang the real number.");
+assert.ok(used.xpAwarded > 0, "reporting a real use is worth something");
+assert.equal(MTC.commitmentStats(loopState).used, 1, "a closed commitment shows in the record");
+assert.equal(MTC.closeCommitment(loopState, commitment.id, true, "again"), null, "a closed commitment cannot be closed twice");
+assert.match(loopState.commitments[0].note, /rang the real number/, "the note is kept");
+
+// Cross-domain practice must actually cross domains, or it is just another challenge.
+const source = challenges.find((item) => item.lifeAreas.includes("money") && item.muscle === "judge");
+const elsewhere = MTC.crossDomainNext(loopState, source);
+assert.ok(elsewhere, "there should be somewhere else to practise the same muscle");
+assert.equal(elsewhere.muscle, source.muscle, "cross-domain practice keeps the muscle");
+assert.ok(!elsewhere.lifeAreas.some((area) => source.lifeAreas.includes(area)), "and changes every life area");
+
 const freshState = MTC.loadState();
 freshState.name = "Walkthrough tester";
 const wtChallenge = challenges.find((item) => item.id === "gym-workout-24");

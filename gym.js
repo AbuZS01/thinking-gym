@@ -145,8 +145,42 @@ const GYM = (() => {
     return Math.max(0, Math.round(play.hintShown ? raw * 0.85 : raw));
   }
 
+  // One tap between the last move and the score. It buys two things the transfer
+  // research keeps asking for: a beat of deliberate effort before the answer is
+  // handed over, and a self-estimate that can be checked against what actually
+  // happened. Cheap enough not to be friction, and it is never scored.
+  const CONFIDENCE = [
+    { id: "low", label: "Not sure" },
+    { id: "mid", label: "Fairly sure" },
+    { id: "high", label: "Confident" },
+  ];
+
+  function confidenceHTML(ch) {
+    return `<div class="panel">
+      <span class="tag">Before you see the score</span>
+      <h2>How sure are you?</h2>
+      <p class="subtle">This is not marked. Guessing well about your own accuracy is part of the skill.</p>
+      ${CONFIDENCE.map((c) => `<button class="opt" data-gym-confidence="${c.id}">${c.label}</button>`).join("")}
+    </div>`;
+  }
+
+  function confidenceNoteHTML() {
+    if (!play.confidence) return "";
+    const said = CONFIDENCE.find((c) => c.id === play.confidence);
+    const p = pct(play.result);
+    const expected = { low: p < 60, mid: p >= 40 && p < 90, high: p >= 80 };
+    const matched = expected[play.confidence];
+    return `<p class="subtle nudge">You said <b>${said.label.toLowerCase()}</b> and scored ${p}%. ${matched
+      ? "That reading of yourself was about right."
+      : p > 70 ? "You did better than you expected — worth trusting yourself a little more here."
+        : "That gap is worth noticing: the feeling of being right and being right came apart."}</p>`;
+  }
+
   function finish(ch) {
     if (play.result) return;
+    // Ask once, then score. play.pendingFinish keeps the interaction's own state
+    // intact so the review still shows what the player actually did.
+    if (!play.confidence) { play.stage = "confidence"; return; }
     play.result = score(ch);
     // The score belongs to the completed interaction, not to the optional note
     // below it. Persist it now so leaving the page cannot lose the attempt.
@@ -566,6 +600,30 @@ const GYM = (() => {
     }).join("");
   }
 
+  // The half that was missing: "use this tomorrow" was advice nobody was ever asked
+  // about again. Taking it on turns it into something the app will come back for.
+  function commitRowHTML(ch) {
+    if (play.committed || MTC.hasOpenCommitment(STATE, ch.id)) {
+      return `<p class="save-status" role="status">&#10003; Added to your check-ins &mdash; we will ask how it went</p>`;
+    }
+    return `<div class="field"><button class="btn secondary block" data-gym-commit="${ch.id}">I will try this &mdash; remind me to say how it went</button></div>`;
+  }
+
+  // Same muscle, a setting that looks nothing alike. Practising a skill in one
+  // place tends to leave it there unless it is deliberately used somewhere else.
+  function crossDomainHTML(ch) {
+    const next = MTC.crossDomainNext(STATE, ch);
+    if (!next) return "";
+    const area = MTC_GYM_LIFE_AREAS.find((a) => next.lifeAreas.includes(a.id));
+    const muscle = MTC_MUSCLES.find((m) => m.id === ch.muscle) || {};
+    return `<div class="panel">
+      <span class="tag">Same thinking, different setting</span>
+      <h2>${e(muscle.name || ch.muscle)} again, in ${e(area ? area.name.toLowerCase() : "another area")}</h2>
+      <p class="subtle">You have just used this once. Using it somewhere that looks nothing alike is what stops it staying stuck to the first example.</p>
+      <a class="cta" href="#/gym/play/${next.id}">${e(next.title)} &rarr;</a>
+    </div>`;
+  }
+
   function resultHTML(ch) {
     const sc = play.result;
     const p = pct(sc);
@@ -586,6 +644,7 @@ const GYM = (() => {
         </div>
       </div>
       ${play.hintShown ? `<p class="subtle nudge">Hint used &mdash; 15% off this score.</p>` : ""}
+      ${confidenceNoteHTML()}
       <p class="save-status" role="status">&#10003; Result saved automatically</p>
       ${unlocked.map((achievement) => `<p class="achievement-note">&#127942; ${e(achievement.name)} unlocked</p>`).join("")}
     </div>
@@ -600,7 +659,9 @@ const GYM = (() => {
       <div class="info-panel green"><div class="lbl">The principle</div>${e(ch.debrief.principle)}</div>
       <div class="info-panel purple"><div class="lbl">Where it misleads</div>${e(ch.debrief.whereItMisleads)}</div>
       <div class="info-panel blue"><div class="lbl">Use this tomorrow</div>${e(tomorrowTip(ch))}</div>
+      ${commitRowHTML(ch)}
     </div>
+    ${crossDomainHTML(ch)}
     <div class="panel">
       <h2>${ch.payload.creativity ? "Save your idea" : "Save a journal note"} <span class="subtle">(optional, +5 points)</span></h2>
       <p class="subtle">The score is already saved. This note is private, never graded and can help you remember what you learned.</p>
@@ -643,6 +704,7 @@ const GYM = (() => {
       </div>`;
 
     if (play.result) return header + resultHTML(ch);
+    if (play.stage === "confidence") return header + confidenceHTML(ch);
     if (ch.format === "map") return header + (play.stage === "board" ? mapBoardHTML(ch) : mapMisleadsHTML(ch));
     if (ch.format === "flaw") return header + flawHTML(ch);
     if (ch.format === "chain") return header + chainHTML(ch);
@@ -774,7 +836,21 @@ const GYM = (() => {
       return true;
     }
 
+    const conf = hit("data-gym-confidence");
+    if (conf) {
+      play.confidence = conf.dataset.gymConfidence;
+      finish(ch);
+      return true;
+    }
+
     if (hit("data-gym-hint")) { play.hintShown = true; return true; }
+
+    const commit = hit("data-gym-commit");
+    if (commit) {
+      MTC.makeCommitment(STATE, commit.dataset.gymCommit, tomorrowTip(ch));
+      play.committed = true;
+      return true;
+    }
 
     const saveNote = hit("data-gym-save-note");
     if (saveNote) {

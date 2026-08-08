@@ -73,6 +73,7 @@ const MTC = (() => {
       dailyQuest: null, // {date, items: [{exerciseId, type}], completed: [exerciseId]}
       bossBattle: null, // {week, battleId, completed, stageNotes: []}
       seenWalkthroughs: { muscle: [], format: [] }, // ids of the one-off intro guides already shown
+      commitments: [], // {id, challengeId, tip, madeOn, dueOn, status, note, closedOn}
     };
   }
 
@@ -667,6 +668,28 @@ const MTC = (() => {
     return picked;
   }
 
+  // Transfer research keeps landing on the same point: a skill practised in one
+  // setting stays in that setting unless it is deliberately practised in another.
+  // After a challenge, offer the same muscle somewhere it looks nothing alike —
+  // preferring an area the player has done least, and never one already played today.
+  function crossDomainNext(state, challenge) {
+    const today = todayStr();
+    const areas = new Set(challenge.lifeAreas);
+    const played = {};
+    for (const c of MTC_GYM_CHALLENGES) {
+      if (!state.gym[c.id]) continue;
+      for (const a of c.lifeAreas) played[a] = (played[a] || 0) + 1;
+    }
+    const candidates = MTC_GYM_CHALLENGES.filter((c) =>
+      c.id !== challenge.id
+      && c.muscle === challenge.muscle
+      && !c.lifeAreas.some((a) => areas.has(a))
+      && (!state.gym[c.id] || state.gym[c.id].lastPlayed !== today));
+    if (!candidates.length) return null;
+    const cost = (c) => Math.min(...c.lifeAreas.map((a) => played[a] || 0)) + (state.gym[c.id] ? 100 : 0);
+    return candidates.reduce((best, c) => (cost(c) < cost(best) ? c : best), candidates[0]);
+  }
+
   function muscleProgress(state) {
     return MTC_MUSCLES.map((t) => {
       const all = gymChallengesForMuscle(t.id);
@@ -773,6 +796,72 @@ const MTC = (() => {
     return MTC_GYM_CHALLENGES.filter((c) => state.gym[c.id] && state.gym[c.id].due <= today);
   }
 
+  /* ---------- Closing the loop: did the thinking reach real life? ---------- */
+
+  // The evidence on critical-thinking training is blunt: people get better at the
+  // exercises and no better at life unless transfer is practised explicitly rather
+  // than assumed. A challenge ends with "use this tomorrow" and, until now, nothing
+  // ever asked whether tomorrow happened. A commitment is that missing half.
+  function makeCommitment(state, challengeId, tip) {
+    const open = state.commitments.find((c) => c.challengeId === challengeId && c.status === "open");
+    if (open) return open;
+    const due = new Date();
+    due.setUTCDate(due.getUTCDate() + 1);
+    const commitment = {
+      id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      challengeId, tip,
+      madeOn: todayStr(),
+      dueOn: due.toISOString().slice(0, 10),
+      status: "open", note: "", closedOn: null,
+    };
+    state.commitments.push(commitment);
+    saveState(state);
+    return commitment;
+  }
+
+  function hasOpenCommitment(state, challengeId) {
+    return state.commitments.some((c) => c.challengeId === challengeId && c.status === "open");
+  }
+
+  function dueCommitments(state) {
+    const today = todayStr();
+    return state.commitments.filter((c) => c.status === "open" && c.dueOn <= today);
+  }
+
+  // "Not yet" is not a failure and must not feel like one, or people stop answering
+  // honestly and the record becomes worthless. It reopens for another day instead.
+  function closeCommitment(state, id, used, note) {
+    const commitment = state.commitments.find((c) => c.id === id);
+    if (!commitment || commitment.status !== "open") return null;
+    if (!used) {
+      const due = new Date();
+      due.setUTCDate(due.getUTCDate() + 2);
+      commitment.dueOn = due.toISOString().slice(0, 10);
+      commitment.asked = (commitment.asked || 0) + 1;
+      if (commitment.asked >= 3) { commitment.status = "expired"; commitment.closedOn = todayStr(); }
+      saveState(state);
+      return { xpAwarded: 0, reopened: commitment.status === "open" };
+    }
+    commitment.status = "used";
+    commitment.note = trimAnswer(note);
+    commitment.closedOn = todayStr();
+    const result = applyAttempt(state, [], {
+      date: todayStr(), exerciseId: "commit:" + commitment.challengeId, type: "commitment",
+      score: 100, xp: 10, hintsUsed: 0, answer: commitment.note,
+    });
+    result.reopened = false;
+    return result;
+  }
+
+  function commitmentStats(state) {
+    const used = state.commitments.filter((c) => c.status === "used");
+    return {
+      used: used.length,
+      open: state.commitments.filter((c) => c.status === "open").length,
+      withNote: used.filter((c) => c.note).length,
+    };
+  }
+
   /* ---------- Walkthroughs: one-off intro guides per muscle/format ---------- */
 
   function getWalkthrough(kind, id) {
@@ -845,11 +934,17 @@ const MTC = (() => {
     gymChallengesForLifeArea,
     gymChallengesForTrack,               // pre-muscle name
     gymSession,
+    crossDomainNext,
     muscleProgress,
     gymTrackProgress: muscleProgress,    // pre-muscle name
     submitGymChallenge,
     saveGymNote,
     dueGymReplays,
+    makeCommitment,
+    hasOpenCommitment,
+    dueCommitments,
+    closeCommitment,
+    commitmentStats,
     getWalkthrough,
     hasSeenWalkthrough,
     markWalkthroughSeen,

@@ -153,7 +153,7 @@ function challengeBrowseCardHTML(challenge) {
 // points land in the same total as challenges scored against an answer key. That
 // is fine as long as the player can see it, otherwise the level quietly stops
 // meaning "how well I did" and starts meaning "how generously I ticked".
-const SELF_ASSESSED_TYPES = new Set([...MTC_QUEST_TYPES, "boss"]);
+const SELF_ASSESSED_TYPES = new Set([...MTC_QUEST_TYPES, "boss", "commitment"]);
 
 function selfAssessedNoteHTML() {
   const total = STATE.history.reduce((sum, h) => sum + (h.xp || 0), 0);
@@ -172,7 +172,7 @@ function levelInfo() {
 const TABS = [
   { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
   { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review"] },
-  { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report"] },
+  { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report", "used"] },
   { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides"] },
 ];
 
@@ -225,6 +225,7 @@ function chromeFor(r) {
   if (r === "calibration") return ["Calibration", "gym"];
   if (r === "review") return ["Review", "gym"];
   if (r === "journal") return ["Journal", "progress"];
+  if (r === "used") return ["Used in life", "progress"];
   if (r === "report") return ["Weekly Report", "progress"];
   if (r === "achievements") return ["Achievements", "profile"];
   if (r === "toolbox") return ["Toolbox", "profile"];
@@ -280,6 +281,27 @@ const FORMAT_ICONS = { map: "\u{1F517}", flaw: "\u{1F50D}", chain: "\u26D3\uFE0F
 function muscleIcon(id) { return MUSCLE_ICONS[id] || "\u{1F9E0}"; }
 const trackIcon = muscleIcon; // pre-muscle name, still called from gym.js
 
+// The check-in. This is the whole point of the app's claim to reach real life, so it
+// sits above the day's challenges rather than buried: an unanswered one is worth more
+// than another challenge played.
+function checkInHTML() {
+  const due = MTC.dueCommitments(STATE);
+  if (!due.length) return "";
+  const c = due[0];
+  const ch = MTC.getGymChallenge(c.challengeId);
+  return `<div class="panel checkin">
+    <span class="tag">Your check-in</span>
+    <h2>Did you get a chance to use this?</h2>
+    <p class="subtle" style="margin-bottom:8px">From ${esc(ch ? ch.title : "an earlier challenge")}, ${esc(c.madeOn === MTC.todayStr() ? "today" : "a few days ago")}.</p>
+    <div class="info-panel blue"><div class="lbl">You said you would try</div>${esc(c.tip)}</div>
+    <textarea id="checkin-note" placeholder="Where did it come up? (optional)"></textarea>
+    <div class="action-row">
+      <button class="btn secondary" data-checkin-no="${c.id}">Not yet</button>
+      <button class="btn" data-checkin-yes="${c.id}">Yes, I used it</button>
+    </div>
+  </div>`;
+}
+
 function dashboardHTML() {
   const li = levelInfo();
   const session = MTC.gymSession(STATE);
@@ -290,15 +312,18 @@ function dashboardHTML() {
   const completedToday = session.filter((c) => STATE.gym[c.id] && STATE.gym[c.id].lastPlayed === today).length;
   const next = session.find((c) => !STATE.gym[c.id] || STATE.gym[c.id].lastPlayed !== today) || session[0];
 
+  const loop = MTC.commitmentStats(STATE);
   return `
   <div class="stat-strip">
     <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
     <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
-    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
+    <div class="stat"><div class="ico">&#9989;</div><div class="num">${loop.used}</div><div class="lbl">Used In Life</div></div>
   </div>
 
+  ${checkInHTML()}
+
   <div class="panel">
-    <div class="subtle">Welcome back, ${esc(STATE.name)}</div>
+    <div class="subtle">${STATE.history.length ? "Welcome back" : "Welcome"}, ${esc(STATE.name)}</div>
     <h1 style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h1>
     <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
@@ -485,6 +510,7 @@ function progressHTML() {
 
   <div class="panel">
     <a class="list-row" href="#/report"><span class="ico">&#128197;</span><span class="label">Weekly report</span><span class="val">this vs last</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/used"><span class="ico">&#9989;</span><span class="label">Used in life</span><span class="val">${MTC.commitmentStats(STATE).used}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/journal"><span class="ico">&#128214;</span><span class="label">Journal</span><span class="val">${STATE.history.filter((h) => h.answer).length}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/calibration"><span class="ico">&#127919;</span><span class="label">Calibration</span><span class="val">${calStats.total ? `${calStats.accuracy}% @ ${calStats.avgConfidence}%` : "not started"}</span><span class="chev">&#8250;</span></a>
   </div>`;
@@ -753,6 +779,33 @@ function toolboxHTML() {
 }
 
 /* ---------- Thinking Guides: one-off walkthroughs, revisitable anytime ---------- */
+
+// The record no competitor can show: not points earned, but times the thinking
+// actually changed something the player did.
+function usedInLifeHTML() {
+  const used = STATE.commitments.filter((c) => c.status === "used").slice().reverse();
+  const open = STATE.commitments.filter((c) => c.status === "open");
+  return `<div class="panel">
+    <h1>Used in life</h1>
+    <p class="subtle">Practice only counts when it reaches a real decision. This is the record of times you said it did.</p>
+  </div>
+  <div class="stat-strip">
+    <div class="stat"><div class="ico">&#9989;</div><div class="num">${used.length}</div><div class="lbl">Times Used</div></div>
+    <div class="stat"><div class="ico">&#128221;</div><div class="num">${used.filter((c) => c.note).length}</div><div class="lbl">With A Note</div></div>
+    <div class="stat"><div class="ico">&#9203;</div><div class="num">${open.length}</div><div class="lbl">Waiting</div></div>
+  </div>
+  ${used.length ? `<div class="section-head"><h2>What you used</h2></div>
+  <div class="grid">${used.map((c) => {
+    const ch = MTC.getGymChallenge(c.challengeId);
+    return `<div class="panel">
+      <div class="card-tags"><span class="tag">${esc(c.closedOn)}</span></div>
+      <h2>${esc(ch ? ch.title : "An earlier challenge")}</h2>
+      <p class="subtle">${esc(c.tip)}</p>
+      ${c.note ? `<div class="info-panel green"><div class="lbl">Where it came up</div>${esc(c.note)}</div>` : ""}
+    </div>`;
+  }).join("")}</div>`
+  : `<div class="panel"><p class="subtle">Nothing here yet. Finish a challenge, tap <b>I will try this</b>, and the app will ask you afterwards whether it came up.</p></div>`}`;
+}
 
 function guidesHTML() {
   const seen = STATE.seenWalkthroughs || { muscle: [], format: [] };
@@ -1130,7 +1183,7 @@ function journalHTML() {
 function resultToastHTML(result) {
   return `<div class="toast-overlay">
     <div class="toast-card">
-      <div class="subtle">Exercise complete</div>
+      <div class="subtle">${result.loopClosed ? "You used it" : "Exercise complete"}</div>
       <div class="xp-gain">+${result.xpAwarded} points</div>
       ${result.leveledUp ? `<p>&#127881; Level up! You're now <b>Level ${result.newLevel}</b> &mdash; ${esc(MTC.titleForLevel(result.newLevel))}</p>` : ""}
       ${result.missed && result.missed.length ? `<div class="unlock" style="text-align:left"><b>Focus next time:</b>${result.missed.map((m) => `<div>&middot; ${esc(m)}</div>`).join("")}</div>` : ""}
@@ -1188,6 +1241,7 @@ function render() {
   else if (r === "review") body = reviewHTML();
   else if (r === "report") body = reportHTML();
   else if (r === "journal") body = journalHTML();
+  else if (r === "used") body = usedInLifeHTML();
   else if (r === "toolbox") body = toolboxHTML();
   else if (r.startsWith("workbench/")) body = workbenchHTML(r.split("/")[1]);
   else if (r === "frameworks") body = frameworksListHTML();
@@ -1216,6 +1270,22 @@ function render() {
 
 document.addEventListener("click", (e) => {
   if (route().startsWith("gym/play/") && GYM.handleClick(e)) { render(); return; }
+
+  const checkinYes = e.target.closest("[data-checkin-yes]");
+  if (checkinYes) {
+    const box = document.getElementById("checkin-note");
+    const result = MTC.closeCommitment(STATE, checkinYes.dataset.checkinYes, true, box ? box.value : "");
+    if (result) { result.loopClosed = true; pendingResult = result; }
+    render();
+    return;
+  }
+
+  const checkinNo = e.target.closest("[data-checkin-no]");
+  if (checkinNo) {
+    MTC.closeCommitment(STATE, checkinNo.dataset.checkinNo, false, "");
+    render();
+    return;
+  }
 
   const wtContinue = e.target.closest("[data-walkthrough-continue]");
   if (wtContinue) {

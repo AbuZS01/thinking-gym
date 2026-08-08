@@ -612,3 +612,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 480px) {
   .browse-filters { grid-template-columns: 1fr; }
 }
+
+/* The check-in. Deliberately the loudest card on the dashboard: an unanswered
+   "did you use it?" matters more than another challenge played. */
+.panel.checkin { border: 1.5px solid var(--accent); }
+.panel.checkin h2 { font-size: 17px; margin-bottom: 2px; }
+.panel.checkin textarea { margin-top: 10px; min-height: 64px; }
+.panel.checkin .action-row { margin-top: 10px; }
