@@ -487,6 +487,16 @@ const MTC = (() => {
     return [...due.slice(0, 10), ...fresh.slice(0, newCount)];
   }
 
+  // The session list mixes cards genuinely due for review with new cards used to
+  // top it up. A badge that calls both "due" tells a first-time player that five
+  // cards are overdue before they have ever opened Review, so keep them apart.
+  function reviewCounts(state) {
+    const today = todayStr();
+    const deck = reviewDeck();
+    const due = deck.filter((c) => state.reviews[c.id] && state.reviews[c.id].due <= today).length;
+    return { due, fresh: dueReviewCards(state).length - Math.min(due, 10) };
+  }
+
   function nextReviewDue(state) {
     const dues = Object.values(state.reviews).map((r) => r.due).sort();
     return dues[0] || null;
@@ -852,6 +862,7 @@ const MTC = (() => {
     gradeCalibration,
     calibrationStats,
     dueReviewCards,
+    reviewCounts,
     nextReviewDue,
     gradeReviewCard,
     finishReviewSession,

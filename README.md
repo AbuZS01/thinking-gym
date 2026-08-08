@@ -29,7 +29,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**122 challenges** across seven formats, each objectively scored:
+**128 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, an animation studio's process); you tap the action from a completely different

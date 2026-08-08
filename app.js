@@ -13,6 +13,10 @@ let gymAreaFilter = "all";
 let gymLevelFilter = "all";
 let gymTimeFilter = "all";
 let lastRenderedRoute = null;
+// Challenge id whose guide was just read. Marking a guide seen and returning to the
+// challenge would otherwise re-enter the redirect below and hand over the second
+// guide immediately, which is the stacking this is meant to prevent.
+let guideJustShownFor = null;
 
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let activeRec = null;
@@ -58,6 +62,17 @@ function checkVague(text) {
   } else {
     tip.style.display = "none";
   }
+}
+
+// Cutting at a fixed character count chops mid-word ("The Vaccine Rollou"), which
+// reads as a rendering fault rather than a shortened title. Break on a word instead
+// and mark the cut.
+function truncateWords(text, max) {
+  const s = String(text);
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return (space > max * 0.5 ? cut.slice(0, space) : cut).replace(/[,;:]$/, "") + "…";
 }
 
 function esc(s) {
@@ -231,7 +246,7 @@ function onboardingHTML() {
         ${MTC_GYM_LIFE_AREAS.map((area) => `<option value="${area.id}">${area.emoji} ${esc(area.name)}</option>`).join("")}
       </select>
       <p class="form-help">This shapes your daily mix. You can still browse every challenge.</p>
-      <div class="field"><button class="btn block" type="submit">Start my first challenge <span aria-hidden="true">&rarr;</span></button></div>
+      <div class="field"><button class="btn block" type="submit">Get started <span aria-hidden="true">&rarr;</span></button></div>
       <p class="form-note">Answers use written answer keys, not AI judgement. Your progress stays on this device.</p>
     </form>
     <div style="margin-top:32px">
@@ -323,7 +338,8 @@ function challengesHTML() {
   const battleState = MTC.getCurrentBossBattle(STATE);
   const battle = MTC.getBossBattleDef(battleState.battleId);
   const calStats = MTC.calibrationStats(STATE);
-  const dueCount = MTC.dueReviewCards(STATE).length;
+  const review = MTC.reviewCounts(STATE);
+  const reviewLabel = review.due ? `${review.due} due` : review.fresh ? `${review.fresh} new` : "up to date";
 
   return `
   <div class="section-head"><h2>Today's session</h2><span class="subtle">${session.length} challenges &middot; ~10 min</span></div>
@@ -366,9 +382,9 @@ function challengesHTML() {
   <div class="section-head"><h2>Other training</h2></div>
   <div class="panel">
     <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">${quest.completed.length}/${quest.items.length}</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/boss"><span class="ico">&#128121;</span><span class="label">Boss Battle</span><span class="val">${battleState.completed ? "done" : esc(battle.name.slice(0, 18))}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/boss"><span class="ico">&#128121;</span><span class="label">Boss Battle</span><span class="val">${battleState.completed ? "done" : esc(truncateWords(battle.name, 18))}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/calibration"><span class="ico">&#127919;</span><span class="label">Calibration</span><span class="val">${calStats.total ? calStats.accuracy + "%" : "new"}</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/review"><span class="ico">&#128218;</span><span class="label">Review</span><span class="val">${dueCount || "0"} due</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/review"><span class="ico">&#128218;</span><span class="label">Review</span><span class="val">${reviewLabel}</span><span class="chev">&#8250;</span></a>
   </div>`;
 }
 
@@ -740,7 +756,6 @@ function walkthroughHTML(kind, id, resumeId) {
   const w = MTC.getWalkthrough(kind, id);
   if (!w) return `<div class="panel"><p>Guide not found.</p><a class="btn" href="#/guides">Thinking Guides</a></div>`;
   const isMuscle = kind === "muscle";
-  const how = !isMuscle ? MTC_GYM_FORMATS[id].how : null;
   const tip = isMuscle ? GYM.muscleTip(id) : null;
   return `<div class="panel">
     <div class="level-hero">
@@ -751,7 +766,6 @@ function walkthroughHTML(kind, id, resumeId) {
   </div>
   <div class="panel">
     ${w.explain.map((paragraph) => `<p>${esc(paragraph)}</p>`).join("")}
-    ${how ? `<p class="subtle" style="margin-top:10px"><b>How it works:</b> ${esc(how)}</p>` : ""}
   </div>
   <div class="panel">
     <h2>Worked example</h2>
@@ -1129,9 +1143,13 @@ function render() {
   // First time this challenge's muscle or format is encountered, detour through
   // its one-off guide before the (scored) challenge itself.
   if (r.startsWith("gym/play/")) {
-    const ch = MTC.getGymChallenge(r.split("/")[2]);
-    const need = ch && MTC.nextRequiredWalkthrough(STATE, ch);
+    const id = r.split("/")[2];
+    if (guideJustShownFor && guideJustShownFor !== id) guideJustShownFor = null;
+    const ch = MTC.getGymChallenge(id);
+    const need = ch && guideJustShownFor !== id && MTC.nextRequiredWalkthrough(STATE, ch);
     if (need) { navigate(`gym/learn/${need.kind}/${need.id}/${ch.id}`); return; }
+  } else if (!r.startsWith("gym/learn/")) {
+    guideJustShownFor = null;
   }
 
   let body;
@@ -1185,13 +1203,11 @@ document.addEventListener("click", (e) => {
   if (wtContinue) {
     const { kind, id, resume } = wtContinue.dataset;
     MTC.markWalkthroughSeen(STATE, kind, id);
-    if (resume) {
-      const ch = MTC.getGymChallenge(resume);
-      const need = ch && MTC.nextRequiredWalkthrough(STATE, ch);
-      navigate(need ? `gym/learn/${need.kind}/${need.id}/${resume}` : `gym/play/${resume}`);
-    } else {
-      navigate("guides");
-    }
+    // Straight into the challenge, never on to a second guide: chaining them made
+    // a first session read guide, guide, challenge, guide, guide, challenge. Any
+    // guide still owed is picked up before a later challenge instead.
+    guideJustShownFor = resume || null;
+    navigate(resume ? `gym/play/${resume}` : "guides");
     return;
   }
 

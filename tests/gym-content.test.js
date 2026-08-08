@@ -36,12 +36,16 @@ const walkthroughs = context.__walkthroughs;
 const MTC = context.__engine;
 const areaIds = new Set(areas.map((area) => area.id));
 
-assert.equal(challenges.length, 122, "README and onboarding count must match the content bank");
+assert.equal(challenges.length, 128, "README and onboarding count must match the content bank");
 assert.equal(new Set(challenges.map((challenge) => challenge.id)).size, challenges.length, "challenge IDs must be unique");
 assert.equal(areaIds.size, 8, "life-area IDs must be unique");
+for (const [format, minimum] of [["flaw", 5], ["map", 5], ["chain", 5], ["signal", 5], ["triage", 5], ["ask", 5], ["workout", 5]]) {
+  const live = challenges.filter((challenge) => challenge.format === format).length;
+  assert.ok(live >= minimum, `${format}: only ${live} challenges ship in this format, but it is still advertised with a tagline, a board and a guide`);
+}
 assert.deepEqual(
   Object.fromEntries([...new Set(challenges.map((challenge) => challenge.muscle))].sort().map((muscle) => [muscle, challenges.filter((challenge) => challenge.muscle === muscle).length])),
-  { adapt: 23, connect: 13, judge: 28, notice: 24, prioritise: 16, question: 18 },
+  { adapt: 23, connect: 13, judge: 31, notice: 27, prioritise: 16, question: 18 },
   "documented muscle counts must match the content bank",
 );
 
