@@ -7,10 +7,15 @@ driving, parenting, care work, retail and delivery work. Ten of those train
 practical creativity inside clear safety, cost and time limits.
 
 A self-contained static web app — no backend, no build step, no external
-services, and **no AI anywhere in the user journey**. Every challenge is scored
-against a hand-written answer key, so feedback is instant, free, identical for
-everyone, and never says "grade yourself". Progress lives in your browser's
-`localStorage`: fully private, works offline.
+services. Every challenge is scored against a hand-written answer key, so
+feedback is instant, free, identical for everyone, and never says "grade
+yourself". Progress lives in your browser's `localStorage`: fully private, works
+offline.
+
+The core learning experience uses **no AI**. There is one *optional*, off-by-default
+AI layer — a reasoning **coach** on the written Deep Work exercises that responds
+only *after* you've written your own answer. It never scores you, never solves the
+exercise, and can be ignored. See [Optional AI coaching](#optional-ai-coaching).
 
 ## Getting around
 
@@ -157,6 +162,48 @@ finishing the ★ core trio), and each daily quest marks that core trio — the
 warm-up plus the two exercises that best target your weakest frameworks — so a
 short session still counts.
 
+## Optional AI coaching
+
+The first AI feature (from the product brief's PRACTISE layer) adds an optional
+**"Coach my reasoning"** action to the written Deep Work exercises. It is
+**off by default** and the whole app works without it.
+
+**The rule it obeys:** the user reasons first. The coach only appears *after*
+you've written an answer and revealed the model answer, it evaluates your
+*reasoning process* (not right/wrong), and it never changes your self-assessed
+score. It returns structured feedback — strengths, missed considerations,
+assumptions, an alternative angle, the skill you showed, and one improvement tip —
+and you're free to disagree. Accepted feedback is saved with the attempt and
+shown in your Journal.
+
+Turn it on in **Profile → AI Coaching**. Two coaches are available:
+
+- **On-device coach** *(default when enabled)* — a fully offline heuristic that
+  reflects the *shape* of your reasoning (did you offer an alternative? name what
+  would change your mind? surface an assumption?). No account, no network, no key.
+  It's honestly a heuristic, not a language model — and it's what powers the UI
+  during development.
+- **Server endpoint** — a real model call made by a small **server function** so
+  the model key never touches the browser. A reference implementation lives in
+  [`api/feedback.js`](api/feedback.js); deploy it (Vercel/Netlify/etc.), then paste
+  its URL into Profile → AI Coaching → Server endpoint.
+
+### Setup for the server coach
+
+1. Deploy `api/feedback.js` where it gets an HTTP handler (on Vercel it's exposed
+   at `/api/feedback` automatically). `npm install @anthropic-ai/sdk` there.
+2. Set environment variables on that server (see [`.env.example`](.env.example)):
+   - `ANTHROPIC_API_KEY` — **required**, server-side only.
+   - `AI_MODEL` — optional, defaults to `claude-opus-5`; the model/provider is
+     swappable here without touching the app.
+   - `AI_ALLOW_ORIGIN` — optional CORS origin (defaults to `*`; set your app's
+     origin in production).
+3. In the app: Profile → AI Coaching → on → Server endpoint → paste the URL.
+
+Full details and the request/response contract are in [`api/README.md`](api/README.md).
+The architecture inspection and integration plan are in
+[`AI_INTEGRATION.md`](AI_INTEGRATION.md).
+
 ## Running it
 
 No build step, no dependencies. Any static file server works:
@@ -203,6 +250,14 @@ copies pick up the update.
 - `engine.js` — game logic: XP/leveling curve, streaks, daily quest
   generation (with weakness-weighted selection), achievement rules, boss
   battle rotation. Pure functions over a plain state object.
+- `ai.js` — the optional AI coach's **service abstraction**: a
+  provider-agnostic `MTC_AI.getFeedback()`, §8-schema validation, typed errors,
+  an offline heuristic coach, and a backend-endpoint provider. Settings live in
+  their own `localStorage` key, separate from progress. No AI runs unless the
+  user turns it on.
+- `api/feedback.js` — reference **server function** for the AI coach (keeps the
+  model key server-side); `api/README.md` + `.env.example` document setup. Not
+  loaded by `index.html`.
 - `app.js` — UI layer: renders screens from engine state, handles all
   interaction via event delegation.
 - `style.css`, `index.html` — presentation and shell. The theme is a violet
