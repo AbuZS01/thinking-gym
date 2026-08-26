@@ -35,6 +35,28 @@ tested in [`../tests/prompt.test.js`](../tests/prompt.test.js):
 
 Edit the text in `prompt.js`, run `node tests/prompt.test.js`, and redeploy.
 
+### The tuning loop
+
+To read the coach's feedback across many answer qualities side by side, use the
+harness:
+
+```bash
+# Offline, no key — checks plumbing + schema (uses the on-device heuristic):
+node tools/coach-harness.js --heuristic
+
+# The real tuning path — against your deployed function:
+node tools/coach-harness.js --endpoint https://your-app/api/feedback --show-prompt
+
+# Or call the model directly (needs `npm i @anthropic-ai/sdk` + ANTHROPIC_API_KEY):
+node tools/coach-harness.js --model --type bias --show-prompt
+```
+
+The eval set lives in [`../tools/samples.js`](../tools/samples.js) — real
+exercises with answers spanning empty → off-topic → short → weak → strong. Every
+response is validated against the §8 schema; add your own cases as you find edge
+answers. The loop is: run the harness, spot where feedback drifts generic or
+mis-calibrates, edit `prompt.js`, re-run.
+
 ## Setup
 
 1. Install the SDK where the function is deployed:
