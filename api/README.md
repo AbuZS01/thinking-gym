@@ -20,6 +20,21 @@ It calls Claude with a Socratic system prompt (the §14 behaviour rules) and a
 **strict structured-output tool**, so the response always matches the schema.
 The client (`ai.js`) validates the shape again before trusting it.
 
+### Tuning the coach
+
+The system prompt **is** the product — it's the highest-leverage thing to iterate
+on. It lives in [`prompt.js`](prompt.js), separate from transport, and is unit
+tested in [`../tests/prompt.test.js`](../tests/prompt.test.js):
+
+- `BASE_SYSTEM_PROMPT` — the coach's operating contract (the behaviour rules).
+- `TYPE_LENSES` — a per-exercise-type focus line, so the coach scrutinises the
+  right thing (a bias-detection answer is judged differently from a decision one).
+- `buildUserPrompt` — embeds the learner's answer, the **skill grounding** the
+  client passes (curated context for the trained framework — not RAG), and the
+  model answer + rubric as clearly-walled-off grading context.
+
+Edit the text in `prompt.js`, run `node tests/prompt.test.js`, and redeploy.
+
 ## Setup
 
 1. Install the SDK where the function is deployed:

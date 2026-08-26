@@ -79,6 +79,25 @@ function frameworkNames(ids) {
   return ids.map((id) => (MTC_SKILL_CATALOG.find((skill) => skill.id === id) || {}).name).filter(Boolean).join(" &middot; ");
 }
 
+// Compact grounding for the AI coach: the trained framework's own teaching notes
+// (what it is, how an expert applies it, the trap to avoid). Curated context we
+// control — passed to the coach so its feedback reflects the real standard for
+// the skill, not generic advice. Only frameworks carry these notes; toolbox ids
+// are skipped. Plain text (no markup) — it goes into a model prompt, not the DOM.
+function skillGrounding(ids) {
+  return (ids || [])
+    .map((id) => (typeof MTC_FRAMEWORKS !== "undefined" ? MTC_FRAMEWORKS : []).find((f) => f.id === id))
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((f) => {
+      const bits = [f.name + ": " + (f.core || "")];
+      if (f.expertUse) bits.push("An expert " + f.expertUse.charAt(0).toLowerCase() + f.expertUse.slice(1));
+      if (f.avoid) bits.push("Trap: " + f.avoid);
+      return bits.join(" ");
+    })
+    .join("\n");
+}
+
 function route() {
   const h = location.hash || "#/dashboard";
   return h.slice(2) || "dashboard";
@@ -810,13 +829,16 @@ function requestAiFeedback() {
   render();
   MTC_AI.getFeedback({
     prompt: ex.prompt,
-    type: TYPE_LABELS[ex.type] || ex.type,
+    type: ex.type, // raw key — the coach's prompt maps it to a label + a per-type lens
     // Plain-text skill list — frameworkNames() emits an HTML entity separator,
     // which would double-escape when rendered back through esc().
     skill: ex.frameworks
       .map((id) => (MTC_SKILL_CATALOG.find((s) => s.id === id) || {}).name)
       .filter(Boolean)
       .join(", "),
+    // Curated context (not RAG): ground the coach in the actual skill being
+    // trained, so feedback references the real standard, not generic advice.
+    grounding: skillGrounding(ex.frameworks),
     modelAnswer: ex.modelAnswer,
     rubric: ex.rubric,
     answer: exUI.draft,

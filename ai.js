@@ -219,6 +219,8 @@
         prompt: ctx.prompt || "",
         type: ctx.type || "",
         skill: ctx.skill || "",
+        // Curated grounding for the trained skill — context we control, not RAG.
+        grounding: ctx.grounding || "",
         // Model answer + rubric are grading context, not the user's data. Sent so
         // the coach can judge against the intended reasoning, not invent its own.
         modelAnswer: ctx.modelAnswer || "",
