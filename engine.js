@@ -335,7 +335,7 @@ const MTC = (() => {
     };
   }
 
-  function submitExercise(state, exerciseId, selfScore, hintsUsed, answerText, confidence) {
+  function submitExercise(state, exerciseId, selfScore, hintsUsed, answerText, confidence, aiFeedback) {
     const ex = getExercise(exerciseId);
     if (!ex) throw new Error("Unknown exercise: " + exerciseId);
     const score = Math.max(0, Math.min(100, selfScore));
@@ -359,6 +359,9 @@ const MTC = (() => {
       answer: trimAnswer(answerText),
     };
     if (typeof confidence === "number") entry.confidence = Math.max(0, Math.min(100, confidence));
+    // Optional PRACTISE-layer AI feedback, saved alongside the attempt (brief §18).
+    // Purely additive — absent on every existing and non-AI entry.
+    if (aiFeedback && typeof aiFeedback === "object") entry.aiFeedback = aiFeedback;
     const result = applyAttempt(state, ex.frameworks, entry);
     result.questComplete = quest.completed.length >= quest.items.length;
     return result;

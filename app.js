@@ -79,6 +79,25 @@ function frameworkNames(ids) {
   return ids.map((id) => (MTC_SKILL_CATALOG.find((skill) => skill.id === id) || {}).name).filter(Boolean).join(" &middot; ");
 }
 
+// Compact grounding for the AI coach: the trained framework's own teaching notes
+// (what it is, how an expert applies it, the trap to avoid). Curated context we
+// control — passed to the coach so its feedback reflects the real standard for
+// the skill, not generic advice. Only frameworks carry these notes; toolbox ids
+// are skipped. Plain text (no markup) — it goes into a model prompt, not the DOM.
+function skillGrounding(ids) {
+  return (ids || [])
+    .map((id) => (typeof MTC_FRAMEWORKS !== "undefined" ? MTC_FRAMEWORKS : []).find((f) => f.id === id))
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((f) => {
+      const bits = [f.name + ": " + (f.core || "")];
+      if (f.expertUse) bits.push("An expert " + f.expertUse.charAt(0).toLowerCase() + f.expertUse.slice(1));
+      if (f.avoid) bits.push("Trap: " + f.avoid);
+      return bits.join(" ");
+    })
+    .join("\n");
+}
+
 function route() {
   const h = location.hash || "#/dashboard";
   return h.slice(2) || "dashboard";
@@ -592,7 +611,44 @@ function profileHTML() {
     <button class="list-row danger" data-reset-progress><span class="ico">&#128465;&#65039;</span><span class="label">Erase all progress</span><span class="chev">&#8250;</span></button>
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
   </div>
+
+  ${aiSettingsHTML()}
+
   <p class="subtle" style="text-align:center;margin:14px 0">Everything is stored on this device only.</p>`;
+}
+
+// AI coaching settings. Opt-in, off by default. Kept in its own localStorage key
+// (ai.js), so it never touches exported progress. Controls are full-width
+// list-row buttons (the app's Settings idiom) rather than tiny checkboxes, which
+// keeps every tap target comfortably above the 44px minimum.
+function aiSettingsHTML() {
+  const cfg = MTC_AI.loadConfig();
+  const isBackend = cfg.provider === "backend";
+  const providerRow = (val, ico, label, sub) =>
+    `<button class="list-row" data-ai-provider="${val}" aria-pressed="${(isBackend ? "backend" : "local") === val}">
+      <span class="ico">${ico}</span>
+      <span class="label">${label}<small>${sub}</small></span>
+      <span class="val">${(isBackend ? "backend" : "local") === val ? "&#10003;" : ""}</span>
+    </button>`;
+  return `
+  <div class="section-head"><h2>AI Coaching</h2></div>
+  <div class="panel">
+    <button class="list-row" data-ai-toggle aria-pressed="${cfg.enabled}">
+      <span class="ico">&#129504;</span>
+      <span class="label">AI feedback on written exercises<small>Off by default. It responds <em>after</em> you answer, and never changes your score.</small></span>
+      <span class="val">${cfg.enabled ? "On" : "Off"}</span>
+    </button>
+    ${cfg.enabled ? `
+      ${providerRow("local", "&#128246;", "On-device coach", "Offline heuristic, no account &mdash; reflects the shape of your reasoning")}
+      ${providerRow("backend", "&#127760;", "Server endpoint", "A real model via your own secure function")}
+      ${isBackend ? `<div class="field" style="margin-top:12px">
+        <label class="subtle" for="ai-endpoint">Endpoint URL</label>
+        <input type="url" id="ai-endpoint" placeholder="https://your-app/api/feedback" value="${esc(cfg.endpoint)}" />
+        <p class="subtle">Your model key stays on that server &mdash; never in this app. Setup: <code>api/README.md</code>.</p>
+      </div>` : ""}
+    ` : ""}
+  </div>
+  <p class="subtle" style="margin:8px 4px 0">AI never solves the exercise for you. You can ignore its feedback &mdash; you always own the final conclusion.</p>`;
 }
 
 /* ---------- Daily Quest ---------- */
@@ -657,7 +713,7 @@ function exerciseHTML(id) {
   }
 
   if (!exUI || exUI.exerciseId !== id) {
-    exUI = { exerciseId: id, hintsRevealed: 0, checked: new Set(), showAssessment: false, draft: "", confidence: 70 };
+    exUI = { exerciseId: id, hintsRevealed: 0, checked: new Set(), showAssessment: false, draft: "", confidence: 70, ai: { status: "idle" } };
   }
 
   const hintsHTML = ex.hints.slice(0, exUI.hintsRevealed).map((h) => `<div class="hint-box">${esc(h)}</div>`).join("");
@@ -692,7 +748,7 @@ function exerciseHTML(id) {
         <div class="model-answer"><div class="lbl">Expert Note</div>${esc(ex.expertNote)}</div>
         <p style="margin-top:12px">Self-assessed score: <b>${scorePreview}%</b> (${checkedCount}/${total} criteria) &middot; estimated points: <b>${MTC.estimateXp(ex.xpBase, scorePreview, exUI.hintsRevealed)}</b></p>
         <button class="btn" data-submit-exercise>Submit</button>
-      </div>`;
+      </div>${aiCoachHTML(ex)}`;
   }
 
   const similar = MTC.lastSimilarAnswer(STATE, id);
@@ -710,6 +766,92 @@ function exerciseHTML(id) {
   </div>
   ${similar ? `<details class="panel past-answer"><summary class="subtle">Your last answer on a similar problem &mdash; ${esc(similar.title)} (${esc(similar.record.date)})</summary><div class="journal-answer">${esc(similar.record.answer)}</div></details>` : ""}
   ${assessmentHTML}`;
+}
+
+/* ---------- Optional AI coach (PRACTISE layer) ----------
+   Renders ONLY after the user has written an answer and revealed the model
+   answer, and only when AI is switched on. Never present unless the learner has
+   already reasoned first (brief §3). */
+
+function aiFeedbackCardHTML(fb) {
+  const list = (arr) =>
+    arr && arr.length
+      ? `<ul class="ai-list">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`
+      : `<p class="subtle">&mdash;</p>`;
+  return `<div class="ai-feedback">
+    <p class="ai-summary">${esc(fb.feedback_summary)}</p>
+    <div class="ai-section"><div class="lbl">&#9989; What you did well</div>${list(fb.strengths)}</div>
+    <div class="ai-section"><div class="lbl">&#128269; Missed considerations</div>${list(fb.missed_considerations)}</div>
+    <div class="ai-section"><div class="lbl">&#129513; Assumptions to check</div>${list(fb.assumptions_detected)}</div>
+    <div class="ai-section"><div class="lbl">&#128260; Alternative angle</div><p>${esc(fb.alternative_angle)}</p></div>
+    <div class="ai-section"><div class="lbl">&#127919; Skill demonstrated</div><p>${esc(fb.skill_demonstrated)}</p></div>
+    <div class="ai-section"><div class="lbl">&#128161; One improvement</div><p>${esc(fb.improvement_tip)}</p></div>
+  </div>`;
+}
+
+function aiCoachHTML(ex) {
+  if (!MTC_AI.isEnabled()) return ""; // feature off -> non-AI experience is untouched
+  const ai = (exUI && exUI.ai) || { status: "idle" };
+  const provider = MTC_AI.activeProvider();
+  const badge = provider === "backend" ? "AI coach" : "On-device coach";
+  const note = provider === "backend"
+    ? `<p class="subtle">Feedback on your reasoning process &mdash; not a mark on right/wrong. It can be wrong, and you own the final call.</p>`
+    : `<p class="subtle">An on-device heuristic that reflects the <em>shape</em> of your reasoning &mdash; not a language model. It can be wrong, and you own the final call.</p>`;
+
+  let inner;
+  if (ai.status === "loading") {
+    inner = `<div class="ai-loading" role="status"><span class="ai-spinner" aria-hidden="true"></span> Coaching your reasoning&hellip;</div>`;
+  } else if (ai.status === "error") {
+    inner = `<div class="ai-errbox"><p class="ai-errmsg">${esc(ai.error)}</p><button class="btn ghost" data-ai-feedback>Try again</button></div>`;
+  } else if (ai.status === "done" && ai.data) {
+    inner = aiFeedbackCardHTML(ai.data)
+      + `<div class="field ai-actions"><button class="btn ghost" data-ai-feedback>Regenerate</button><button class="btn ghost" data-ai-dismiss>Dismiss</button></div>`
+      + `<p class="subtle">Saved with this attempt if you submit. You can disagree &mdash; it doesn't change your score.</p>`;
+  } else {
+    inner = `<button class="btn" data-ai-feedback>Coach my reasoning</button>`;
+  }
+
+  return `<div class="panel ai-panel">
+    <div class="ai-head"><span class="ai-badge">${badge}</span></div>
+    ${note}
+    ${inner}
+  </div>`;
+}
+
+// Kick off an async feedback request. Guards against the user navigating away
+// before it resolves. Errors are typed by ai.js into a friendly message.
+function requestAiFeedback() {
+  if (!exUI) return;
+  const ex = MTC.getExercise(exUI.exerciseId);
+  if (!ex) return;
+  const id = exUI.exerciseId;
+  exUI.ai = { status: "loading" };
+  render();
+  MTC_AI.getFeedback({
+    prompt: ex.prompt,
+    type: ex.type, // raw key — the coach's prompt maps it to a label + a per-type lens
+    // Plain-text skill list — frameworkNames() emits an HTML entity separator,
+    // which would double-escape when rendered back through esc().
+    skill: ex.frameworks
+      .map((id) => (MTC_SKILL_CATALOG.find((s) => s.id === id) || {}).name)
+      .filter(Boolean)
+      .join(", "),
+    // Curated context (not RAG): ground the coach in the actual skill being
+    // trained, so feedback references the real standard, not generic advice.
+    grounding: skillGrounding(ex.frameworks),
+    modelAnswer: ex.modelAnswer,
+    rubric: ex.rubric,
+    answer: exUI.draft,
+  }).then((fb) => {
+    if (!exUI || exUI.exerciseId !== id) return; // moved on — drop the result
+    exUI.ai = { status: "done", data: fb };
+    render();
+    announce("Reasoning feedback ready.");
+  }).catch((err) => {
+    if (!exUI || exUI.exerciseId !== id) return;
+    exUI.ai = { status: "error", error: MTC_AI.messageForKind(err && err.aiKind) };
+    render();
+  });
 }
 
 /* ---------- Boss Battle ---------- */
@@ -1250,6 +1392,7 @@ function journalResultsHTML() {
       <h2>${esc(title)}</h2>
       <p class="subtle">${h.type === "workbench" ? `+${h.xp} points` : `Self-assessed ${h.score}% &middot; +${h.xp} points${h.hintsUsed ? ` &middot; ${h.hintsUsed} hint${h.hintsUsed === 1 ? "" : "s"} used` : ""}`}</p>
       ${h.answer ? `<div class="journal-answer">${esc(h.answer)}</div>` : `<p class="subtle">(no written answer was saved with this entry)</p>`}
+      ${h.aiFeedback ? `<details class="ai-journal"><summary class="subtle">AI coaching saved with this answer</summary>${aiFeedbackCardHTML(h.aiFeedback)}</details>` : ""}
     </div>`;
   }).join("");
 }
@@ -1461,10 +1604,27 @@ document.addEventListener("click", (e) => {
 
   if (e.target.closest("[data-show-assessment]")) { exUI.showAssessment = true; render(); return; }
 
+  if (e.target.closest("[data-ai-feedback]")) { requestAiFeedback(); return; }
+  if (e.target.closest("[data-ai-dismiss]")) { if (exUI) exUI.ai = { status: "idle" }; render(); return; }
+
+  if (e.target.closest("[data-ai-toggle]")) {
+    const cfg = MTC_AI.loadConfig();
+    MTC_AI.saveConfig({ enabled: !cfg.enabled });
+    render();
+    return;
+  }
+  const aiProv = e.target.closest("[data-ai-provider]");
+  if (aiProv) {
+    MTC_AI.saveConfig({ provider: aiProv.dataset.aiProvider });
+    render();
+    return;
+  }
+
   if (e.target.closest("[data-submit-exercise]")) {
     const ex = MTC.getExercise(exUI.exerciseId);
     const score = MTC.rubricScore(exUI.checked.size, ex.rubric.length);
-    const result = MTC.submitExercise(STATE, exUI.exerciseId, score, exUI.hintsRevealed, exUI.draft, exUI.confidence);
+    const aiFb = exUI.ai && exUI.ai.status === "done" ? exUI.ai.data : null;
+    const result = MTC.submitExercise(STATE, exUI.exerciseId, score, exUI.hintsRevealed, exUI.draft, exUI.confidence, aiFb);
     result.missed = ex.rubric.filter((r, i) => !exUI.checked.has(i)).slice(0, 3);
     pendingResult = result;
     exUI = null;
@@ -1754,6 +1914,10 @@ document.addEventListener("input", (e) => {
     const val = document.getElementById("ex-conf-val");
     if (val) val.textContent = e.target.value;
     return;
+  }
+  if (e.target.id === "ai-endpoint") {
+    MTC_AI.saveConfig({ endpoint: e.target.value });
+    return; // no re-render — keep focus in the field while typing
   }
   if (e.target.id === "journal-search") {
     journalFilter = e.target.value;
