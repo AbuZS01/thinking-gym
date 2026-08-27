@@ -1,33 +1,47 @@
-/* The Thinking Gym — violet mobile theme.
-   Rounded cards, soft shadows, pastel emoji tiles, fixed bottom tab bar.
-   Sans-serif throughout; no serif anywhere. */
+/* The Thinking Gym — "Fresh Growth" mobile theme.
+   Green primary on warm-green paper, a functional accent set (facts green,
+   assumptions amber, unknowns blue, competing coral), rounded cards, soft
+   shadows. System serif (Georgia) for display titles; system sans elsewhere. */
 
 :root {
-  --bg: #F6F7FB;
+  /* "Fresh Growth" — green primary for growth/progress, warm-green paper,
+     a functional accent set (facts green, assumptions amber, unknowns blue,
+     competing coral). Text-facing accents are deepened to pass WCAG AA on light. */
+  --bg: #F4FAF6;               /* warm green-tinted paper */
   --panel: #FFFFFF;
-  --panel-alt: #FBF7EF;        /* challenge card cream */
-  --ink: #1A1625;
-  --text-dim: #5D6470;
-  --text-soft: #667085;
-  --hairline: #ECEBF3;
-  --accent: #7C3AED;
-  --accent-2: #8B5CF6;
-  --accent-soft: #F5F3FF;
-  --grad: linear-gradient(135deg, #7C3AED, #6D28D9);
-  --good: #10B981;
-  --good-soft: #ECFDF5;
-  --warn: #F59E0B;
+  --panel-alt: #EEF6F0;        /* soft green surface */
+  --ink: #17342A;              /* deep green-charcoal */
+  --text-dim: #4A5A50;
+  --text-soft: #526158;
+  --hairline: #E3EFE7;
+  --accent: #0E7B49;           /* primary green — text-safe */
+  --accent-2: #1F9D64;         /* brighter green for fills/gradients/decor */
+  --accent-soft: #E4F4EB;
+  --grad: linear-gradient(135deg, #1F9D64, #0E7B49);
+  --good: #0E7B49;
+  --good-soft: #E4F4EB;
+  --warn: #8A6A1E;
   --danger: #B42318;
-  --danger-soft: #FEF2F2;
-  --dark: #1E1B2E;
-  --radius: 16px;
+  --danger-soft: #FDEBE4;
+  --dark: #143026;
+  /* functional accents: -fill for borders/dots/icons (non-text), plain for text */
+  --blue: #2C6DA8;   --blue-fill: #3B82C4;   --blue-soft: #E9F1FA;
+  --amber: #8A6A1E;  --amber-fill: #EDB13C;  --amber-soft: #FBF0D8;
+  --coral: #C2492B;  --coral-fill: #F2704E;  --coral-soft: #FDEBE4;
+  --radius: 18px;
   --radius-sm: 12px;
-  --shadow: 0 1px 2px rgba(20, 14, 45, 0.05), 0 4px 16px rgba(20, 14, 45, 0.05);
-  --shadow-lg: 0 8px 30px rgba(20, 14, 45, 0.12);
-  --sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --tabbar-h: 62px;
+  --shadow: 0 1px 2px rgba(20, 40, 30, 0.04), 0 6px 18px rgba(20, 40, 30, 0.05);
+  --shadow-lg: 0 10px 30px rgba(20, 40, 30, 0.10);
+  /* System stacks — no external font dependency, so the app stays offline-clean.
+     Serif display for titles (Georgia is on virtually every device). */
+  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --tabbar-h: 64px;
   color-scheme: light;
 }
+
+/* Serif display for the big page/card titles; the rest stays in the grotesk. */
+.page-title, .brand { font-family: var(--serif); font-weight: 500; letter-spacing: -0.01em; }
 
 * { box-sizing: border-box; }
 
@@ -194,7 +208,7 @@ a.cta { display: inline-flex; align-items: center; min-height: 44px; }
 .tile.t0 { background: #ECFDF5; }
 .tile.t1 { background: #FDF2F8; }
 .tile.t2 { background: #FFFBEB; }
-.tile.t3 { background: #F5F3FF; }
+.tile.t3 { background: var(--accent-soft); }
 .tile.t4 { background: #FFF7ED; }
 .tile.t5 { background: #EFF6FF; }
 
@@ -213,35 +227,35 @@ a.cta { display: inline-flex; align-items: center; min-height: 44px; }
 .stat-strip .stat { flex: 1; text-align: center; }
 .stat-strip .stat .ico { font-size: 17px; }
 .stat-strip .stat .num { font-size: 21px; font-weight: 800; margin: 3px 0 1px; }
-.stat-strip .stat .lbl { font-size: 12px; color: #A5A0BE; line-height: 1.3; }
+.stat-strip .stat .lbl { font-size: 12px; color: rgba(255, 255, 255, 0.82); line-height: 1.3; }
 
 /* ---------- Daily workout ---------- */
 
 .daily-session {
-  background: linear-gradient(145deg, #211937 0%, #171126 100%);
+  background: linear-gradient(145deg, #17402C 0%, #0E2A1C 100%);
   border-radius: 20px; padding: 20px; margin-bottom: 14px; color: #fff;
-  box-shadow: 0 12px 32px rgba(30, 27, 46, 0.18);
+  box-shadow: 0 12px 32px rgba(14, 40, 28, 0.18);
 }
-.daily-session .tag { display: inline-block; margin-bottom: 6px; color: #C4B5FD; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.daily-session .tag { display: inline-block; margin-bottom: 6px; color: #93E4BC; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .daily-session-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .daily-session-head h2 { font-size: 20px; }
 .session-count { font-size: 28px; font-weight: 800; color: #fff; }
-.session-count span { font-size: 15px; color: #8F87A8; }
+.session-count span { font-size: 15px; color: #8AA898; }
 .session-progress { height: 5px; margin: 14px 0 10px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
-.session-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #A78BFA, #F0ABFC); }
+.session-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #34D399, #A7F3D0); }
 .session-list { margin-bottom: 15px; }
 .session-item { display: flex; align-items: center; gap: 11px; min-height: 58px; color: #fff; text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.08); }
 .session-item:last-child { border-bottom: 0; }
-.session-step { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; background: rgba(255,255,255,.09); color: #A9A3C7; font-size: 12px; font-weight: 800; }
-.session-item.next .session-step { background: #6D28D9; color: #fff; }
+.session-step { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%; background: rgba(255,255,255,.09); color: #A9C7B7; font-size: 12px; font-weight: 800; }
+.session-item.next .session-step { background: var(--accent); color: #fff; }
 .session-item.done { opacity: .62; }
 .session-item.done .session-step { background: rgba(16,185,129,.2); color: #6EE7B7; }
 .session-copy { min-width: 0; flex: 1; }
 .session-copy b, .session-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .session-copy b { font-size: 13.5px; }
-.session-copy small { margin-top: 2px; color: #9F98B8; font-size: 12px; }
-.session-arrow { color: #B8B2D4; font-size: 12px; font-weight: 700; }
-.daily-cta { margin-top: 2px; box-shadow: 0 6px 20px rgba(124,58,237,.35); }
+.session-copy small { margin-top: 2px; color: #9DBBAA; font-size: 12px; }
+.session-arrow { color: #B2CFBF; font-size: 12px; font-weight: 700; }
+.daily-cta { margin-top: 2px; box-shadow: 0 6px 20px rgba(14,123,73,.35); }
 
 /* ---------- Progress bars ---------- */
 
@@ -254,9 +268,9 @@ a.cta { display: inline-flex; align-items: center; min-height: 44px; }
 .level-num {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   width: 62px; height: 62px; flex-shrink: 0; border-radius: 18px;
-  background: var(--grad); color: #fff; font-size: 24px; font-weight: 800;
+  background: var(--accent); color: #fff; font-size: 24px; font-weight: 800;
 }
-.level-num sup { font-size: 12px; font-weight: 700; opacity: 0.85; letter-spacing: 0.08em; }
+.level-num sup { font-size: 12px; font-weight: 700; opacity: 1; letter-spacing: 0.08em; }
 .level-hero h1, .level-hero .page-title { font-size: 20px; }
 
 .badge {
@@ -279,11 +293,11 @@ a.weak-row:hover .name { color: var(--accent); }
 
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 44px; background: var(--grad); color: #fff; border: none;
+  min-height: 44px; background: var(--accent); color: #fff; border: none;
   padding: 12px 20px; border-radius: var(--radius-sm);
   font-family: var(--sans); font-size: 14.5px; font-weight: 700;
   cursor: pointer; text-decoration: none; text-align: center;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28);
+  box-shadow: 0 4px 14px rgba(14, 123, 73, 0.24);
 }
 .btn:hover { filter: brightness(1.05); }
 .btn.block { display: flex; width: 100%; }
@@ -539,33 +553,33 @@ body.landing { background: #150F26; }
 body.landing #app { padding-bottom: 0; }
 .onboarding {
   min-height: 100vh; margin: 0 -16px; padding: 48px 26px 40px;
-  background: linear-gradient(165deg, #241C3D 0%, #1A1430 45%, #150F26 100%);
+  background: linear-gradient(165deg, #17402C 0%, #0E2A1C 45%, #0A2016 100%);
   color: #fff;
 }
 .onboarding .logo { font-size: 19px; font-weight: 800; margin-bottom: 34px; }
 .onboarding .logo .mark { color: var(--accent-2); }
-.onboarding .eyebrow { color: #A78BFA; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+.onboarding .eyebrow { color: #93E4BC; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
 .onboarding h1 { font-size: 34px; line-height: 1.15; letter-spacing: -0.03em; }
 .onboarding h1 .grad {
-  background: linear-gradient(90deg, #A78BFA, #F0ABFC);
+  background: linear-gradient(90deg, #34D399, #A7F3D0);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.onboarding p.lede { color: #C6C0DA; font-size: 15px; margin: 14px 0 18px; }
+.onboarding p.lede { color: #C3D6CB; font-size: 15px; margin: 14px 0 18px; }
 .onboarding .trust-row { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 25px; }
-.onboarding .trust-row span { padding: 5px 9px; border: 1px solid rgba(196,181,253,.16); border-radius: 999px; color: #BDB6D4; background: rgba(255,255,255,.035); font-size: 12px; font-weight: 650; }
-.onboard-label { display: flex; justify-content: space-between; margin: 0 2px 7px; color: #E9E5F4; font-size: 12.5px; font-weight: 650; }
-.onboard-label span { color: #8880A8; font-weight: 500; }
+.onboarding .trust-row span { padding: 5px 9px; border: 1px solid rgba(167,243,208,.18); border-radius: 999px; color: #B7CFC2; background: rgba(255,255,255,.035); font-size: 12px; font-weight: 650; }
+.onboard-label { display: flex; justify-content: space-between; margin: 0 2px 7px; color: #E6F0EA; font-size: 12.5px; font-weight: 650; }
+.onboard-label span { color: #86A392; font-weight: 500; }
 .onboarding .onboard-label:not(:first-of-type) { margin-top: 14px; }
-.onboarding .form-help { margin: 6px 2px 0; color: #B8B1CE; font-size: 12px; }
-.onboarding .form-note { margin: 10px 2px 0; text-align: center; color: #B8B1CE; font-size: 12px; }
+.onboarding .form-help { margin: 6px 2px 0; color: #B2C8BD; font-size: 12px; }
+.onboarding .form-note { margin: 10px 2px 0; text-align: center; color: #B2C8BD; font-size: 12px; }
 .onboarding .feat { display: flex; gap: 13px; align-items: flex-start; margin-bottom: 18px; }
 .onboarding .feat .ico {
   width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
-  background: rgba(139, 92, 246, 0.16); display: flex; align-items: center; justify-content: center;
+  background: rgba(52, 211, 153, 0.16); display: flex; align-items: center; justify-content: center;
   font-size: 18px;
 }
 .onboarding .feat h3 { font-size: 14.5px; }
-.onboarding .feat p { margin: 2px 0 0; font-size: 13px; color: #A9A3C7; line-height: 1.45; }
+.onboarding .feat p { margin: 2px 0 0; font-size: 13px; color: #A6C4B4; line-height: 1.45; }
 .onboarding input[type=text] {
   background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.14); color: #fff;
 }
@@ -677,7 +691,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* ---------- Optional AI coach (PRACTISE layer) ----------
    A quietly distinct card: accent-tinted, clearly an add-on to — never a
    replacement for — the user's own self-assessment. */
-.ai-panel { border: 1px solid var(--accent-soft); background: linear-gradient(180deg, #FCFBFF, #FFFFFF); }
+.ai-panel { border: 1px solid var(--accent-soft); background: linear-gradient(180deg, #F5FBF8, #FFFFFF); }
 .ai-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .ai-badge {
   font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
@@ -738,3 +752,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .case-ai-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
 .case-nexttest { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--accent-2); border-radius: var(--radius-sm); }
 .case-nexttest p { margin: 0 0 6px; }
+
+/* ---------- Investigation: functional colour per Case Board type ---------- */
+/* Group-label text uses the text-safe accent; item left-borders use the brighter
+   -fill (a non-text graphic, so it isn't held to text-contrast rules). */
+.case-group-head.t-fact,
+.case-group-head.t-evidence { color: var(--accent); }
+.case-group-head.t-assumption { color: var(--amber); }
+.case-group-head.t-unknown,
+.case-group-head.t-relationship { color: var(--blue); }
+.case-group-head.t-contradiction { color: var(--coral); }
+.case-group-head.t-claim { color: var(--text-dim); }
+
+.case-item.t-fact, .case-item.t-evidence { border-left: 3px solid var(--accent-2); }
+.case-item.t-assumption { border-left: 3px solid var(--amber-fill); }
+.case-item.t-unknown, .case-item.t-relationship { border-left: 3px solid var(--blue-fill); }
+.case-item.t-contradiction { border-left: 3px solid var(--coral-fill); }
+/* Pending AI cards keep their dashed treatment; the border-left steps aside. */
+.case-item.pending { border-left-width: 1px; }
