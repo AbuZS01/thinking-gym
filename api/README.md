@@ -20,6 +20,12 @@ It calls Claude with a Socratic system prompt (the §14 behaviour rules) and a
 **strict structured-output tool**, so the response always matches the schema.
 The client (`ai.js`) validates the shape again before trusting it.
 
+The **same endpoint** also powers Investigation Mode's Case Board: a request with
+`{ "task": "case", "kind": "classify" | "hypotheses" | "evidence_gaps" |
+"next_test", "case": {...} }` returns the matching structured suggestions. One
+endpoint URL keeps the app's AI settings simple. The case system prompt and
+strict tools live alongside the coach's in `prompt.js`.
+
 ### Tuning the coach
 
 The system prompt **is** the product — it's the highest-leverage thing to iterate

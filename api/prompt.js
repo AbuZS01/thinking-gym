@@ -145,6 +145,139 @@ const FEEDBACK_TOOL = {
   },
 };
 
+/* ---------- Investigation Mode: Case Board help (§10, §11, §16) ----------
+   The user brings a REAL problem and has already written their own initial
+   assessment. The coach helps them investigate — separate facts from
+   assumptions, surface unknowns, generate COMPETING hypotheses, find missing
+   evidence, suggest one cheap next test — but never decides for them, and every
+   output is a proposal they approve, edit, or reject. */
+
+const CASE_SYSTEM_PROMPT = [
+  "You are helping someone investigate a REAL problem of their own on a visual",
+  "Case Board. They have ALREADY written their own initial assessment. You are a",
+  "thinking partner and challenger, never a decision-maker.",
+  "",
+  "Hard rules (never break these):",
+  "- Never invent facts about their specific situation. When classifying, use",
+  "  THEIR OWN statements; do not add details they didn't give you.",
+  "- Every output is a SUGGESTION they will approve, edit, or reject — frame it",
+  "  that way, not as settled truth.",
+  "- Distinguish fact, assumption, and unknown honestly.",
+  "- Generate genuinely COMPETING hypotheses, not variations of their first idea.",
+  "- Prefer DISCONFIRMING evidence and cheap falsifiable tests over confirmation.",
+  "- Communicate uncertainty. The user always owns the conclusion.",
+  "- Keep every item one crisp, mobile-friendly sentence. No markdown in values.",
+].join("\n");
+
+const CASE_KIND_INSTRUCTIONS = {
+  classify: "Read their problem and context and sort the CLAIMS THEY MADE into facts (checkable, stated as given), assumptions (taken for granted, not established), and unknowns (open questions or missing information). Use their own wording; add an unknown only if it's an obvious open question their framing raises.",
+  hypotheses: "Propose 3–4 genuinely competing explanations for what's going on — at least one that reframes the problem or points at a cause they haven't mentioned. For each, note in one phrase what would support it and what would count against it.",
+  evidence_gaps: "List the most important pieces of evidence they are MISSING — especially anything that could disconfirm their leading explanation, a base rate/comparison, or a source for a claim they're taking on trust.",
+  next_test: "Suggest ONE cheap, concrete next test or information-gathering action that would most reduce their uncertainty — ideally one that could prove their leading hypothesis wrong — and say in one line why it's the highest-value check.",
+};
+
+const CASE_TOOLS = {
+  classify: {
+    name: "return_classification",
+    description: "Return suggested classifications of the user's statements.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        facts: { type: "array", items: { type: "string" } },
+        assumptions: { type: "array", items: { type: "string" } },
+        unknowns: { type: "array", items: { type: "string" } },
+      },
+      required: ["facts", "assumptions", "unknowns"],
+      additionalProperties: false,
+    },
+  },
+  hypotheses: {
+    name: "return_hypotheses",
+    description: "Return competing hypotheses for the user to weigh.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        hypotheses: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              text: { type: "string" },
+              supporting: { type: "string" },
+              opposing: { type: "string" },
+            },
+            required: ["text", "supporting", "opposing"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["hypotheses"],
+      additionalProperties: false,
+    },
+  },
+  evidence_gaps: {
+    name: "return_evidence_gaps",
+    description: "Return the most important missing evidence.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: { missing_evidence: { type: "array", items: { type: "string" } } },
+      required: ["missing_evidence"],
+      additionalProperties: false,
+    },
+  },
+  next_test: {
+    name: "return_next_test",
+    description: "Return one high-value next test and why it matters.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: { next_test: { type: "string" }, why: { type: "string" } },
+      required: ["next_test", "why"],
+      additionalProperties: false,
+    },
+  },
+};
+
+function caseTool(kind) {
+  return CASE_TOOLS[kind] || null;
+}
+
+function buildCaseUserPrompt(kind, c) {
+  c = c || {};
+  const parts = [];
+  parts.push("THE PROBLEM (their words):");
+  parts.push(c.problem || "(none given)");
+  if (c.context && String(c.context).trim()) {
+    parts.push("");
+    parts.push("CONTEXT they added:");
+    parts.push(c.context);
+  }
+  if (c.initialAssessment && String(c.initialAssessment).trim()) {
+    parts.push("");
+    parts.push("THEIR INITIAL ASSESSMENT (written before any AI — respect it, then challenge it):");
+    parts.push(c.initialAssessment);
+  }
+  const items = Array.isArray(c.items) ? c.items.filter((i) => i && i.text) : [];
+  if (items.length) {
+    parts.push("");
+    parts.push("ALREADY ON THE BOARD (don't repeat these):");
+    items.forEach((i) => parts.push("- [" + (i.type || "item") + "] " + i.text));
+  }
+  const hyps = Array.isArray(c.hypotheses) ? c.hypotheses.filter((h) => h && h.text) : [];
+  if (hyps.length) {
+    parts.push("");
+    parts.push("HYPOTHESES ALREADY LISTED (don't repeat these):");
+    hyps.forEach((h) => parts.push("- " + h.text));
+  }
+  parts.push("");
+  parts.push("TASK: " + (CASE_KIND_INSTRUCTIONS[kind] || "Help the user investigate."));
+  parts.push("Return your suggestions via the tool. Remember: suggestions only — they approve or reject each one.");
+  return parts.join("\n");
+}
+
 module.exports = {
   BASE_SYSTEM_PROMPT,
   TYPE_LABELS,
@@ -154,4 +287,10 @@ module.exports = {
   buildSystemPrompt,
   buildUserPrompt,
   FEEDBACK_TOOL,
+  // Investigation Mode
+  CASE_SYSTEM_PROMPT,
+  CASE_KIND_INSTRUCTIONS,
+  CASE_TOOLS,
+  caseTool,
+  buildCaseUserPrompt,
 };
