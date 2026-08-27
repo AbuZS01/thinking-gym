@@ -40,6 +40,7 @@ const BOSS_FINAL_STAGE = {
 const BOSS_MONITOR_RUBRIC = "I committed to ONE decision, wrote the two most likely ways it fails, and named early signs that would tell me I chose wrong";
 
 let wbUI = null; // {toolId, draft}
+let caseUI = null; // Investigation Mode board state: {caseId, editItemId, editHypId, addType, ai:{kind:{status,error}}, nextTest}
 
 // Passive nudge: vague outcome-phrases that hide the mechanism.
 const VAGUE_RE = /(turned out bad|went wrong|didn'?t work( out)?|it was bad|wasn'?t great|people were (unhappy|upset|angry)|bad fit|too much pressure|not good enough|poor performance|things went south|fell apart)/i;
@@ -186,7 +187,7 @@ function levelInfo() {
 
 const TABS = [
   { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
-  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review", "path"] },
+  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review", "path", "cases", "case"] },
   { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report", "used"] },
   { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides"] },
 ];
@@ -239,6 +240,9 @@ function chromeFor(r) {
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
+  if (r === "cases") return ["Investigation Mode", "gym"];
+  if (r === "case/new") return ["New investigation", "cases"];
+  if (r.startsWith("case/")) return ["Case Board", "cases"];
   if (r === "calibration") return ["Calibration", "gym"];
   if (r === "review") return ["Review", "gym"];
   if (r === "journal") return ["Journal", "progress"];
@@ -455,6 +459,12 @@ function challengesHTML() {
     <a class="list-row" href="#/boss"><span class="ico">&#128121;</span><span class="label">Boss Battle</span><span class="val">${battleState.completed ? "done" : esc(truncateWords(battle.name, 18))}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/calibration"><span class="ico">&#127919;</span><span class="label">Calibration</span><span class="val">${calStats.total ? calStats.accuracy + "%" : "new"}</span><span class="chev">&#8250;</span></a>
     <a class="list-row" href="#/review"><span class="ico">&#128218;</span><span class="label">Review</span><span class="val">${reviewLabel}</span><span class="chev">&#8250;</span></a>
+  </div>
+
+  <div class="section-head"><h2>Apply it to a real problem</h2></div>
+  <p class="subtle" style="margin:-4px 0 10px">Investigation Mode is where you take the thinking skills to a real decision of your own &mdash; on a visual Case Board, not a chatbot. You stay the investigator.</p>
+  <div class="panel">
+    <a class="list-row" href="#/cases"><span class="ico">&#128269;</span><span class="label">Investigation Mode</span><span class="val">${(STATE.cases || []).length ? (STATE.cases || []).length + " case" + ((STATE.cases || []).length === 1 ? "" : "s") : "new"}</span><span class="chev">&#8250;</span></a>
   </div>`;
 }
 
@@ -852,6 +862,277 @@ function requestAiFeedback() {
     exUI.ai = { status: "error", error: MTC_AI.messageForKind(err && err.aiKind) };
     render();
   });
+}
+
+/* ---------- Investigation Mode (APPLY layer — brief §9–11, §16) ----------
+   A separate mode where the user brings a REAL problem and works it on a visual
+   Case Board. The user reasons first (an initial assessment before any AI), and
+   every AI suggestion lands on the board as a pending card they approve, edit,
+   reclassify, or reject. Never a chatbot transcript. */
+
+const CASE_TYPE_META = {
+  fact: { label: "Known facts", emoji: "✅" },
+  claim: { label: "Claims", emoji: "\u{1F5E3}️" },
+  assumption: { label: "Assumptions", emoji: "\u{1F914}" },
+  unknown: { label: "Unknowns & missing evidence", emoji: "❓" },
+  evidence: { label: "Evidence", emoji: "\u{1F50E}" },
+  contradiction: { label: "Contradictions", emoji: "⚡" },
+  relationship: { label: "Possible relationships", emoji: "\u{1F517}" },
+};
+const CASE_TYPE_ORDER = ["fact", "claim", "assumption", "unknown", "evidence", "contradiction", "relationship"];
+const CONFIDENCE_LABELS = { low: "Low", medium: "Medium", high: "High" };
+
+function casesHTML() {
+  const cases = MTC.listCases(STATE);
+  const intro = `<div class="panel">
+    <h2 class="page-title">Investigation Mode</h2>
+    <p class="subtle">Bring a real decision or problem of your own. You'll lay it out on a Case Board &mdash; facts, assumptions, unknowns, competing explanations &mdash; and work it like an investigator. AI can suggest classifications and rival hypotheses, but you approve every one, and you own the conclusion.</p>
+    <div class="field"><a class="btn" href="#/case/new">Start a new investigation</a></div>
+    <p class="subtle">Examples: Should I accept this job? Why is my business not getting customers? Which idea should I pursue? What am I overlooking in this decision?</p>
+  </div>`;
+  if (!cases.length) return intro;
+  return intro + `<div class="section-head"><h2>Your cases</h2></div>` + cases.map((c) => {
+    const pending = c.items.filter((i) => !i.userConfirmed).length + c.hypotheses.filter((h) => !h.userConfirmed).length;
+    return `<a class="panel case-row" href="#/case/${c.id}">
+      <div class="case-row-main">
+        <span class="pill">${c.status === "closed" ? "Closed" : "Open"}</span>
+        <h2>${esc(c.title)}</h2>
+        <p class="subtle">${esc(truncateWords(c.problem || "(no problem written)", 22))}</p>
+        <p class="subtle">${c.items.length} board item${c.items.length === 1 ? "" : "s"} &middot; ${c.hypotheses.length} hypothes${c.hypotheses.length === 1 ? "is" : "es"}${pending ? ` &middot; ${pending} awaiting your review` : ""}</p>
+      </div>
+      <span class="chev">&#8250;</span>
+    </a>`;
+  }).join("");
+}
+
+function caseNewHTML() {
+  if (!caseUI || caseUI.mode !== "new") caseUI = { mode: "new", title: "", problem: "", context: "", initialAssessment: "" };
+  const ready = caseUI.problem.trim().length >= 10 && caseUI.initialAssessment.trim().length >= 10;
+  return `<div class="panel">
+    <a class="crumb" href="#/cases">&larr; Investigation Mode</a>
+    <h2 class="page-title">New investigation</h2>
+    <p class="subtle">Describe the real problem, then &mdash; before any AI &mdash; write your own first read of it. Reasoning first is the point.</p>
+    <div class="field">
+      <label class="subtle" for="case-title">Give it a short title</label>
+      <input type="text" id="case-title" placeholder="e.g. Should I take the new job?" value="${esc(caseUI.title)}" />
+    </div>
+    <div class="field">
+      <label class="subtle" for="case-problem">What's the problem or decision? <span aria-hidden="true">*</span></label>
+      <textarea id="case-problem" placeholder="State the real situation in your own words.">${esc(caseUI.problem)}</textarea>
+    </div>
+    <div class="field">
+      <label class="subtle" for="case-context">Any context worth adding? (optional)</label>
+      <textarea id="case-context" placeholder="Background, constraints, what's already happened.">${esc(caseUI.context)}</textarea>
+    </div>
+    <div class="field">
+      <label class="subtle" for="case-assessment">Your initial assessment <span aria-hidden="true">*</span></label>
+      <textarea id="case-assessment" placeholder="Before any AI: what's your current best read? What do you think is going on, and how sure are you?">${esc(caseUI.initialAssessment)}</textarea>
+      <p class="subtle">This is saved as your own baseline &mdash; the coach challenges it later, it never overwrites it.</p>
+    </div>
+    <div class="field">
+      <button class="btn" data-create-case ${ready ? "" : "disabled"}>Create Case Board</button>
+      <p class="subtle" data-case-gate ${ready ? 'style="display:none"' : ""}>Write the problem and your own initial assessment first (a sentence or two each).</p>
+    </div>
+  </div>`;
+}
+
+function caseItemCardHTML(c, it) {
+  const editing = caseUI && caseUI.editItemId === it.id;
+  const pending = !it.userConfirmed;
+  if (editing) {
+    return `<div class="case-item editing">
+      <textarea id="case-item-edit" data-item-edit-box>${esc(it.text)}</textarea>
+      <div class="case-item-controls">
+        <button class="btn ghost" data-save-item="${it.id}">Save</button>
+        <button class="btn ghost" data-cancel-item>Cancel</button>
+      </div>
+    </div>`;
+  }
+  const reclass = `<select class="case-reclass" data-reclassify="${it.id}" aria-label="Reclassify">
+    ${CASE_TYPE_ORDER.map((t) => `<option value="${t}" ${t === it.type ? "selected" : ""}>${CASE_TYPE_META[t].label}</option>`).join("")}
+  </select>`;
+  return `<div class="case-item ${pending ? "pending" : ""}">
+    ${pending ? `<span class="ai-suggestion-tag">AI suggestion &middot; not yet yours</span>` : ""}
+    <p class="case-item-text">${esc(it.text)}</p>
+    <div class="case-item-controls">
+      ${reclass}
+      ${pending ? `<button class="btn ghost" data-approve-item="${it.id}">Approve</button>` : ""}
+      <button class="btn ghost" data-edit-item="${it.id}">Edit</button>
+      <button class="btn ghost danger" data-del-item="${it.id}">${pending ? "Reject" : "Delete"}</button>
+    </div>
+  </div>`;
+}
+
+function caseHypCardHTML(c, h) {
+  const editing = caseUI && caseUI.editHypId === h.id;
+  const pending = !h.userConfirmed;
+  if (editing) {
+    return `<div class="case-item editing">
+      <textarea id="case-hyp-edit" data-hyp-edit-box>${esc(h.text)}</textarea>
+      <div class="case-item-controls">
+        <button class="btn ghost" data-save-hyp="${h.id}">Save</button>
+        <button class="btn ghost" data-cancel-hyp>Cancel</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="case-item hyp ${pending ? "pending" : ""}">
+    ${pending ? `<span class="ai-suggestion-tag">AI suggestion &middot; not yet yours</span>` : ""}
+    <p class="case-item-text">${esc(h.text)}</p>
+    ${h.supporting ? `<p class="subtle"><b>For:</b> ${esc(h.supporting)}</p>` : ""}
+    ${h.opposing ? `<p class="subtle"><b>Against:</b> ${esc(h.opposing)}</p>` : ""}
+    <div class="case-item-controls">
+      <select class="case-reclass" data-hyp-status="${h.id}" aria-label="Hypothesis status">
+        ${["open", "supported", "refuted"].map((s) => `<option value="${s}" ${s === h.status ? "selected" : ""}>${s[0].toUpperCase() + s.slice(1)}</option>`).join("")}
+      </select>
+      ${pending ? `<button class="btn ghost" data-approve-hyp="${h.id}">Approve</button>` : ""}
+      <button class="btn ghost" data-edit-hyp="${h.id}">Edit</button>
+      <button class="btn ghost danger" data-del-hyp="${h.id}">${pending ? "Reject" : "Delete"}</button>
+    </div>
+  </div>`;
+}
+
+function caseAiPanelHTML() {
+  if (!MTC_AI.isEnabled()) {
+    return `<div class="panel"><p class="subtle">Want suggestions? Turn on AI Coaching in Profile &rarr; Settings. It proposes classifications and rival hypotheses for your approval &mdash; it never fills the board for you.</p></div>`;
+  }
+  const ai = (caseUI && caseUI.ai) || {};
+  const btn = (kind, label) => {
+    const st = ai[kind] || {};
+    if (st.status === "loading") return `<button class="btn ghost" disabled><span class="ai-spinner" aria-hidden="true"></span> Working&hellip;</button>`;
+    return `<button class="btn ghost" data-case-ai="${kind}">${label}</button>`;
+  };
+  const err = Object.keys(ai).map((k) => ai[k] && ai[k].status === "error" ? `<p class="ai-errmsg">${esc(ai[k].error)}</p>` : "").join("");
+  const provider = MTC_AI.activeProvider() === "backend" ? "AI coach" : "On-device coach";
+  return `<div class="panel ai-panel">
+    <div class="ai-head"><span class="ai-badge">${provider}</span></div>
+    <p class="subtle">Suggestions land on the board as pending cards. Approve, edit, reclassify, or reject each one &mdash; you stay the investigator.</p>
+    <div class="case-ai-actions">
+      ${btn("classify", "Suggest facts, assumptions &amp; unknowns")}
+      ${btn("hypotheses", "Generate competing hypotheses")}
+      ${btn("evidence_gaps", "Find missing evidence")}
+      ${btn("next_test", "Suggest a next test")}
+    </div>
+    ${err}
+    ${caseUI && caseUI.nextTest ? `<div class="case-nexttest"><p><b>Suggested next test:</b> ${esc(caseUI.nextTest.next_test)}</p>${caseUI.nextTest.why ? `<p class="subtle">${esc(caseUI.nextTest.why)}</p>` : ""}<div class="case-item-controls"><button class="btn ghost" data-use-nexttest>Use as my next action</button><button class="btn ghost" data-dismiss-nexttest>Dismiss</button></div></div>` : ""}
+  </div>`;
+}
+
+function caseBoardHTML(id) {
+  const c = MTC.getCase(STATE, id);
+  if (!c) return `<div class="panel"><p>Case not found.</p><a class="btn" href="#/cases">Back to Investigation Mode</a></div>`;
+  if (!caseUI || caseUI.caseId !== id) caseUI = { caseId: id, ai: {} };
+
+  const header = `<div class="panel">
+    <a class="crumb" href="#/cases">&larr; All cases</a>
+    <div class="case-head">
+      <h2 class="page-title">${esc(c.title)}</h2>
+      <button class="btn ghost" data-toggle-case-status>${c.status === "closed" ? "Reopen" : "Mark solved"}</button>
+    </div>
+    <div class="model-answer"><div class="lbl">The problem</div><div class="journal-answer">${esc(c.problem) || '<span class="subtle">(none)</span>'}</div></div>
+    ${c.context ? `<div class="model-answer"><div class="lbl">Context</div><div class="journal-answer">${esc(c.context)}</div></div>` : ""}
+    <div class="model-answer"><div class="lbl">Your initial assessment</div><div class="journal-answer">${esc(c.initialAssessment) || '<span class="subtle">(none)</span>'}</div></div>
+  </div>`;
+
+  // Board grouped by classification.
+  const groups = CASE_TYPE_ORDER.map((type) => {
+    const items = c.items.filter((i) => i.type === type);
+    if (!items.length) return "";
+    const m = CASE_TYPE_META[type];
+    return `<div class="case-group">
+      <div class="case-group-head">${m.emoji} ${m.label} <span class="subtle">${items.length}</span></div>
+      ${items.map((it) => caseItemCardHTML(c, it)).join("")}
+    </div>`;
+  }).filter(Boolean).join("");
+
+  const boardPanel = `<div class="panel">
+    <h2>Case Board</h2>
+    ${groups || `<p class="subtle">Nothing on the board yet. Add what you know below, or ask the coach for suggestions.</p>`}
+    <div class="case-composer">
+      <label class="subtle" for="case-add-text">Add to the board</label>
+      <textarea id="case-add-text" data-case-add-text placeholder="One fact, claim, assumption, unknown, piece of evidence, contradiction, or relationship.">${caseUI.addDraft ? esc(caseUI.addDraft) : ""}</textarea>
+      <div class="case-composer-row">
+        <select id="case-add-type" data-case-add-type aria-label="Type">
+          ${CASE_TYPE_ORDER.map((t) => `<option value="${t}" ${caseUI.addType === t ? "selected" : ""}>${CASE_TYPE_META[t].label}</option>`).join("")}
+        </select>
+        <button class="btn" data-add-case-item>Add</button>
+      </div>
+    </div>
+  </div>`;
+
+  const hyps = `<div class="panel">
+    <h2>Competing hypotheses</h2>
+    <p class="subtle">Explanations worth weighing against each other. The goal is to find the one the evidence can't kill &mdash; not to defend your first idea.</p>
+    ${c.hypotheses.length ? c.hypotheses.map((h) => caseHypCardHTML(c, h)).join("") : `<p class="subtle">None yet.</p>`}
+    <div class="case-composer">
+      <textarea id="case-add-hyp" data-case-add-hyp placeholder="A possible explanation to test.">${caseUI.hypDraft ? esc(caseUI.hypDraft) : ""}</textarea>
+      <div class="case-composer-row"><button class="btn" data-add-hyp>Add hypothesis</button></div>
+    </div>
+  </div>`;
+
+  const conf = c.confidence || "";
+  const conclusion = `<div class="panel">
+    <h2>Your conclusion</h2>
+    <p class="subtle">A provisional read is fine &mdash; name it and your confidence, then the one test that would move it.</p>
+    <div class="field">
+      <label class="subtle" for="case-conclusion">Current conclusion</label>
+      <textarea id="case-conclusion" data-case-conclusion placeholder="Your best current answer, held as provisional.">${esc(c.conclusion)}</textarea>
+    </div>
+    <div class="field">
+      <label class="subtle" for="case-confidence">Confidence</label>
+      <select id="case-confidence" data-case-confidence>
+        <option value="" ${conf === "" ? "selected" : ""}>&mdash;</option>
+        ${["low", "medium", "high"].map((v) => `<option value="${v}" ${conf === v ? "selected" : ""}>${CONFIDENCE_LABELS[v]}</option>`).join("")}
+      </select>
+    </div>
+    <div class="field">
+      <label class="subtle" for="case-next">Next test or action</label>
+      <textarea id="case-next" data-case-next placeholder="The cheapest check that could change your mind.">${esc(c.nextAction)}</textarea>
+    </div>
+    <button class="btn" data-save-conclusion>Save conclusion</button>
+  </div>`;
+
+  return header + caseAiPanelHTML() + boardPanel + hyps + conclusion;
+}
+
+// Push one round of AI suggestions onto the board as pending cards (§16 step 4).
+function requestCaseHelp(kind) {
+  if (!caseUI) return;
+  const c = MTC.getCase(STATE, caseUI.caseId);
+  if (!c) return;
+  const id = c.id;
+  caseUI.ai = caseUI.ai || {};
+  caseUI.ai[kind] = { status: "loading" };
+  render();
+  MTC_AI.getCaseHelp(kind, {
+    problem: c.problem, context: c.context, initialAssessment: c.initialAssessment,
+    items: c.items.map((i) => ({ type: i.type, text: i.text })),
+    hypotheses: c.hypotheses.map((h) => ({ text: h.text })),
+  }).then((res) => {
+    if (!caseUI || caseUI.caseId !== id) return;
+    applyCaseHelp(id, kind, res);
+    caseUI.ai[kind] = { status: "idle" };
+    render();
+    announce("Suggestions added to the board for your review.");
+  }).catch((err) => {
+    if (!caseUI || caseUI.caseId !== id) return;
+    caseUI.ai[kind] = { status: "error", error: MTC_AI.messageForKind(err && err.aiKind) };
+    render();
+  });
+}
+
+// Turn validated case help into pending board items the user reviews.
+function applyCaseHelp(caseId, kind, res) {
+  if (kind === "classify") {
+    (res.facts || []).forEach((t) => MTC.addCaseItem(STATE, caseId, { type: "fact", text: t, source: "ai" }));
+    (res.assumptions || []).forEach((t) => MTC.addCaseItem(STATE, caseId, { type: "assumption", text: t, source: "ai" }));
+    (res.unknowns || []).forEach((t) => MTC.addCaseItem(STATE, caseId, { type: "unknown", text: t, source: "ai" }));
+  } else if (kind === "hypotheses") {
+    (res.hypotheses || []).forEach((h) => MTC.addHypothesis(STATE, caseId, { text: h.text, supporting: h.supporting, opposing: h.opposing, source: "ai" }));
+  } else if (kind === "evidence_gaps") {
+    (res.missing_evidence || []).forEach((t) => MTC.addCaseItem(STATE, caseId, { type: "unknown", text: t, source: "ai" }));
+  } else if (kind === "next_test") {
+    caseUI.nextTest = res; // a single suggestion — offered near the conclusion, not auto-applied
+  }
 }
 
 /* ---------- Boss Battle ---------- */
@@ -1486,6 +1767,9 @@ function render() {
   else if (r === "path") body = pathHTML();
   else if (r.startsWith("path/review/")) { const [, , m, round] = r.split("/"); body = sectionReviewHTML(m, Number(round) || 0); }
   else if (r === "boss") body = bossHTML();
+  else if (r === "cases") body = casesHTML();
+  else if (r === "case/new") body = caseNewHTML();
+  else if (r.startsWith("case/")) body = caseBoardHTML(r.slice("case/".length));
   else if (r === "calibration") body = calibrationHTML();
   else if (r === "review") body = reviewHTML();
   else if (r === "report") body = reportHTML();
@@ -1630,6 +1914,74 @@ document.addEventListener("click", (e) => {
     exUI = null;
     render();
     return;
+  }
+
+  // ---- Investigation Mode ----
+  if (e.target.closest("[data-create-case]")) {
+    const c = MTC.createCase(STATE, { title: caseUI.title, problem: caseUI.problem, context: caseUI.context, initialAssessment: caseUI.initialAssessment });
+    caseUI = null;
+    navigate("case/" + c.id);
+    return;
+  }
+  if (e.target.closest("[data-add-case-item]")) {
+    const box = document.getElementById("case-add-text");
+    const type = (document.getElementById("case-add-type") || {}).value || "claim";
+    const text = box ? box.value.trim() : "";
+    if (text) { MTC.addCaseItem(STATE, caseUI.caseId, { type, text, source: "user" }); caseUI.addDraft = ""; render(); }
+    return;
+  }
+  if (e.target.closest("[data-add-hyp]")) {
+    const box = document.getElementById("case-add-hyp");
+    const text = box ? box.value.trim() : "";
+    if (text) { MTC.addHypothesis(STATE, caseUI.caseId, { text, source: "user" }); caseUI.hypDraft = ""; render(); }
+    return;
+  }
+  const editItem = e.target.closest("[data-edit-item]");
+  if (editItem) { caseUI.editItemId = editItem.dataset.editItem; render(); return; }
+  const saveItem = e.target.closest("[data-save-item]");
+  if (saveItem) {
+    const box = document.getElementById("case-item-edit");
+    if (box) MTC.updateCaseItem(STATE, caseUI.caseId, saveItem.dataset.saveItem, { text: box.value.trim() });
+    caseUI.editItemId = null; render(); return;
+  }
+  if (e.target.closest("[data-cancel-item]")) { caseUI.editItemId = null; render(); return; }
+  const approveItem = e.target.closest("[data-approve-item]");
+  if (approveItem) { MTC.updateCaseItem(STATE, caseUI.caseId, approveItem.dataset.approveItem, { userConfirmed: true }); render(); return; }
+  const delItem = e.target.closest("[data-del-item]");
+  if (delItem) { MTC.deleteCaseItem(STATE, caseUI.caseId, delItem.dataset.delItem); render(); return; }
+
+  const editHyp = e.target.closest("[data-edit-hyp]");
+  if (editHyp) { caseUI.editHypId = editHyp.dataset.editHyp; render(); return; }
+  const saveHyp = e.target.closest("[data-save-hyp]");
+  if (saveHyp) {
+    const box = document.getElementById("case-hyp-edit");
+    if (box) MTC.updateHypothesis(STATE, caseUI.caseId, saveHyp.dataset.saveHyp, { text: box.value.trim() });
+    caseUI.editHypId = null; render(); return;
+  }
+  if (e.target.closest("[data-cancel-hyp]")) { caseUI.editHypId = null; render(); return; }
+  const approveHyp = e.target.closest("[data-approve-hyp]");
+  if (approveHyp) { MTC.updateHypothesis(STATE, caseUI.caseId, approveHyp.dataset.approveHyp, { userConfirmed: true }); render(); return; }
+  const delHyp = e.target.closest("[data-del-hyp]");
+  if (delHyp) { MTC.deleteHypothesis(STATE, caseUI.caseId, delHyp.dataset.delHyp); render(); return; }
+
+  const caseAi = e.target.closest("[data-case-ai]");
+  if (caseAi) { requestCaseHelp(caseAi.dataset.caseAi); return; }
+  if (e.target.closest("[data-use-nexttest]")) {
+    if (caseUI.nextTest) MTC.updateCaseMeta(STATE, caseUI.caseId, { nextAction: caseUI.nextTest.next_test });
+    caseUI.nextTest = null; render(); return;
+  }
+  if (e.target.closest("[data-dismiss-nexttest]")) { caseUI.nextTest = null; render(); return; }
+  if (e.target.closest("[data-save-conclusion]")) {
+    const conclusion = (document.getElementById("case-conclusion") || {}).value || "";
+    const confidence = (document.getElementById("case-confidence") || {}).value || "";
+    const nextAction = (document.getElementById("case-next") || {}).value || "";
+    MTC.updateCaseMeta(STATE, caseUI.caseId, { conclusion, confidence, nextAction });
+    render(); announce("Conclusion saved."); return;
+  }
+  if (e.target.closest("[data-toggle-case-status]")) {
+    const c = MTC.getCase(STATE, caseUI.caseId);
+    MTC.updateCaseMeta(STATE, caseUI.caseId, { status: c && c.status === "closed" ? "open" : "closed" });
+    render(); return;
   }
 
   if (e.target.closest("[data-boss-hint]")) {
@@ -1857,6 +2209,7 @@ document.addEventListener("change", (e) => {
         STATE = MTC.importState(text);
         exUI = null;
         bossUI = null;
+        caseUI = null;
         GYM.reset();
         pendingResult = null;
         render();
@@ -1864,6 +2217,20 @@ document.addEventListener("change", (e) => {
         alert("That file doesn't look like a Thinking Coach progress export.");
       }
     });
+    return;
+  }
+  if (e.target.matches("[data-reclassify]") && caseUI) {
+    MTC.updateCaseItem(STATE, caseUI.caseId, e.target.dataset.reclassify, { type: e.target.value });
+    render();
+    return;
+  }
+  if (e.target.matches("[data-hyp-status]") && caseUI) {
+    MTC.updateHypothesis(STATE, caseUI.caseId, e.target.dataset.hypStatus, { status: e.target.value });
+    render();
+    return;
+  }
+  if (e.target.matches("[data-case-add-type]") && caseUI) {
+    caseUI.addType = e.target.value; // remembered without a re-render
     return;
   }
   if (e.target.matches("[data-rubric-idx]")) {
@@ -1919,6 +2286,21 @@ document.addEventListener("input", (e) => {
     MTC_AI.saveConfig({ endpoint: e.target.value });
     return; // no re-render — keep focus in the field while typing
   }
+  // Investigation Mode: keep drafts in caseUI so a re-render never loses typing.
+  if (caseUI && caseUI.mode === "new" && ["case-title", "case-problem", "case-context", "case-assessment"].includes(e.target.id)) {
+    if (e.target.id === "case-title") caseUI.title = e.target.value;
+    else if (e.target.id === "case-problem") caseUI.problem = e.target.value;
+    else if (e.target.id === "case-context") caseUI.context = e.target.value;
+    else if (e.target.id === "case-assessment") caseUI.initialAssessment = e.target.value;
+    const ready = caseUI.problem.trim().length >= 10 && caseUI.initialAssessment.trim().length >= 10;
+    const btn = document.querySelector("[data-create-case]");
+    if (btn) btn.disabled = !ready;
+    const note = document.querySelector("[data-case-gate]");
+    if (note) note.style.display = ready ? "none" : "";
+    return;
+  }
+  if (caseUI && e.target.id === "case-add-text") { caseUI.addDraft = e.target.value; return; }
+  if (caseUI && e.target.id === "case-add-hyp") { caseUI.hypDraft = e.target.value; return; }
   if (e.target.id === "journal-search") {
     journalFilter = e.target.value;
     const box = document.getElementById("journal-results");

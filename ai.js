@@ -286,15 +286,172 @@
     });
   }
 
+  /* ---------------- Investigation Mode: Case help (§10, §16) ----------------
+     Four kinds of assist for the Case Board. Every output is validated and, per
+     §11, is only ever a SUGGESTION the user approves/edits/rejects — never
+     written into the board automatically. The hard rules (§14) still hold: the
+     local heuristic never invents facts about the user's situation; it re-sorts
+     the user's OWN sentences and offers generic reasoning scaffolds. */
+
+  var CASE_KINDS = ["classify", "hypotheses", "evidence_gaps", "next_test"];
+
+  function validateCaseHelp(kind, obj) {
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw aiError("malformed", "Case help was not an object");
+    var strArr = function (v, name) {
+      if (!Array.isArray(v)) throw aiError("malformed", "'" + name + "' must be an array");
+      return v.filter(function (x) { return typeof x === "string" && x.trim(); }).map(function (x) { return String(x).trim(); }).slice(0, 8);
+    };
+    if (kind === "classify") {
+      return { facts: strArr(obj.facts, "facts"), assumptions: strArr(obj.assumptions, "assumptions"), unknowns: strArr(obj.unknowns, "unknowns") };
+    }
+    if (kind === "hypotheses") {
+      if (!Array.isArray(obj.hypotheses)) throw aiError("malformed", "'hypotheses' must be an array");
+      var hs = obj.hypotheses.map(function (h) {
+        if (!h || typeof h !== "object" || typeof h.text !== "string" || !h.text.trim()) throw aiError("malformed", "each hypothesis needs text");
+        return { text: h.text.trim(), supporting: typeof h.supporting === "string" ? h.supporting.trim() : "", opposing: typeof h.opposing === "string" ? h.opposing.trim() : "" };
+      }).slice(0, 6);
+      if (!hs.length) throw aiError("malformed", "no hypotheses returned");
+      return { hypotheses: hs };
+    }
+    if (kind === "evidence_gaps") {
+      return { missing_evidence: strArr(obj.missing_evidence, "missing_evidence") };
+    }
+    if (kind === "next_test") {
+      if (typeof obj.next_test !== "string" || !obj.next_test.trim()) throw aiError("malformed", "'next_test' must be a non-empty string");
+      return { next_test: obj.next_test.trim(), why: typeof obj.why === "string" ? obj.why.trim() : "" };
+    }
+    throw aiError("malformed", "Unknown case-help kind: " + kind);
+  }
+
+  function sentences(text) {
+    return String(text || "")
+      .split(/(?<=[.!?])\s+|\n+/)
+      .map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 3; });
+  }
+
+  var HEDGE_RE = /\b(because|probably|must|i think|i believe|i feel|should|seems|feels|obviously|clearly|maybe|might|assume|guess|expect)\b/i;
+  var UNKNOWN_RE = /\?|\b(don'?t know|not sure|unsure|unclear|no idea|wondering|need to (know|find out)|uncertain)\b/i;
+
+  // Honest offline scaffolding. Re-sorts the user's own words (§10 "suggest
+  // classifications for user approval"); never fabricates new facts.
+  function localCaseHelp(kind, ctx) {
+    ctx = ctx || {};
+    var text = [ctx.problem, ctx.context].filter(Boolean).join(" \n");
+    var sents = sentences(text);
+
+    if (kind === "classify") {
+      var facts = [], assumptions = [], unknowns = [];
+      sents.forEach(function (s) {
+        if (UNKNOWN_RE.test(s)) unknowns.push(s);
+        else if (HEDGE_RE.test(s)) assumptions.push(s);
+        else facts.push(s);
+      });
+      // Generic scaffolds — prompts, not invented facts.
+      unknowns.push("What single piece of evidence would most change your conclusion?");
+      if (!assumptions.length) assumptions.push("Name the belief this whole problem rests on — is it actually established, or assumed?");
+      return validateCaseHelp("classify", {
+        facts: facts.slice(0, 6),
+        assumptions: assumptions.slice(0, 6),
+        unknowns: unknowns.slice(0, 6),
+      });
+    }
+
+    if (kind === "hypotheses") {
+      return validateCaseHelp("hypotheses", {
+        hypotheses: [
+          { text: "Your leading explanation is right — restate it in one sentence so it can be tested.", supporting: "", opposing: "" },
+          { text: "The real cause is an external factor you haven't looked at yet (timing, a third party, a change elsewhere).", supporting: "", opposing: "" },
+          { text: "The effect is real but the cause is different from your first guess (correlation, not causation).", supporting: "", opposing: "" },
+          { text: "The problem is framed wrong — the thing to solve is one step upstream of what you wrote.", supporting: "", opposing: "" },
+        ],
+      });
+    }
+
+    if (kind === "evidence_gaps") {
+      return validateCaseHelp("evidence_gaps", {
+        missing_evidence: [
+          "Evidence that would DISCONFIRM your leading hypothesis, not just support it.",
+          "A base rate or comparison point — how often does this happen anyway?",
+          "What someone who disagrees with you would point to first.",
+          "A number, date, or source for any claim you're currently taking on trust.",
+        ],
+      });
+    }
+
+    // next_test
+    return validateCaseHelp("next_test", {
+      next_test: "Pick the cheapest check that could prove your leading hypothesis WRONG — one data point to find, or one person who'd know, that you could get to this week.",
+      why: "A test aimed at disconfirmation reduces uncertainty faster than gathering more confirming detail.",
+    });
+  }
+
+  function backendCaseHelp(kind, ctx, cfg) {
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, DEFAULT_TIMEOUT_MS) : null;
+    var payload = {
+      task: "case",
+      kind: kind,
+      case: {
+        problem: ctx.problem || "",
+        context: ctx.context || "",
+        initialAssessment: ctx.initialAssessment || "",
+        items: Array.isArray(ctx.items) ? ctx.items : [],
+        hypotheses: Array.isArray(ctx.hypotheses) ? ctx.hypotheses : [],
+      },
+    };
+    return fetch(cfg.endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined,
+    })
+      .then(function (resp) {
+        if (!resp.ok) {
+          if (resp.status === 429) throw aiError("ratelimit", "Rate limited (429)");
+          if (resp.status >= 500) throw aiError("server", "Server error (" + resp.status + ")");
+          throw aiError("server", "Request failed (" + resp.status + ")");
+        }
+        return resp.json().catch(function () { throw aiError("malformed", "Response was not JSON"); });
+      })
+      .then(function (data) {
+        var obj = data && data.result ? data.result : data;
+        return validateCaseHelp(kind, obj);
+      })
+      .catch(function (err) {
+        if (err && err.aiKind) throw err;
+        if (err && err.name === "AbortError") throw aiError("timeout", "Request timed out");
+        throw aiError("network", (err && err.message) || "Network error");
+      })
+      .then(function (v) { if (timer) clearTimeout(timer); return v; }, function (err) { if (timer) clearTimeout(timer); throw err; });
+  }
+
+  // Returns a Promise resolving to validated case help for one kind, or a typed
+  // error. Off-by-default, same as the coach.
+  function getCaseHelp(kind, ctx) {
+    if (CASE_KINDS.indexOf(kind) === -1) return Promise.reject(aiError("malformed", "Unknown kind: " + kind));
+    var cfg = loadConfig();
+    if (!isEnabled(cfg)) return Promise.reject(aiError("unavailable", "AI is off"));
+    if (!ctx || !String(ctx.problem || "").trim()) return Promise.reject(aiError("unavailable", "Describe the problem first"));
+    if (activeProvider(cfg) === "backend") return backendCaseHelp(kind, ctx, cfg);
+    return new Promise(function (resolve) {
+      setTimeout(function () { resolve(localCaseHelp(kind, ctx)); }, 250);
+    });
+  }
+
   global.MTC_AI = {
     loadConfig: loadConfig,
     saveConfig: saveConfig,
     isEnabled: isEnabled,
     activeProvider: activeProvider,
     getFeedback: getFeedback,
+    getCaseHelp: getCaseHelp,
     validateFeedback: validateFeedback,
+    validateCaseHelp: validateCaseHelp,
     messageForKind: messageForKind,
+    CASE_KINDS: CASE_KINDS,
     _localFeedback: localFeedback, // exposed for tests
+    _localCaseHelp: localCaseHelp, // exposed for tests
     SCHEMA_FIELDS: { arrays: ARRAY_FIELDS, strings: STRING_FIELDS },
   };
 })(typeof window !== "undefined" ? window : this);

@@ -21,11 +21,53 @@
 "use strict";
 
 const Anthropic = require("@anthropic-ai/sdk");
-const { buildSystemPrompt, buildUserPrompt, FEEDBACK_TOOL } = require("./prompt");
+const {
+  buildSystemPrompt, buildUserPrompt, FEEDBACK_TOOL,
+  CASE_SYSTEM_PROMPT, caseTool, buildCaseUserPrompt,
+} = require("./prompt");
 
 // Swappable per §17 — default to the current flagship, override via env.
 const MODEL = process.env.AI_MODEL || "claude-opus-5";
 const MAX_TOKENS = 1200;
+
+// One strict-tool model call → guaranteed structured output. Shared by both the
+// exercise coach and the Investigation Mode Case Board.
+async function callTool(client, system, userPrompt, tool) {
+  const response = await client.messages.create({
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system,
+    tools: [tool],
+    tool_choice: { type: "tool", name: tool.name },
+    messages: [{ role: "user", content: userPrompt }],
+  });
+  const block = (response.content || []).find((b) => b.type === "tool_use" && b.name === tool.name);
+  if (!block) {
+    const e = new Error("Model did not return structured output");
+    e.statusCode = 502;
+    throw e;
+  }
+  return block.input; // strict:true guarantees shape; the client validates again
+}
+
+// Investigation Mode: one of four Case Board helpers (§10, §16).
+async function generateCaseHelp(body) {
+  const kind = body && body.kind;
+  const tool = caseTool(kind);
+  if (!tool) {
+    const e = new Error("Unknown case-help kind");
+    e.statusCode = 400;
+    throw e;
+  }
+  const c = (body && body.case) || {};
+  if (!String(c.problem || "").trim()) {
+    const e = new Error("Missing case problem");
+    e.statusCode = 400;
+    throw e;
+  }
+  const client = new Anthropic();
+  return callTool(client, CASE_SYSTEM_PROMPT, buildCaseUserPrompt(kind, c), tool);
+}
 
 // Framework-agnostic core: takes the parsed body, returns the feedback object or
 // throws. Wrap it for whatever runtime you deploy on (Vercel/Express handler at
@@ -40,26 +82,12 @@ async function generateFeedback(body) {
   }
 
   const client = new Anthropic(); // reads ANTHROPIC_API_KEY from env — never the client
-
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    system: buildSystemPrompt(exercise.type),
-    tools: [FEEDBACK_TOOL],
-    tool_choice: { type: "tool", name: "return_feedback" },
-    messages: [{ role: "user", content: buildUserPrompt(exercise, answer) }],
-  });
-
-  const block = (response.content || []).find((b) => b.type === "tool_use" && b.name === "return_feedback");
-  if (!block) {
-    const e = new Error("Model did not return structured feedback");
-    e.statusCode = 502;
-    throw e;
-  }
-  return block.input; // shape guaranteed by strict:true; ai.js validates again client-side
+  return callTool(client, buildSystemPrompt(exercise.type), buildUserPrompt(exercise, answer), FEEDBACK_TOOL);
 }
 
 // ---- Vercel / Node (req, res) handler. Adapt the wrapper for other runtimes. ----
+// Dispatches on body.task: "case" → Case Board help, anything else → exercise
+// feedback. One endpoint URL keeps the app's AI config simple.
 module.exports = async function handler(req, res) {
   // CORS: lock this down to your app's origin in production.
   res.setHeader("Access-Control-Allow-Origin", process.env.AI_ALLOW_ORIGIN || "*");
@@ -70,14 +98,17 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    const feedback = await generateFeedback(body || {});
-    return res.status(200).json(feedback);
+    const result = (body && body.task === "case")
+      ? await generateCaseHelp(body || {})
+      : await generateFeedback(body || {});
+    return res.status(200).json(result);
   } catch (err) {
     const status = err.statusCode || (err.status === 429 ? 429 : 500);
     // Don't leak internals to the client; the app maps status -> a friendly state.
-    return res.status(status).json({ error: status === 400 ? err.message : "Feedback generation failed" });
+    return res.status(status).json({ error: status === 400 ? err.message : "AI request failed" });
   }
 };
 
 module.exports.generateFeedback = generateFeedback;
+module.exports.generateCaseHelp = generateCaseHelp;
 module.exports.FEEDBACK_TOOL = FEEDBACK_TOOL;

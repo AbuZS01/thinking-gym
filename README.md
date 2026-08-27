@@ -14,8 +14,11 @@ offline.
 
 The core learning experience uses **no AI**. There is one *optional*, off-by-default
 AI layer — a reasoning **coach** on the written Deep Work exercises that responds
-only *after* you've written your own answer. It never scores you, never solves the
-exercise, and can be ignored. See [Optional AI coaching](#optional-ai-coaching).
+only *after* you've written your own answer, and an **Investigation Mode** where
+you take the thinking skills to a real problem of your own on a visual Case Board.
+AI never scores you, never solves anything for you, and can be ignored. See
+[Optional AI coaching](#optional-ai-coaching) and
+[Investigation Mode](#investigation-mode).
 
 ## Getting around
 
@@ -203,6 +206,29 @@ Turn it on in **Profile → AI Coaching**. Two coaches are available:
 Full details and the request/response contract are in [`api/README.md`](api/README.md).
 The architecture inspection and integration plan are in
 [`AI_INTEGRATION.md`](AI_INTEGRATION.md).
+
+## Investigation Mode
+
+The APPLY layer (from the brief's Phase 2). A separate mode — **Challenges →
+Investigation Mode** — where you bring a real decision or problem of your own and
+work it on a visual **Case Board**, not a chatbot transcript. You stay the
+investigator throughout.
+
+- **You reason first.** Creating a case captures the problem, optional context,
+  and — before any AI — *your own initial assessment*. That baseline is saved and
+  challenged later, never overwritten.
+- **The board** groups what you know by classification: known facts, claims,
+  assumptions, unknowns & missing evidence, evidence, contradictions, and
+  relationships — plus competing hypotheses, and your provisional conclusion with
+  a confidence level and a next test.
+- **AI assists, you decide** (optional, same settings as the coach). It can
+  suggest classifications of *your own statements*, generate genuinely competing
+  hypotheses, point at missing/disconfirming evidence, and propose one cheap next
+  test. Every suggestion lands on the board as a **pending card you approve, edit,
+  reclassify, or reject** — nothing is added for you, and AI never writes the
+  conclusion. Offline, the on-device coach offers honest reasoning scaffolds
+  rather than inventing facts about your situation.
+- Cases save to `localStorage` and reopen later, and ride along in export/import.
 
 ## Running it
 

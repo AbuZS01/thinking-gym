@@ -74,6 +74,7 @@ const MTC = (() => {
       bossBattle: null, // {week, battleId, completed, stageNotes: []}
       seenWalkthroughs: { muscle: [], format: [] }, // ids of the one-off intro guides already shown
       commitments: [], // {id, challengeId, tip, madeOn, dueOn, status, note, closedOn}
+      cases: [], // Investigation Mode: real-world cases the user works on a Case Board
     };
   }
 
@@ -397,6 +398,159 @@ const MTC = (() => {
       hintsUsed: 0,
       answer: trimAnswer(answerText),
     });
+  }
+
+  /* ---------- Investigation Mode: Cases + Case Board (brief §9–11, §16) ----------
+     A Case is a real-world problem the user investigates on a visual board. All
+     state is additive (state.cases) and never touches the exercise/gym schema.
+     The user reasons first (an initial assessment before any AI), and every
+     AI-proposed item is editable, rejectable and reclassifiable (§11). */
+
+  // Valid Case Board item classifications (§11).
+  const CASE_ITEM_TYPES = ["fact", "claim", "assumption", "unknown", "evidence", "contradiction", "relationship"];
+
+  function uid(prefix) {
+    return (prefix || "id") + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7);
+  }
+
+  function touchCase(c) {
+    c.updatedAt = new Date().toISOString();
+    return c;
+  }
+
+  function createCase(state, fields) {
+    fields = fields || {};
+    const c = {
+      id: uid("case"),
+      title: (fields.title || "").trim() || "Untitled investigation",
+      problem: (fields.problem || "").trim(),
+      context: (fields.context || "").trim(),
+      // The user's own read BEFORE any AI — active reasoning first (§3, §16 step 3).
+      initialAssessment: (fields.initialAssessment || "").trim(),
+      status: "open", // "open" | "closed"
+      items: [], // {id, type, text, source: "user"|"ai", userConfirmed, createdAt}
+      hypotheses: [], // {id, text, supporting, opposing, status, source, userConfirmed, createdAt}
+      conclusion: "",
+      confidence: "", // "" | "low" | "medium" | "high"
+      nextAction: "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    state.cases = state.cases || [];
+    state.cases.push(c);
+    saveState(state);
+    return c;
+  }
+
+  function listCases(state) {
+    return (state.cases || []).slice().sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+  }
+
+  function getCase(state, id) {
+    return (state.cases || []).find((c) => c.id === id) || null;
+  }
+
+  function updateCaseMeta(state, id, patch) {
+    const c = getCase(state, id);
+    if (!c) return null;
+    const allowed = ["title", "problem", "context", "initialAssessment", "status", "conclusion", "confidence", "nextAction"];
+    for (const k of allowed) if (k in (patch || {})) c[k] = patch[k];
+    touchCase(c);
+    saveState(state);
+    return c;
+  }
+
+  function deleteCase(state, id) {
+    const before = (state.cases || []).length;
+    state.cases = (state.cases || []).filter((c) => c.id !== id);
+    if (state.cases.length !== before) saveState(state);
+    return state.cases.length !== before;
+  }
+
+  function addCaseItem(state, caseId, item) {
+    const c = getCase(state, caseId);
+    if (!c) return null;
+    item = item || {};
+    const type = CASE_ITEM_TYPES.includes(item.type) ? item.type : "claim";
+    const entry = {
+      id: uid("item"),
+      type,
+      text: (item.text || "").trim(),
+      source: item.source === "ai" ? "ai" : "user",
+      // User-entered items are confirmed by definition; AI-proposed start pending.
+      userConfirmed: item.source === "ai" ? !!item.userConfirmed : true,
+      createdAt: new Date().toISOString(),
+    };
+    c.items.push(entry);
+    touchCase(c);
+    saveState(state);
+    return entry;
+  }
+
+  function updateCaseItem(state, caseId, itemId, patch) {
+    const c = getCase(state, caseId);
+    if (!c) return null;
+    const it = c.items.find((x) => x.id === itemId);
+    if (!it) return null;
+    if (patch && typeof patch.text === "string") it.text = patch.text;
+    if (patch && CASE_ITEM_TYPES.includes(patch.type)) it.type = patch.type; // reclassify (§11)
+    if (patch && typeof patch.userConfirmed === "boolean") it.userConfirmed = patch.userConfirmed; // approve
+    touchCase(c);
+    saveState(state);
+    return it;
+  }
+
+  function deleteCaseItem(state, caseId, itemId) {
+    const c = getCase(state, caseId);
+    if (!c) return false;
+    const before = c.items.length;
+    c.items = c.items.filter((x) => x.id !== itemId);
+    if (c.items.length !== before) { touchCase(c); saveState(state); }
+    return c.items.length !== before;
+  }
+
+  function addHypothesis(state, caseId, h) {
+    const c = getCase(state, caseId);
+    if (!c) return null;
+    h = h || {};
+    const entry = {
+      id: uid("hyp"),
+      text: (h.text || "").trim(),
+      supporting: (h.supporting || "").trim(),
+      opposing: (h.opposing || "").trim(),
+      status: ["open", "supported", "refuted"].includes(h.status) ? h.status : "open",
+      source: h.source === "ai" ? "ai" : "user",
+      userConfirmed: h.source === "ai" ? !!h.userConfirmed : true,
+      createdAt: new Date().toISOString(),
+    };
+    c.hypotheses.push(entry);
+    touchCase(c);
+    saveState(state);
+    return entry;
+  }
+
+  function updateHypothesis(state, caseId, hypId, patch) {
+    const c = getCase(state, caseId);
+    if (!c) return null;
+    const h = c.hypotheses.find((x) => x.id === hypId);
+    if (!h) return null;
+    if (patch && typeof patch.text === "string") h.text = patch.text;
+    if (patch && typeof patch.supporting === "string") h.supporting = patch.supporting;
+    if (patch && typeof patch.opposing === "string") h.opposing = patch.opposing;
+    if (patch && ["open", "supported", "refuted"].includes(patch.status)) h.status = patch.status;
+    if (patch && typeof patch.userConfirmed === "boolean") h.userConfirmed = patch.userConfirmed;
+    touchCase(c);
+    saveState(state);
+    return h;
+  }
+
+  function deleteHypothesis(state, caseId, hypId) {
+    const c = getCase(state, caseId);
+    if (!c) return false;
+    const before = c.hypotheses.length;
+    c.hypotheses = c.hypotheses.filter((x) => x.id !== hypId);
+    if (c.hypotheses.length !== before) { touchCase(c); saveState(state); }
+    return c.hypotheses.length !== before;
   }
 
   function exportStateJSON() {
@@ -1248,5 +1402,18 @@ const MTC = (() => {
     getCurrentBossBattle,
     getBossBattleDef,
     submitBossBattle,
+    // Investigation Mode
+    CASE_ITEM_TYPES,
+    createCase,
+    listCases,
+    getCase,
+    updateCaseMeta,
+    deleteCase,
+    addCaseItem,
+    updateCaseItem,
+    deleteCaseItem,
+    addHypothesis,
+    updateHypothesis,
+    deleteHypothesis,
   };
 })();
