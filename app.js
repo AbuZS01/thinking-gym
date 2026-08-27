@@ -186,10 +186,12 @@ function levelInfo() {
 /* ---------- Layout ---------- */
 
 const TABS = [
-  { id: "dashboard", label: "Home", ico: "\u{1F3E0}", owns: ["dashboard"] },
-  { id: "gym", label: "Challenges", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review", "path", "cases", "case"] },
-  { id: "progress", label: "Progress", ico: "\u{1F4C8}", owns: ["progress", "journal", "report", "used"] },
-  { id: "profile", label: "Profile", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides"] },
+  { id: "dashboard", label: "Today", ico: "\u{1F3E0}", owns: ["dashboard"] },
+  { id: "gym", label: "Practise", ico: "\u{1F9E9}", owns: ["gym", "quest", "exercise", "boss", "calibration", "review", "path"] },
+  // Investigation Mode promoted to its own tab (was buried under Challenges).
+  { id: "cases", label: "Investigate", ico: "\u{1F50D}", owns: ["cases", "case"] },
+  // "You" also absorbs the former Progress tab's screens (still reachable via its rows).
+  { id: "profile", label: "You", ico: "\u{1F464}", owns: ["profile", "achievements", "toolbox", "frameworks", "workbench", "guides", "progress", "journal", "report", "used"] },
 ];
 
 function activeTab() {
@@ -240,7 +242,7 @@ function chromeFor(r) {
   if (r === "quest") return ["Deep Work", "gym"];
   if (r.startsWith("exercise/")) return ["Exercise", "quest"];
   if (r === "boss") return ["Boss Battle", "gym"];
-  if (r === "cases") return ["Investigation Mode", "gym"];
+  if (r === "cases") return ["Investigation", null];
   if (r === "case/new") return ["New investigation", "cases"];
   if (r.startsWith("case/")) return ["Case Board", "cases"];
   if (r === "calibration") return ["Calibration", "gym"];
@@ -605,6 +607,14 @@ function profileHTML() {
       : recent.map((a) => `<div class="list-row"><span class="ico">&#127942;</span><span class="label">${esc(a.name)}</span><span class="val">+${a.xp}</span></div>`).join("")}
   </div>
 
+  <div class="section-head"><h2>Your progress</h2></div>
+  <div class="panel">
+    <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress overview</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/journal"><span class="ico">&#128221;</span><span class="label">Journal</span><span class="val">${STATE.history.filter((h) => h.answer).length}</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/report"><span class="ico">&#128202;</span><span class="label">Weekly report</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/used"><span class="ico">&#9989;</span><span class="label">Used in life</span><span class="val">${MTC.commitmentStats(STATE).used}</span><span class="chev">&#8250;</span></a>
+  </div>
+
   <div class="section-head"><h2>Library</h2></div>
   <div class="panel">
     <a class="list-row" href="#/guides"><span class="ico">\u{1F9E0}</span><span class="label">Thinking Guides</span><span class="val">${(STATE.seenWalkthroughs.muscle || []).length + (STATE.seenWalkthroughs.format || []).length}/13</span><span class="chev">&#8250;</span></a>
@@ -951,7 +961,7 @@ function caseItemCardHTML(c, it) {
   const reclass = `<select class="case-reclass" data-reclassify="${it.id}" aria-label="Reclassify">
     ${CASE_TYPE_ORDER.map((t) => `<option value="${t}" ${t === it.type ? "selected" : ""}>${CASE_TYPE_META[t].label}</option>`).join("")}
   </select>`;
-  return `<div class="case-item ${pending ? "pending" : ""}">
+  return `<div class="case-item t-${it.type} ${pending ? "pending" : ""}">
     ${pending ? `<span class="ai-suggestion-tag">AI suggestion &middot; not yet yours</span>` : ""}
     <p class="case-item-text">${esc(it.text)}</p>
     <div class="case-item-controls">
@@ -1039,7 +1049,7 @@ function caseBoardHTML(id) {
     if (!items.length) return "";
     const m = CASE_TYPE_META[type];
     return `<div class="case-group">
-      <div class="case-group-head">${m.emoji} ${m.label} <span class="subtle">${items.length}</span></div>
+      <div class="case-group-head t-${type}">${m.emoji} ${m.label} <span class="subtle">${items.length}</span></div>
       ${items.map((it) => caseItemCardHTML(c, it)).join("")}
     </div>`;
   }).filter(Boolean).join("");
