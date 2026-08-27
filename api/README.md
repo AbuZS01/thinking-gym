@@ -42,14 +42,17 @@ harness:
 
 ```bash
 # Offline, no key — checks plumbing + schema (uses the on-device heuristic):
-node tools/coach-harness.js --heuristic
+npm run coach
 
-# The real tuning path — against your deployed function:
-node tools/coach-harness.js --endpoint https://your-app/api/feedback --show-prompt
+# The real tuning path — against your deployed function (args go after --):
+npm run coach -- --endpoint https://your-app/api/feedback --show-prompt
 
 # Or call the model directly (needs `npm i @anthropic-ai/sdk` + ANTHROPIC_API_KEY):
-node tools/coach-harness.js --model --type bias --show-prompt
+npm run coach -- --model --type bias --show-prompt
 ```
+
+(`npm run coach` just runs `node tools/coach-harness.js`; use the plain form if
+you prefer.)
 
 The eval set lives in [`../tools/samples.js`](../tools/samples.js) — real
 exercises with answers spanning empty → off-topic → short → weak → strong. Every

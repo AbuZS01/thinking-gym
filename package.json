@@ -1,0 +1,15 @@
+{
+  "name": "thinking-gym",
+  "version": "1.0.0",
+  "description": "The Thinking Gym — a static, offline PWA for practising clearer everyday decisions, with an optional AI reasoning coach.",
+  "private": true,
+  "scripts": {
+    "coach": "node tools/coach-harness.js",
+    "test": "node tests/ai.test.js && node tests/prompt.test.js && node tests/answer-tells.test.js && node tests/gym-content.test.js"
+  },
+  "comments": {
+    "no-dependencies": "The app itself is dependency-free and has no build step — this file only wires up convenience scripts. The AI server function (api/feedback.js) and the harness --model mode need @anthropic-ai/sdk; install it only where you deploy the function: `npm i @anthropic-ai/sdk`.",
+    "coach": "Run the coach tuning harness. Pass args after --, e.g. `npm run coach -- --endpoint https://your-app/api/feedback --show-prompt`. Defaults to the offline heuristic.",
+    "test": "Runs the pure-Node test suites. The browser suites (tests/*.browser.js) need a local server + Playwright and are run separately."
+  }
+}
