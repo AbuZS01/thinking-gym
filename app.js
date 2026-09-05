@@ -17,6 +17,61 @@ let lastRenderedRoute = null;
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let activeRec = null;
 
+/* ---------- Install prompt (Add to Home Screen) ----------
+   Cheap but high-value: an installed PWA is far more likely to be reopened,
+   and it's a prerequisite for the daily reminder to have any chance of firing
+   while fully closed (see reminders.js). Dismissible, remembered, and never
+   shown once the app is already installed. */
+let deferredInstallEvent = null;
+let installDismissed = false;
+try { installDismissed = localStorage.getItem("mtc_install_dismissed_v1") === "1"; } catch (e) {}
+
+function isStandaloneDisplay() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+function isIOSDevice() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallEvent = e;
+  render();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallEvent = null;
+  render();
+});
+
+// A dismissible banner (installable browsers) or manual instructions (iOS,
+// which never fires beforeinstallprompt). Empty string once installed,
+// dismissed, or on a browser with neither path available.
+function installBannerHTML() {
+  if (isStandaloneDisplay() || installDismissed) return "";
+  if (deferredInstallEvent) {
+    return `<div class="panel install-card">
+      <div class="install-card-body">
+        <span class="ico" aria-hidden="true">&#128241;</span>
+        <div><b>Install Thinking Gym</b><small>Add it to your home screen for quick access and daily reminders.</small></div>
+      </div>
+      <div class="case-item-controls">
+        <button class="btn" data-install-app>Install</button>
+        <button class="btn ghost" data-dismiss-install>Not now</button>
+      </div>
+    </div>`;
+  }
+  if (isIOSDevice()) {
+    return `<div class="panel install-card">
+      <div class="install-card-body">
+        <span class="ico" aria-hidden="true">&#128241;</span>
+        <div><b>Add to your Home Screen</b><small>Tap the Share icon, then "Add to Home Screen" &mdash; this also unlocks reminders on iPhone.</small></div>
+      </div>
+      <div class="case-item-controls"><button class="btn ghost" data-dismiss-install>Got it</button></div>
+    </div>`;
+  }
+  return "";
+}
+
 const OUTLINES = {
   warmup: "First instinct:\n\nAlternative explanations:\n- ",
   challenge: "First-order effect:\n\nSecond-order effects:\n- \n\nWhat would change my mind:\n",
@@ -341,6 +396,7 @@ function dashboardHTML() {
   const place = MTC.nextPathNode(STATE);
   const coursePlace = place ? place.section.title : null;
   return `
+  ${installBannerHTML()}
   <div class="stat-strip">
     <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
     <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
@@ -625,6 +681,7 @@ function profileHTML() {
 
   <div class="section-head"><h2>Settings</h2></div>
   <div class="panel">
+    ${!isStandaloneDisplay() ? `<button class="list-row" data-install-app-row><span class="ico">&#128241;</span><span class="label">Get the app<small>Home screen access, no browser bar</small></span><span class="chev">&#8250;</span></button>` : ""}
     <button class="list-row" data-export-progress><span class="ico">&#11015;&#65039;</span><span class="label">Export progress</span><span class="chev">&#8250;</span></button>
     <button class="list-row" data-import-progress><span class="ico">&#11014;&#65039;</span><span class="label">Import progress</span><span class="chev">&#8250;</span></button>
     <button class="list-row" data-export-journal><span class="ico">&#128221;</span><span class="label">Export journal (.md)</span><span class="chev">&#8250;</span></button>
@@ -632,9 +689,39 @@ function profileHTML() {
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
   </div>
 
+  ${reminderSettingsHTML()}
+
   ${aiSettingsHTML()}
 
   <p class="subtle" style="text-align:center;margin:14px 0">Everything is stored on this device only.</p>`;
+}
+
+// Daily reminder settings. Opt-in, off by default, in its own localStorage key
+// (reminders.js) — never touches exported progress. Only ever nudges you if
+// you haven't practised yet that day (see isDueNow in reminders.js).
+function reminderSettingsHTML() {
+  const cfg = MTC_REMINDERS.loadConfig();
+  const perm = MTC_REMINDERS.permission();
+  const on = cfg.enabled && perm === "granted";
+  let helpText;
+  if (perm === "unsupported" && isIOSDevice() && !isStandaloneDisplay()) helpText = "Add this app to your Home Screen first to enable reminders on iPhone.";
+  else if (perm === "unsupported") helpText = "Not supported in this browser.";
+  else if (perm === "denied") helpText = "Notifications are blocked — enable them for this site in your browser settings.";
+  else helpText = "Only nudges you if you haven't practised yet that day.";
+
+  return `
+  <div class="section-head"><h2>Daily reminder</h2></div>
+  <div class="panel">
+    <button class="list-row" data-reminder-toggle aria-pressed="${on}" ${perm === "unsupported" ? "disabled" : ""}>
+      <span class="ico">&#128276;</span>
+      <span class="label">Remind me to practise<small>${esc(helpText)}</small></span>
+      <span class="val">${on ? "On" : "Off"}</span>
+    </button>
+    ${on ? `<div class="field" style="padding:14px 16px 16px">
+      <label class="subtle" for="reminder-time">Remind me at</label>
+      <input type="time" id="reminder-time" value="${esc(cfg.time)}" />
+    </div>` : ""}
+  </div>`;
 }
 
 // AI coaching settings. Opt-in, off by default. Kept in its own localStorage key
@@ -2186,9 +2273,45 @@ document.addEventListener("click", (e) => {
     }
     return;
   }
+
+  if (e.target.closest("[data-install-app]") || e.target.closest("[data-install-app-row]")) {
+    if (deferredInstallEvent) {
+      deferredInstallEvent.prompt();
+      deferredInstallEvent.userChoice.finally(() => { deferredInstallEvent = null; render(); });
+    } else if (isIOSDevice()) {
+      alert('On iPhone: tap the Share icon, then "Add to Home Screen".');
+    } else {
+      alert('Your browser doesn\'t support installing this app directly. Check your browser\'s menu for "Install app" or "Add to Home Screen".');
+    }
+    return;
+  }
+  if (e.target.closest("[data-dismiss-install]")) {
+    installDismissed = true;
+    try { localStorage.setItem("mtc_install_dismissed_v1", "1"); } catch (err) {}
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-reminder-toggle]")) {
+    const cfg = MTC_REMINDERS.loadConfig();
+    if (cfg.enabled) {
+      MTC_REMINDERS.disable();
+      render();
+    } else {
+      MTC_REMINDERS.enable().then((res) => {
+        render();
+        if (res.permission === "denied") alert("Notifications are blocked. Enable them for this site in your browser settings to get reminders.");
+      });
+    }
+    return;
+  }
 });
 
 document.addEventListener("change", (e) => {
+  if (e.target.id === "reminder-time") {
+    MTC_REMINDERS.saveConfig({ time: e.target.value });
+    return;
+  }
   if (e.target.id === "gym-area-filter") {
     gymAreaFilter = e.target.value;
     render();
@@ -2363,4 +2486,6 @@ window.addEventListener("storage", (e) => {
 window.addEventListener("DOMContentLoaded", () => {
   if (!location.hash) location.hash = "#/dashboard";
   render();
+  MTC_REMINDERS.startWatching(() => STATE.lastActiveDate);
+  MTC_REMINDERS.registerPeriodicSync();
 });

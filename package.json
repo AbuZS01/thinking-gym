@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "coach": "node tools/coach-harness.js",
-    "test": "node tests/ai.test.js && node tests/prompt.test.js && node tests/case.test.js && node tests/answer-tells.test.js && node tests/gym-content.test.js"
+    "test": "node tests/ai.test.js && node tests/prompt.test.js && node tests/case.test.js && node tests/reminders.test.js && node tests/answer-tells.test.js && node tests/gym-content.test.js"
   },
   "comments": {
     "no-dependencies": "The app itself is dependency-free and has no build step — this file only wires up convenience scripts. The AI server function (api/feedback.js) and the harness --model mode need @anthropic-ai/sdk; install it only where you deploy the function: `npm i @anthropic-ai/sdk`.",

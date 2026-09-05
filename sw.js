@@ -3,7 +3,7 @@
    the cache in the background so the next load picks up updates.
    Bump CACHE_VERSION whenever shipped files change. */
 
-const CACHE_VERSION = "mtc-v51";
+const CACHE_VERSION = "mtc-v52";
 const SHELL = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const SHELL = [
   "./everyday-content.js",
   "./engine.js",
   "./ai.js",
+  "./reminders.js",
   "./app.js",
   "./gym.js",
   "./manifest.json",
@@ -33,6 +34,88 @@ self.addEventListener("activate", (event) => {
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+/* ---------- Daily reminder: periodic background sync (best-effort) ----------
+   Chromium grants this automatically for installed, sufficiently-engaged
+   PWAs — reminders.js only registers it where the API exists and is already
+   granted; there's no permission prompt to show. Reads the tiny bit of state
+   reminders.js and engine.js mirror into IndexedDB, since a service worker
+   can't reach localStorage. Silently does nothing if either key is missing —
+   the common case is just "not due yet" or "already handled in-app". */
+
+function idbGet(key) {
+  return new Promise((resolve) => {
+    if (typeof indexedDB === "undefined") return resolve(undefined);
+    const req = indexedDB.open("mtc-reminders", 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore("kv"); };
+    req.onsuccess = () => {
+      const db = req.result;
+      try {
+        const tx = db.transaction("kv", "readonly");
+        const getReq = tx.objectStore("kv").get(key);
+        getReq.onsuccess = () => resolve(getReq.result);
+        getReq.onerror = () => resolve(undefined);
+      } catch (e) { resolve(undefined); }
+    };
+    req.onerror = () => resolve(undefined);
+  });
+}
+
+function idbPut(key, value) {
+  return new Promise((resolve) => {
+    if (typeof indexedDB === "undefined") return resolve();
+    const req = indexedDB.open("mtc-reminders", 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore("kv"); };
+    req.onsuccess = () => {
+      const db = req.result;
+      try {
+        const tx = db.transaction("kv", "readwrite");
+        tx.objectStore("kv").put(value, key);
+        tx.oncomplete = () => resolve();
+      } catch (e) { resolve(); }
+    };
+    req.onerror = () => resolve();
+  });
+}
+
+async function checkReminderDue() {
+  const [cfg, lastActiveDate] = await Promise.all([idbGet("reminderConfig"), idbGet("lastActiveDate")]);
+  if (!cfg || !cfg.enabled) return;
+  const today = new Date().toISOString().slice(0, 10);
+  if (lastActiveDate === today) return; // already practised today
+  if (cfg.lastFiredDate === today) return; // already reminded today
+  const now = new Date();
+  const hhmm = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+  if (hhmm < (cfg.time || "19:00")) return;
+  await self.registration.showNotification("Time to think.", {
+    body: "You haven't practised today — pick up your streak.",
+    icon: "icon-192.png",
+    badge: "icon-192.png",
+    tag: "mtc-daily-reminder",
+    data: { url: "./#/quest" },
+  });
+  await idbPut("reminderConfig", Object.assign({}, cfg, { lastFiredDate: today }));
+}
+
+self.addEventListener("periodicsync", (event) => {
+  if (event.tag === "mtc-daily-reminder") event.waitUntil(checkReminderDue());
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = new URL((event.notification.data && event.notification.data.url) || "./", self.location).href;
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const client of list) {
+        if ("focus" in client) {
+          if ("navigate" in client) client.navigate(targetUrl).catch(() => {});
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
   );
 });
 

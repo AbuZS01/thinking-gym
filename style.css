@@ -770,3 +770,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .case-item.t-contradiction { border-left: 3px solid var(--coral-fill); }
 /* Pending AI cards keep their dashed treatment; the border-left steps aside. */
 .case-item.pending { border-left-width: 1px; }
+
+/* ---------- Install prompt card ---------- */
+.install-card { display: flex; flex-direction: column; gap: 12px; }
+.install-card-body { display: flex; gap: 12px; align-items: flex-start; }
+.install-card-body .ico { font-size: 26px; line-height: 1; flex: none; }
+.install-card-body b { display: block; font-size: 15px; }
+.install-card-body small { display: block; color: var(--text-dim); font-size: 13px; margin-top: 3px; line-height: 1.4; }
