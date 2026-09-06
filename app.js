@@ -30,17 +30,42 @@ function isStandaloneDisplay() {
   return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
 }
 function isIOSDevice() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream) return true;
+  // iPadOS 13+ reports its UA as a desktop Mac by default — the standard
+  // tell is a "Mac"-like platform that nonetheless supports multi-touch.
+  return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+}
+
+// A full render() replaces #app's entire innerHTML, which would yank focus
+// (and the cursor position) out from under anyone mid-keystroke in a text
+// field when the browser fires these events unpredictably. Defer the render
+// until they're done typing instead of interrupting them.
+function isEditableElement(el) {
+  if (!el) return false;
+  if (el.tagName === "TEXTAREA" || el.isContentEditable) return true;
+  if (el.tagName === "INPUT") {
+    var type = (el.type || "text").toLowerCase();
+    return ["text", "search", "url", "tel", "email", "number", "password", "time", "date"].includes(type);
+  }
+  return false;
+}
+function renderUnlessTyping() {
+  var active = document.activeElement;
+  if (isEditableElement(active)) {
+    active.addEventListener("blur", render, { once: true });
+    return;
+  }
+  render();
 }
 
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredInstallEvent = e;
-  render();
+  renderUnlessTyping();
 });
 window.addEventListener("appinstalled", () => {
   deferredInstallEvent = null;
-  render();
+  renderUnlessTyping();
 });
 
 // A dismissible banner (installable browsers) or manual instructions (iOS,
@@ -281,7 +306,9 @@ function appbarHTML(title, backTo) {
 function chromeFor(r) {
   if (r === "dashboard") return ["The Thinking Gym", null];
   if (r === "gym") return ["Challenges", null];
-  if (r === "progress") return ["Progress", null];
+  // Progress is no longer a standalone tab (folded into "You") — show a back
+  // arrow to it instead of tab-root brand chrome.
+  if (r === "progress") return ["Progress", "profile"];
   if (r === "profile") return ["Profile", null];
   if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
   if (r.startsWith("gym/muscle/") || r.startsWith("gym/track/")) return ["Muscle", "gym"];
@@ -976,7 +1003,7 @@ const CASE_TYPE_META = {
   contradiction: { label: "Contradictions", emoji: "⚡" },
   relationship: { label: "Possible relationships", emoji: "\u{1F517}" },
 };
-const CASE_TYPE_ORDER = ["fact", "claim", "assumption", "unknown", "evidence", "contradiction", "relationship"];
+const CASE_TYPE_ORDER = MTC.CASE_ITEM_TYPES;
 const CONFIDENCE_LABELS = { low: "Low", medium: "Medium", high: "High" };
 
 function casesHTML() {
@@ -2294,7 +2321,12 @@ document.addEventListener("click", (e) => {
 
   if (e.target.closest("[data-reminder-toggle]")) {
     const cfg = MTC_REMINDERS.loadConfig();
-    if (cfg.enabled) {
+    // Match the same condition reminderSettingsHTML() uses to decide what
+    // the row shows ("On" only when enabled AND permission is granted) — a
+    // permission revoked outside the app must not make this button silently
+    // call disable() when the row already reads "Off".
+    const on = cfg.enabled && MTC_REMINDERS.permission() === "granted";
+    if (on) {
       MTC_REMINDERS.disable();
       render();
     } else {
@@ -2311,6 +2343,10 @@ document.addEventListener("change", (e) => {
   if (e.target.id === "reminder-time") {
     MTC_REMINDERS.saveConfig({ time: e.target.value });
     return;
+  }
+  if (e.target.id === "ai-endpoint") {
+    MTC_AI.saveConfig({ endpoint: e.target.value });
+    return; // fires on blur/commit, not per keystroke
   }
   if (e.target.id === "gym-area-filter") {
     gymAreaFilter = e.target.value;
@@ -2414,10 +2450,6 @@ document.addEventListener("input", (e) => {
     const val = document.getElementById("ex-conf-val");
     if (val) val.textContent = e.target.value;
     return;
-  }
-  if (e.target.id === "ai-endpoint") {
-    MTC_AI.saveConfig({ endpoint: e.target.value });
-    return; // no re-render — keep focus in the field while typing
   }
   // Investigation Mode: keep drafts in caseUI so a re-render never loses typing.
   if (caseUI && caseUI.mode === "new" && ["case-title", "case-problem", "case-context", "case-assessment"].includes(e.target.id)) {

@@ -13,6 +13,44 @@ const vm = require("node:vm");
 
 const root = path.resolve(__dirname, "..");
 
+// Minimal in-memory fake of the one IndexedDB store reminders.js uses,
+// async via setTimeout(0) like the real thing. Lets tests exercise
+// dbGet/dbPut/reconcileFromIndexedDB without a real browser.
+function makeFakeIndexedDB(seed) {
+  const kv = new Map(Object.entries(seed || {}));
+  return {
+    _kv: kv,
+    open() {
+      const req = { onupgradeneeded: null, onsuccess: null, onerror: null, result: null };
+      setTimeout(() => {
+        const db = {
+          createObjectStore() {},
+          transaction() {
+            const tx = { oncomplete: null, onerror: null };
+            tx.objectStore = () => ({
+              get(key) {
+                const r = { onsuccess: null, onerror: null, result: undefined };
+                setTimeout(() => { r.result = kv.get(key); if (r.onsuccess) r.onsuccess(); }, 0);
+                return r;
+              },
+              put(value, key) {
+                kv.set(key, value);
+                setTimeout(() => { if (tx.oncomplete) tx.oncomplete(); }, 0);
+                return { onsuccess: null, onerror: null };
+              },
+            });
+            return tx;
+          },
+        };
+        req.result = db;
+        if (req.onupgradeneeded) req.onupgradeneeded();
+        if (req.onsuccess) req.onsuccess();
+      }, 0);
+      return req;
+    },
+  };
+}
+
 // Minimal browser-ish sandbox, mirroring tests/ai.test.js. A fresh localStorage
 // per context; Notification is a fake constructor whose static .permission is
 // settable per test; document/navigator are stubbed just enough for
@@ -30,18 +68,21 @@ function makeContext(opts) {
   FakeNotification.permission = opts.permission || "default";
   FakeNotification.requestPermission = opts.requestPermission || (() => Promise.resolve(FakeNotification.permission));
 
+  const idb = opts.withIndexedDB ? makeFakeIndexedDB(opts.idbSeed) : undefined;
   const ctx = {
     console, JSON, Date, Math, Object, Array, Promise, Error, String,
     setTimeout, clearTimeout, setInterval, clearInterval,
     localStorage,
     navigator: opts.navigator || {},
     Notification: opts.notificationSupported === false ? undefined : FakeNotification,
-    indexedDB: undefined, // exercised as "unavailable" — mirroring must no-op silently
+    // Undefined by default — exercised as "unavailable", mirroring must no-op
+    // silently; opts.withIndexedDB swaps in the in-memory fake above.
+    indexedDB: idb,
   };
   ctx.window = ctx;
   vm.createContext(ctx);
   vm.runInContext(fs.readFileSync(path.join(root, "reminders.js"), "utf8"), ctx, { filename: "reminders.js" });
-  return { MTC_REMINDERS: ctx.MTC_REMINDERS, notified };
+  return { MTC_REMINDERS: ctx.MTC_REMINDERS, notified, idb };
 }
 
 let passed = 0;
@@ -133,6 +174,33 @@ function test(name, fn) {
     assert.equal(MTC_REMINDERS.isDueNow(cfg, null, at(19, 30)), false);
   });
 
+  // todayStr must key off the LOCAL calendar day, not UTC — isDueNow compares
+  // it against a local wall-clock time-of-day, so the two need to agree on
+  // what day it is. Regression test for a real bug: in negative-UTC-offset
+  // zones (US etc.), the UTC date rolls over mid-afternoon local time, so a
+  // UTC-dated "today" could disagree with a local lastActiveDate recorded
+  // earlier that same local day and fire again in the evening regardless.
+  await test("todayStr uses the local day; isDueNow doesn't re-fire in the evening across a UTC date rollover", () => {
+    const prevTz = process.env.TZ;
+    process.env.TZ = "America/Los_Angeles"; // UTC-8: UTC rolls to the next day at 4pm local
+    try {
+      const { MTC_REMINDERS } = makeContext();
+      const lateEvening = new Date(2026, 0, 15, 23, 30, 0); // 11:30pm local Jan 15 = 7:30am UTC Jan 16
+      assert.equal(MTC_REMINDERS._todayStr(lateEvening), "2026-01-15", "todayStr must return the local date, not the UTC one");
+
+      const morning = new Date(2026, 0, 15, 9, 0, 0); // practised earlier the same local day
+      const lastActiveDate = MTC_REMINDERS._todayStr(morning);
+      const cfg = { enabled: true, time: "19:00", lastFiredDate: null };
+      assert.equal(
+        MTC_REMINDERS.isDueNow(cfg, lastActiveDate, lateEvening),
+        false,
+        "must not fire in the evening after already practising earlier the same local day"
+      );
+    } finally {
+      process.env.TZ = prevTz;
+    }
+  });
+
   // ---- maybeFire: composes permission + isDueNow + actually notifies ----
   await test("maybeFire does nothing without a granted permission, even if due", async () => {
     const { MTC_REMINDERS, notified } = makeContext({ permission: "default" });
@@ -168,6 +236,43 @@ function test(name, fn) {
     const fired = await MTC_REMINDERS.maybeFire(MTC_REMINDERS._todayStr());
     assert.equal(fired, false);
     assert.equal(notified.length, 0);
+  });
+
+  // ---- IndexedDB mirror + reconciliation ----
+  // sw.js can only record "already fired today" in IndexedDB (no localStorage
+  // there); reconcileFromIndexedDB pulls that mark back into localStorage on
+  // the next foreground load so the two never disagree. Regression test for
+  // a real split-brain bug: a closed-app notification fired by the service
+  // worker was invisible to the foreground check, risking a duplicate.
+  await test("saveConfig mirrors into IndexedDB via dbPut", async () => {
+    const { MTC_REMINDERS, idb } = makeContext({ withIndexedDB: true });
+    MTC_REMINDERS.saveConfig({ enabled: true, time: "08:00" });
+    await new Promise((r) => setTimeout(r, 10)); // let the fake async IDB settle
+    const mirrored = idb._kv.get("reminderConfig");
+    assert.equal(mirrored.enabled, true);
+    assert.equal(mirrored.time, "08:00");
+  });
+
+  await test("reconcileFromIndexedDB pulls a service-worker-recorded lastFiredDate into localStorage", async () => {
+    const { MTC_REMINDERS } = makeContext({
+      withIndexedDB: true,
+      idbSeed: { reminderConfig: { enabled: true, time: "19:00", lastFiredDate: "2026-03-01" } },
+    });
+    // localStorage starts with no notion this ever fired.
+    assert.equal(MTC_REMINDERS.loadConfig().lastFiredDate, null);
+    await MTC_REMINDERS.reconcileFromIndexedDB();
+    assert.equal(MTC_REMINDERS.loadConfig().lastFiredDate, "2026-03-01");
+  });
+
+  await test("reconcileFromIndexedDB never regresses a lastFiredDate localStorage already has", async () => {
+    const { MTC_REMINDERS, idb } = makeContext({ withIndexedDB: true });
+    MTC_REMINDERS.saveConfig({ lastFiredDate: "2026-03-01" });
+    await new Promise((r) => setTimeout(r, 10));
+    // Simulate a stale mirror left over from an earlier session, bypassing
+    // the mirror this saveConfig call already did.
+    idb._kv.set("reminderConfig", { enabled: true, time: "19:00", lastFiredDate: "2026-02-01" });
+    await MTC_REMINDERS.reconcileFromIndexedDB();
+    assert.equal(MTC_REMINDERS.loadConfig().lastFiredDate, "2026-03-01", "a stale IndexedDB mark must not overwrite a newer local one");
   });
 
   console.log(`\nAll ${passed} reminder tests passed.`);

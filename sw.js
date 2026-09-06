@@ -3,7 +3,7 @@
    the cache in the background so the next load picks up updates.
    Bump CACHE_VERSION whenever shipped files change. */
 
-const CACHE_VERSION = "mtc-v52";
+const CACHE_VERSION = "mtc-v53";
 const SHELL = [
   "./",
   "./index.html",
@@ -43,52 +43,18 @@ self.addEventListener("activate", (event) => {
    granted; there's no permission prompt to show. Reads the tiny bit of state
    reminders.js and engine.js mirror into IndexedDB, since a service worker
    can't reach localStorage. Silently does nothing if either key is missing —
-   the common case is just "not due yet" or "already handled in-app". */
+   the common case is just "not due yet" or "already handled in-app".
 
-function idbGet(key) {
-  return new Promise((resolve) => {
-    if (typeof indexedDB === "undefined") return resolve(undefined);
-    const req = indexedDB.open("mtc-reminders", 1);
-    req.onupgradeneeded = () => { req.result.createObjectStore("kv"); };
-    req.onsuccess = () => {
-      const db = req.result;
-      try {
-        const tx = db.transaction("kv", "readonly");
-        const getReq = tx.objectStore("kv").get(key);
-        getReq.onsuccess = () => resolve(getReq.result);
-        getReq.onerror = () => resolve(undefined);
-      } catch (e) { resolve(undefined); }
-    };
-    req.onerror = () => resolve(undefined);
-  });
-}
-
-function idbPut(key, value) {
-  return new Promise((resolve) => {
-    if (typeof indexedDB === "undefined") return resolve();
-    const req = indexedDB.open("mtc-reminders", 1);
-    req.onupgradeneeded = () => { req.result.createObjectStore("kv"); };
-    req.onsuccess = () => {
-      const db = req.result;
-      try {
-        const tx = db.transaction("kv", "readwrite");
-        tx.objectStore("kv").put(value, key);
-        tx.oncomplete = () => resolve();
-      } catch (e) { resolve(); }
-    };
-    req.onerror = () => resolve();
-  });
-}
+   importScripts pulls in reminders.js's own isDueNow/_todayStr/dbGet/dbPut —
+   the due-time logic and IndexedDB access live in exactly one place, shared
+   with the foreground check, instead of a second hand-rolled copy here. */
+try { importScripts("./reminders.js"); } catch (e) {}
 
 async function checkReminderDue() {
-  const [cfg, lastActiveDate] = await Promise.all([idbGet("reminderConfig"), idbGet("lastActiveDate")]);
-  if (!cfg || !cfg.enabled) return;
-  const today = new Date().toISOString().slice(0, 10);
-  if (lastActiveDate === today) return; // already practised today
-  if (cfg.lastFiredDate === today) return; // already reminded today
-  const now = new Date();
-  const hhmm = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-  if (hhmm < (cfg.time || "19:00")) return;
+  if (!self.MTC_REMINDERS) return;
+  const { dbGet, dbPut, isDueNow, _todayStr } = self.MTC_REMINDERS;
+  const [cfg, lastActiveDate] = await Promise.all([dbGet("reminderConfig"), dbGet("lastActiveDate")]);
+  if (!isDueNow(cfg, lastActiveDate)) return;
   await self.registration.showNotification("Time to think.", {
     body: "You haven't practised today — pick up your streak.",
     icon: "icon-192.png",
@@ -96,7 +62,7 @@ async function checkReminderDue() {
     tag: "mtc-daily-reminder",
     data: { url: "./#/quest" },
   });
-  await idbPut("reminderConfig", Object.assign({}, cfg, { lastFiredDate: today }));
+  await dbPut("reminderConfig", Object.assign({}, cfg, { lastFiredDate: _todayStr() }));
 }
 
 self.addEventListener("periodicsync", (event) => {

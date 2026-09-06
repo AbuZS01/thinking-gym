@@ -179,9 +179,9 @@ function test(name, fn) {
 
   await test("getCaseHelp is gated: off by default, needs a problem, resolves when enabled", async () => {
     const MTC_AI = loadAi();
-    await assert.rejects(MTC_AI.getCaseHelp("classify", { problem: "p" }), (e) => e.aiKind === "unavailable");
+    await assert.rejects(MTC_AI.getCaseHelp("classify", { problem: "p" }), (e) => e.aiKind === "disabled");
     MTC_AI.saveConfig({ enabled: true, provider: "local" });
-    await assert.rejects(MTC_AI.getCaseHelp("classify", { problem: "" }), (e) => e.aiKind === "unavailable");
+    await assert.rejects(MTC_AI.getCaseHelp("classify", { problem: "" }), (e) => e.aiKind === "empty");
     await assert.rejects(MTC_AI.getCaseHelp("bogus", { problem: "p" }), (e) => e.aiKind === "malformed");
     const out = await MTC_AI.getCaseHelp("hypotheses", { problem: "why is revenue down" });
     assert.ok(Array.isArray(out.hypotheses) && out.hypotheses.length > 0);

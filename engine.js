@@ -132,28 +132,15 @@ const MTC = (() => {
 
   // Mirrors the one field the daily-reminder service worker needs — "did the
   // user already practise today" — into IndexedDB, since a service worker
-  // cannot read localStorage. Best-effort and silent: if IndexedDB is
-  // unavailable (private browsing, older browsers) the reminder feature just
-  // degrades to foreground-only checks; nothing here can fail visibly.
-  // Shares its store name/shape with reminders.js and sw.js by convention.
-  let reminderDbPromise = null;
-  function openReminderDb() {
-    if (!reminderDbPromise) {
-      reminderDbPromise = new Promise((resolve, reject) => {
-        if (typeof indexedDB === "undefined") return reject(new Error("no indexedDB"));
-        const req = indexedDB.open("mtc-reminders", 1);
-        req.onupgradeneeded = () => { req.result.createObjectStore("kv"); };
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
-      });
-    }
-    return reminderDbPromise;
-  }
+  // cannot read localStorage. Best-effort and silent: if IndexedDB or
+  // reminders.js isn't around (private browsing, older browsers, or a test
+  // sandbox that only loads engine.js) the reminder feature just degrades to
+  // foreground-only checks; nothing here can fail visibly. Delegates to
+  // reminders.js's own dbPut rather than opening a second connection to the
+  // same "mtc-reminders" store.
   function mirrorLastActiveDateToIndexedDB(lastActiveDate) {
-    openReminderDb().then((db) => {
-      const tx = db.transaction("kv", "readwrite");
-      tx.objectStore("kv").put(lastActiveDate || null, "lastActiveDate");
-    }).catch(() => {});
+    if (typeof MTC_REMINDERS === "undefined" || !MTC_REMINDERS.dbPut) return;
+    MTC_REMINDERS.dbPut("lastActiveDate", lastActiveDate || null).catch(() => {});
   }
 
   function statsView(state) {

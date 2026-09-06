@@ -129,15 +129,15 @@ function test(name, fn) {
   });
 
   // ---- getFeedback gating ----
-  await test("getFeedback rejects with 'unavailable' when AI is off (default)", async () => {
+  await test("getFeedback rejects with 'disabled' when AI is off (default)", async () => {
     const { MTC_AI } = makeContext();
-    await assert.rejects(MTC_AI.getFeedback({ answer: "something" }), (e) => e.aiKind === "unavailable");
+    await assert.rejects(MTC_AI.getFeedback({ answer: "something" }), (e) => e.aiKind === "disabled");
   });
 
-  await test("getFeedback rejects 'unavailable' on empty answer even when enabled", async () => {
+  await test("getFeedback rejects 'empty' on empty answer even when enabled", async () => {
     const { MTC_AI } = makeContext();
     MTC_AI.saveConfig({ enabled: true, provider: "local" });
-    await assert.rejects(MTC_AI.getFeedback({ answer: "   " }), (e) => e.aiKind === "unavailable");
+    await assert.rejects(MTC_AI.getFeedback({ answer: "   " }), (e) => e.aiKind === "empty");
   });
 
   await test("getFeedback resolves via local coach when enabled", async () => {

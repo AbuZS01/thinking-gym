@@ -48,8 +48,14 @@
     return cfg;
   }
 
+  // Local calendar day (NOT toISOString, which is UTC) — isDueNow below
+  // compares this against a local wall-clock time-of-day, so both halves of
+  // that comparison need to agree on what day it is right now.
   function todayStr(d) {
-    return (d || new Date()).toISOString().slice(0, 10);
+    d = d || new Date();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + m + "-" + day;
   }
 
   /* ---------------- Notification permission ---------------- */
@@ -147,6 +153,7 @@
 
   function startWatching(getLastActiveDate) {
     stopWatching();
+    reconcileFromIndexedDB();
     var tick = function () {
       if (typeof document !== "undefined" && document.hidden) maybeFire(getLastActiveDate());
     };
@@ -184,10 +191,47 @@
     return dbPromise;
   }
 
+  // Generic get/put against the shared "mtc-reminders" store, exposed so
+  // engine.js (mirroring lastActiveDate) and sw.js (importScripts-ing this
+  // file) share one implementation instead of each hand-rolling their own.
+  function dbGet(key) {
+    return openDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(DB_STORE, "readonly");
+        var req = tx.objectStore(DB_STORE).get(key);
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
+      });
+    });
+  }
+
+  function dbPut(key, value) {
+    return openDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction(DB_STORE, "readwrite");
+        tx.objectStore(DB_STORE).put(value, key);
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    });
+  }
+
   function mirrorConfigToIndexedDB(cfg) {
-    openDb().then(function (db) {
-      var tx = db.transaction(DB_STORE, "readwrite");
-      tx.objectStore(DB_STORE).put(cfg, "reminderConfig");
+    dbPut("reminderConfig", cfg).catch(function () {});
+  }
+
+  // The service worker (sw.js) can only mark "already fired today" in
+  // IndexedDB — it has no access to localStorage. Pulls that mark back in on
+  // the next foreground load so maybeFire() here doesn't re-fire the same
+  // day. Picks whichever lastFiredDate is later, so this never regresses a
+  // mark either side already knows about.
+  function reconcileFromIndexedDB() {
+    return dbGet("reminderConfig").then(function (mirrored) {
+      if (!mirrored || !mirrored.lastFiredDate) return;
+      var cfg = loadConfig();
+      if (!cfg.lastFiredDate || mirrored.lastFiredDate > cfg.lastFiredDate) {
+        saveConfig({ lastFiredDate: mirrored.lastFiredDate });
+      }
     }).catch(function () {});
   }
 
@@ -219,6 +263,9 @@
     startWatching: startWatching,
     stopWatching: stopWatching,
     registerPeriodicSync: registerPeriodicSync,
+    reconcileFromIndexedDB: reconcileFromIndexedDB,
+    dbGet: dbGet,
+    dbPut: dbPut,
     DEFAULT_TIME: DEFAULT_TIME,
     _todayStr: todayStr, // exposed for tests
   };
