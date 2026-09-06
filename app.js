@@ -432,13 +432,15 @@ function dashboardHTML() {
 
   ${checkInHTML()}
 
-  <div class="panel">
-    <div class="subtle">${STATE.history.length ? "Welcome back" : "Welcome"}, ${esc(STATE.name)}</div>
-    <h2 class="page-title" style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h2>
-    <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
-    <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
-      ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"}` : ""}</p>
-  </div>
+  <a class="level-row" href="#/progress">
+    <span class="level-row-num">${li.level}</span>
+    <span class="level-copy">
+      <span class="level-top"><b>Level ${li.level} &middot; ${esc(li.title)}</b><small>${li.xpIntoLevel} / ${li.xpForNext} to ${li.level + 1}</small></span>
+      <span class="progress"><span class="fill" style="width:${li.pct}%"></span></span>
+      ${STATE.graceShields > 0 ? `<small class="grace">&#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"} ready.</small>` : ""}
+    </span>
+    <span class="chev" aria-hidden="true">&#8250;</span>
+  </a>
 
   ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
     <div class="daily-session-head">
@@ -462,9 +464,9 @@ function dashboardHTML() {
   ${focus ? `<div class="section-head"><h2>Your chosen focus</h2><a href="#/gym">Change</a></div>
   <a class="panel focus-card" href="#/gym/life/${focus.id}"><span class="focus-emoji" aria-hidden="true">${focus.emoji}</span><span><b>${esc(focus.name)}</b><small>${esc(focus.blurb)} &middot; the course puts this area first in the sections you have not started.</small></span><span class="chev" aria-hidden="true">&#8250;</span></a>` : ""}
 
-  <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
+  <div class="section-head"><h2>Your six muscles</h2><a href="#/gym">Practise</a></div>
   <div class="grid tight">
-    ${muscles.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
+    ${muscles.map((t, i) => ({ t, i })).sort((a, b) => a.t.pct - b.t.pct).map(({ t, i }) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
       <div class="meta">${t.sectionDone ? `${t.sectionDone}/${t.sectionTotal} in the course` : t.played ? `${t.mastered} of ${t.played} solid` : "not started"}</div>
@@ -474,9 +476,7 @@ function dashboardHTML() {
   <div class="section-head"><h2>Keep going</h2></div>
   <div class="panel">
     <a class="list-row" href="#/path"><span class="ico">&#127891;</span><span class="label">The course</span><span class="val">${MTC.learningPath(STATE).filter((s) => s.complete).length}/${MTC.learningPath(STATE).length}</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">Browse challenges</span><span class="val">${session.length} today</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">the written bank</span><span class="chev">&#8250;</span></a>
   </div>`;
 }
 
@@ -504,9 +504,10 @@ function challengesHTML() {
   <div class="grid">
     ${session.map((c) => {
       const g = STATE.gym[c.id];
+      const doneToday = Boolean(g && g.lastPlayed === MTC.todayStr());
       const fmt = MTC_GYM_FORMATS[c.format];
       return `<a class="card" href="#/gym/play/${c.id}">
-        <span class="tag">${FORMAT_ICONS[c.format]} ${esc(fmt.name)}</span>${g ? `<span class="tag core">Replay</span>` : ""}
+        <span class="tag">${FORMAT_ICONS[c.format]} ${esc(fmt.name)}</span>${doneToday ? `<span class="tag core">Done today</span>` : g ? `<span class="tag core">Replay</span>` : ""}
         <h2>${esc(c.title)}</h2>
         <p class="subtle">${esc(fmt.tagline)}${g ? ` &middot; best ${g.bestScore}%` : ""}</p>
         <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
@@ -585,6 +586,9 @@ const MUSCLE_OUTCOMES = {
 
 function progressMessage(muscles, done) {
   if (!done) return "Complete one challenge and this page will show what you are improving.";
+  // One challenge is not a trend. An app that refuses to say "grade yourself" should not
+  // infer a strongest skill from a single attempt either.
+  if (done < 3) return `${done} challenge${done === 1 ? "" : "s"} done. After a few more, this page will name what you are improving.`;
   const practised = muscles.filter((muscle) => muscle.played > 0).sort((a, b) => (b.avgBest || 0) - (a.avgBest || 0));
   const strongest = practised[0];
   if (!strongest) return "You have started building clearer everyday thinking.";
@@ -609,7 +613,7 @@ function progressHTML() {
   <div class="panel">
     <h2>How your thinking is improving</h2>
     <p class="progress-message">${esc(progressCopy)}</p>
-    <p class="subtle">Practice level ${li.level} &middot; ${esc(li.title)}</p>
+    <p class="subtle">Level ${li.level} &middot; ${esc(li.title)}</p>
     <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle">${li.xpIntoLevel} of ${li.xpForNext} points toward the next level</p>
     ${selfAssessedNoteHTML()}
@@ -617,6 +621,7 @@ function progressHTML() {
 
   <div class="section-head"><h2>Skills you are building</h2><a href="#/gym">Practise</a></div>
   <div class="panel">
+    <p class="subtle" style="margin:0 0 12px">A challenge counts as <b>strong</b> once you have scored 80% or more on it.</p>
     ${muscles.map((t) => `<a class="weak-row" href="#/gym/muscle/${t.id}">
       <span class="name">${muscleIcon(t.id)} ${esc(t.name)}</span>
       <div class="weak-meter" role="progressbar" aria-label="${esc(t.name)}: challenges you have played that are scored at 80 percent or more" aria-valuemin="0" aria-valuemax="${t.played || 1}" aria-valuenow="${t.mastered}"><div class="fill" style="width:${t.pct}%"></div></div>
@@ -675,11 +680,6 @@ function profileHTML() {
     </div>
   </div>
 
-  <div class="stat-strip">
-    <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
-    <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
-    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
-  </div>
 
   ${shieldCardHTML()}
 

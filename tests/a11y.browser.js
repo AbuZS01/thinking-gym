@@ -132,6 +132,11 @@ const MIN_TAP = 44;    // WCAG 2.5.5 target size
     const move = page.locator('[data-gym-step], [data-gym-sentence], [data-gym-slot], [data-gym-order], [data-gym-evidence], [data-gym-item], [data-gym-ask]').first();
     if (!(await move.count())) break;
     await move.click(); await page.waitForTimeout(250);
+    // Some formats now stage a pick behind a separate confirm tap (data-gym-check)
+    // instead of committing on the first click — follow it through so the loop
+    // actually advances instead of re-selecting the same option three times.
+    const confirm = page.locator('[data-gym-check]:not([disabled])');
+    if (await confirm.count()) { await confirm.click(); await page.waitForTimeout(250); }
     spoken.push(await said());
     if (i === 0) report['gym/play (after a tap)'] = await audit();
   }

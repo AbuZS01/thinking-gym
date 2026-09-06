@@ -31,6 +31,7 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
       return c.payload.steps[settled] ? c.payload.steps[settled].answer : 0;
     });
     await page.locator(`[data-gym-step="${ans}"]`).click();
+    await page.click('[data-gym-check]'); // pick, then lock in — no longer a single tap
     await page.waitForTimeout(70);
   }
   if (await page.locator('[data-gym-confidence]').count()) {
