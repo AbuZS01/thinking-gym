@@ -255,7 +255,7 @@ const MTC_GYM_CHALLENGES = [
       pairs: [
         { prompt: "Decide exactly which signs count as the illness before counting cases", match: "Write down exactly which kind of app failure you are studying, so different problems do not get mixed together" },
         { prompt: "Mark every case on a map and look for a place where many cases gather", match: "Group each failure by phone type, app version, internet connection and country, then look for a shared detail" },
-        { prompt: "The negative cases — brewery workers beside the pump who drank beer and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
+        { prompt: "The negative cases — workers at a nearby brewery, who had their own water supply and rarely drank from the pump, and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
         { prompt: "Homes using more water from the pump had more illness", match: "Check whether people who use the suspected feature more often also see more failures" },
         { prompt: "Close the pump, then watch whether new cases stop", match: "Give the possible fix to a small group and compare its failure rate with everyone else's" },
       ],
@@ -1943,7 +1943,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-workout-5", format: "workout", muscle: "question", difficulty: 3, xpBase: 50,
-    title: "Four Cards, Then Four Drinkers",
+    title: "Four Cards, Then Four Riders",
     scenario: "Four cards lie on a table showing 3, 8, red and blue. Each has a number on one side and a colour on the other. The rule: if a card shows an even number, its other side is red.",
     frameworks: ["deductive-reasoning", "cognitive-bias-detection", "critical-thinking"],
     emoji: "🃏",
@@ -1974,18 +1974,18 @@ const MTC_GYM_CHALLENGES = [
           because: "“Even implies red” says nothing about what may sit behind a red face. An odd number behind red breaks no rule — which is exactly why the card is uninformative.",
         },
         {
-          ask: "Now the same logic in a bar: someone drinking beer, someone drinking cola, a 17-year-old and a 23-year-old. The rule is that drinking alcohol requires being over 18. Whom must you check?",
+          ask: "Now the same logic at a fairground: someone riding the go-karts, someone riding the carousel, a 9-year-old and a 15-year-old. The rule is that riding the go-karts requires being at least 12. Whom must you check?",
           options: [
-            "The beer drinker's age and the 17-year-old's drink",
-            "The beer drinker's age and the 23-year-old's drink",
-            "The 17-year-old's drink and the cola drinker's age",
+            "The go-kart rider's age and the 9-year-old's ride",
+            "The go-kart rider's age and the 15-year-old's ride",
+            "The 9-year-old's ride and the carousel rider's age",
             "All four, since any of them could be breaking the rule",
           ],
           answer: 0,
-          because: "Structurally identical to the cards: beer is the “even number” and being under 18 is the “not red”. The 23-year-old may drink anything and the cola drinker may be any age.",
+          because: "Structurally identical to the cards: riding the go-karts is the “even number” and being under 12 is the “not red”. The 15-year-old may ride anything and the carousel rider may be any age.",
         },
         {
-          ask: "Most people find the bar version easy and the card version hard. What does that show?",
+          ask: "Most people find the fairground version easy and the card version hard. What does that show?",
           options: [
             "The mind hunts rule-breakers readily when the frame is social, and drifts to seeking confirmation when it is abstract",
             "The bar version is logically simpler than the card version",
@@ -4367,7 +4367,7 @@ const MTC_GYM_CHALLENGES = [
       problem: "Act safely without assuming that the drink was definitely changed.",
       steps: [
         { ask: "What can you honestly conclude?", options: ["I cannot know whether it was touched, so I should treat the uncertainty seriously", "The glass looks exactly as it did, so nothing has been added to it", "Nobody I do not know was standing near the table while I was away", "It was only a short time, so nobody would have had a real opportunity to do anything"], answer: 0, because: "Appearance cannot settle what happened, and uncertainty is not proof of harm. It is enough reason to choose the safer option." },
-        { ask: "What should you do with the drink?", options: ["Do not drink it. Replace it with one you watched being opened or prepared", "Smell it carefully and look for anything unusual before deciding", "Ask whoever was sitting nearby whether they saw anyone approach it", "Leave it and buy another one when you next go to the bar"], answer: 0, because: "Replacing one drink has a small cost. Tasting it cannot safely test for something you may not notice before it affects you." },
+        { ask: "What should you do with the drink?", options: ["Do not drink it. Replace it with one you watched being opened or prepared", "Smell it carefully and look for anything unusual before deciding", "Ask whoever was sitting nearby whether they saw anyone approach it", "Leave it and get another one when you next pass the drinks table"], answer: 0, because: "Replacing one drink has a small cost. Tasting it cannot safely test for something you may not notice before it affects you." },
         { ask: "Who should you tell?", options: ["A trusted friend and the venue staff", "A friend, once you are sure something is actually wrong", "The staff only, so no rumour starts among the people there", "Whoever was closest to the table while you were away"], answer: 0, because: "A trusted person can stay with you, and staff can help replace the drink or watch for a wider problem without making an unsupported accusation." },
         { ask: "You already drank some and suddenly feel unusually unwell. What now?", options: ["Tell someone immediately, seek urgent medical help and do not leave alone or drive", "Find somewhere quiet to sit down for a while and see whether the feeling passes on its own", "Ask a friend to take you home so you can rest properly there", "Drink plenty of water and stay where the staff can see you"], answer: 0, because: "Sudden unusual symptoms need prompt help. Staying with a trusted person and avoiding driving reduces the risk while help is arranged." },
       ],
