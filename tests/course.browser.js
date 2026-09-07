@@ -80,8 +80,11 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
     }, [sel, text]);
 
     if (format === 'map') {
-      await page.waitForSelector('[data-gym-slot]');
-      for (let i = 0; i < p.pairs.length; i++) { await page.locator(`[data-gym-slot="${i}"]`).click(); await clickByText('[data-gym-card]', p.pairs[i].match); }
+      // The board keeps one slot open at a time (in a sticky sheet) and has no
+      // DOM element for it until it's filled, so tapping cards in order fills
+      // each open slot in turn rather than selecting a slot first.
+      await page.waitForSelector('[data-gym-card]');
+      for (let i = 0; i < p.pairs.length; i++) { await clickByText('[data-gym-card]', p.pairs[i].match); }
       await page.click('[data-gym-check]'); await page.waitForSelector('[data-gym-mislead]');
       for (const a of p.misleads.answers) await page.locator(`[data-gym-mislead="${a}"]`).click();
       await page.click('[data-gym-check]');
