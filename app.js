@@ -17,6 +17,86 @@ let lastRenderedRoute = null;
 const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
 let activeRec = null;
 
+/* ---------- Install prompt (Add to Home Screen) ----------
+   Cheap but high-value: an installed PWA is far more likely to be reopened,
+   and it's a prerequisite for the daily reminder to have any chance of firing
+   while fully closed (see reminders.js). Dismissible, remembered, and never
+   shown once the app is already installed. */
+let deferredInstallEvent = null;
+let installDismissed = false;
+try { installDismissed = localStorage.getItem("mtc_install_dismissed_v1") === "1"; } catch (e) {}
+
+function isStandaloneDisplay() {
+  return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+}
+function isIOSDevice() {
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream) return true;
+  // iPadOS 13+ reports its UA as a desktop Mac by default — the standard
+  // tell is a "Mac"-like platform that nonetheless supports multi-touch.
+  return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+}
+
+// A full render() replaces #app's entire innerHTML, which would yank focus
+// (and the cursor position) out from under anyone mid-keystroke in a text
+// field when the browser fires these events unpredictably. Defer the render
+// until they're done typing instead of interrupting them.
+function isEditableElement(el) {
+  if (!el) return false;
+  if (el.tagName === "TEXTAREA" || el.isContentEditable) return true;
+  if (el.tagName === "INPUT") {
+    var type = (el.type || "text").toLowerCase();
+    return ["text", "search", "url", "tel", "email", "number", "password", "time", "date"].includes(type);
+  }
+  return false;
+}
+function renderUnlessTyping() {
+  var active = document.activeElement;
+  if (isEditableElement(active)) {
+    active.addEventListener("blur", render, { once: true });
+    return;
+  }
+  render();
+}
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallEvent = e;
+  renderUnlessTyping();
+});
+window.addEventListener("appinstalled", () => {
+  deferredInstallEvent = null;
+  renderUnlessTyping();
+});
+
+// A dismissible banner (installable browsers) or manual instructions (iOS,
+// which never fires beforeinstallprompt). Empty string once installed,
+// dismissed, or on a browser with neither path available.
+function installBannerHTML() {
+  if (isStandaloneDisplay() || installDismissed) return "";
+  if (deferredInstallEvent) {
+    return `<div class="panel install-card">
+      <div class="install-card-body">
+        <span class="ico" aria-hidden="true">&#128241;</span>
+        <div><b>Install Thinking Gym</b><small>Add it to your home screen for quick access and daily reminders.</small></div>
+      </div>
+      <div class="case-item-controls">
+        <button class="btn" data-install-app>Install</button>
+        <button class="btn ghost" data-dismiss-install>Not now</button>
+      </div>
+    </div>`;
+  }
+  if (isIOSDevice()) {
+    return `<div class="panel install-card">
+      <div class="install-card-body">
+        <span class="ico" aria-hidden="true">&#128241;</span>
+        <div><b>Add to your Home Screen</b><small>Tap the Share icon, then "Add to Home Screen" &mdash; this also unlocks reminders on iPhone.</small></div>
+      </div>
+      <div class="case-item-controls"><button class="btn ghost" data-dismiss-install>Got it</button></div>
+    </div>`;
+  }
+  return "";
+}
+
 const OUTLINES = {
   warmup: "First instinct:\n\nAlternative explanations:\n- ",
   challenge: "First-order effect:\n\nSecond-order effects:\n- \n\nWhat would change my mind:\n",
@@ -226,7 +306,9 @@ function appbarHTML(title, backTo) {
 function chromeFor(r) {
   if (r === "dashboard") return ["The Thinking Gym", null];
   if (r === "gym") return ["Challenges", null];
-  if (r === "progress") return ["Progress", null];
+  // Progress is no longer a standalone tab (folded into "You") — show a back
+  // arrow to it instead of tab-root brand chrome.
+  if (r === "progress") return ["Progress", "profile"];
   if (r === "profile") return ["Profile", null];
   if (r.startsWith("gym/play/")) return ["Today's Challenge", "gym"];
   if (r.startsWith("gym/muscle/") || r.startsWith("gym/track/")) return ["Muscle", "gym"];
@@ -341,6 +423,7 @@ function dashboardHTML() {
   const place = MTC.nextPathNode(STATE);
   const coursePlace = place ? place.section.title : null;
   return `
+  ${installBannerHTML()}
   <div class="stat-strip">
     <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
     <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
@@ -349,13 +432,15 @@ function dashboardHTML() {
 
   ${checkInHTML()}
 
-  <div class="panel">
-    <div class="subtle">${STATE.history.length ? "Welcome back" : "Welcome"}, ${esc(STATE.name)}</div>
-    <h2 class="page-title" style="font-size:20px;margin:2px 0 10px">${esc(li.title)}</h2>
-    <div class="progress"><div class="fill" style="width:${li.pct}%"></div></div>
-    <p class="subtle" style="margin:8px 0 0">${li.xpIntoLevel} of ${li.xpForNext} points to level ${li.level + 1}
-      ${STATE.graceShields > 0 ? `&middot; &#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"}` : ""}</p>
-  </div>
+  <a class="level-row" href="#/progress">
+    <span class="level-row-num">${li.level}</span>
+    <span class="level-copy">
+      <span class="level-top"><b>Level ${li.level} &middot; ${esc(li.title)}</b><small>${li.xpIntoLevel} / ${li.xpForNext} to ${li.level + 1}</small></span>
+      <span class="progress"><span class="fill" style="width:${li.pct}%"></span></span>
+      ${STATE.graceShields > 0 ? `<small class="grace">&#128737;&#65039; ${STATE.graceShields} streak ${STATE.graceShields === 1 ? "cover" : "covers"} ready.</small>` : ""}
+    </span>
+    <span class="chev" aria-hidden="true">&#8250;</span>
+  </a>
 
   ${next ? `<section class="daily-session" aria-labelledby="daily-session-title">
     <div class="daily-session-head">
@@ -379,9 +464,9 @@ function dashboardHTML() {
   ${focus ? `<div class="section-head"><h2>Your chosen focus</h2><a href="#/gym">Change</a></div>
   <a class="panel focus-card" href="#/gym/life/${focus.id}"><span class="focus-emoji" aria-hidden="true">${focus.emoji}</span><span><b>${esc(focus.name)}</b><small>${esc(focus.blurb)} &middot; the course puts this area first in the sections you have not started.</small></span><span class="chev" aria-hidden="true">&#8250;</span></a>` : ""}
 
-  <div class="section-head"><h2>Your muscles</h2><a href="#/gym">View all</a></div>
+  <div class="section-head"><h2>Your six muscles</h2><a href="#/gym">Practise</a></div>
   <div class="grid tight">
-    ${muscles.slice(0, 4).map((t, i) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
+    ${muscles.map((t, i) => ({ t, i })).sort((a, b) => a.t.pct - b.t.pct).map(({ t, i }) => `<a class="tile t${i % 6}" href="#/gym/muscle/${t.id}">
       <div class="ico">${muscleIcon(t.id)}</div>
       <h3>${esc(t.name)}</h3>
       <div class="meta">${t.sectionDone ? `${t.sectionDone}/${t.sectionTotal} in the course` : t.played ? `${t.mastered} of ${t.played} solid` : "not started"}</div>
@@ -391,9 +476,7 @@ function dashboardHTML() {
   <div class="section-head"><h2>Keep going</h2></div>
   <div class="panel">
     <a class="list-row" href="#/path"><span class="ico">&#127891;</span><span class="label">The course</span><span class="val">${MTC.learningPath(STATE).filter((s) => s.complete).length}/${MTC.learningPath(STATE).length}</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/gym"><span class="ico">&#129513;</span><span class="label">Browse challenges</span><span class="val">${session.length} today</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">written</span><span class="chev">&#8250;</span></a>
-    <a class="list-row" href="#/progress"><span class="ico">&#128200;</span><span class="label">Progress</span><span class="chev">&#8250;</span></a>
+    <a class="list-row" href="#/quest"><span class="ico">&#9997;&#65039;</span><span class="label">Deep Work</span><span class="val">the written bank</span><span class="chev">&#8250;</span></a>
   </div>`;
 }
 
@@ -421,9 +504,10 @@ function challengesHTML() {
   <div class="grid">
     ${session.map((c) => {
       const g = STATE.gym[c.id];
+      const doneToday = Boolean(g && g.lastPlayed === MTC.todayStr());
       const fmt = MTC_GYM_FORMATS[c.format];
       return `<a class="card" href="#/gym/play/${c.id}">
-        <span class="tag">${FORMAT_ICONS[c.format]} ${esc(fmt.name)}</span>${g ? `<span class="tag core">Replay</span>` : ""}
+        <span class="tag">${FORMAT_ICONS[c.format]} ${esc(fmt.name)}</span>${doneToday ? `<span class="tag core">Done today</span>` : g ? `<span class="tag core">Replay</span>` : ""}
         <h2>${esc(c.title)}</h2>
         <p class="subtle">${esc(fmt.tagline)}${g ? ` &middot; best ${g.bestScore}%` : ""}</p>
         <span class="cta">${g ? "Play again" : "Start"} &rarr;</span>
@@ -502,6 +586,9 @@ const MUSCLE_OUTCOMES = {
 
 function progressMessage(muscles, done) {
   if (!done) return "Complete one challenge and this page will show what you are improving.";
+  // One challenge is not a trend. An app that refuses to say "grade yourself" should not
+  // infer a strongest skill from a single attempt either.
+  if (done < 3) return `${done} challenge${done === 1 ? "" : "s"} done. After a few more, this page will name what you are improving.`;
   const practised = muscles.filter((muscle) => muscle.played > 0).sort((a, b) => (b.avgBest || 0) - (a.avgBest || 0));
   const strongest = practised[0];
   if (!strongest) return "You have started building clearer everyday thinking.";
@@ -526,7 +613,7 @@ function progressHTML() {
   <div class="panel">
     <h2>How your thinking is improving</h2>
     <p class="progress-message">${esc(progressCopy)}</p>
-    <p class="subtle">Practice level ${li.level} &middot; ${esc(li.title)}</p>
+    <p class="subtle">Level ${li.level} &middot; ${esc(li.title)}</p>
     <div class="xp-bar"><div class="fill" style="width:${li.pct}%"></div></div>
     <p class="subtle">${li.xpIntoLevel} of ${li.xpForNext} points toward the next level</p>
     ${selfAssessedNoteHTML()}
@@ -534,6 +621,7 @@ function progressHTML() {
 
   <div class="section-head"><h2>Skills you are building</h2><a href="#/gym">Practise</a></div>
   <div class="panel">
+    <p class="subtle" style="margin:0 0 12px">A challenge counts as <b>strong</b> once you have scored 80% or more on it.</p>
     ${muscles.map((t) => `<a class="weak-row" href="#/gym/muscle/${t.id}">
       <span class="name">${muscleIcon(t.id)} ${esc(t.name)}</span>
       <div class="weak-meter" role="progressbar" aria-label="${esc(t.name)}: challenges you have played that are scored at 80 percent or more" aria-valuemin="0" aria-valuemax="${t.played || 1}" aria-valuenow="${t.mastered}"><div class="fill" style="width:${t.pct}%"></div></div>
@@ -592,11 +680,6 @@ function profileHTML() {
     </div>
   </div>
 
-  <div class="stat-strip">
-    <div class="stat"><div class="ico">&#128293;</div><div class="num">${STATE.streak}</div><div class="lbl">Day Streak</div></div>
-    <div class="stat"><div class="ico">&#11088;</div><div class="num">${STATE.totalXp.toLocaleString()}</div><div class="lbl">Total Points</div></div>
-    <div class="stat"><div class="ico">&#127942;</div><div class="num">${done}</div><div class="lbl">Challenges Done</div></div>
-  </div>
 
   ${shieldCardHTML()}
 
@@ -625,6 +708,7 @@ function profileHTML() {
 
   <div class="section-head"><h2>Settings</h2></div>
   <div class="panel">
+    ${!isStandaloneDisplay() ? `<button class="list-row" data-install-app-row><span class="ico">&#128241;</span><span class="label">Get the app<small>Home screen access, no browser bar</small></span><span class="chev">&#8250;</span></button>` : ""}
     <button class="list-row" data-export-progress><span class="ico">&#11015;&#65039;</span><span class="label">Export progress</span><span class="chev">&#8250;</span></button>
     <button class="list-row" data-import-progress><span class="ico">&#11014;&#65039;</span><span class="label">Import progress</span><span class="chev">&#8250;</span></button>
     <button class="list-row" data-export-journal><span class="ico">&#128221;</span><span class="label">Export journal (.md)</span><span class="chev">&#8250;</span></button>
@@ -632,9 +716,39 @@ function profileHTML() {
     <input type="file" id="import-file" accept=".json,application/json" style="display:none" />
   </div>
 
+  ${reminderSettingsHTML()}
+
   ${aiSettingsHTML()}
 
   <p class="subtle" style="text-align:center;margin:14px 0">Everything is stored on this device only.</p>`;
+}
+
+// Daily reminder settings. Opt-in, off by default, in its own localStorage key
+// (reminders.js) — never touches exported progress. Only ever nudges you if
+// you haven't practised yet that day (see isDueNow in reminders.js).
+function reminderSettingsHTML() {
+  const cfg = MTC_REMINDERS.loadConfig();
+  const perm = MTC_REMINDERS.permission();
+  const on = cfg.enabled && perm === "granted";
+  let helpText;
+  if (perm === "unsupported" && isIOSDevice() && !isStandaloneDisplay()) helpText = "Add this app to your Home Screen first to enable reminders on iPhone.";
+  else if (perm === "unsupported") helpText = "Not supported in this browser.";
+  else if (perm === "denied") helpText = "Notifications are blocked — enable them for this site in your browser settings.";
+  else helpText = "Only nudges you if you haven't practised yet that day.";
+
+  return `
+  <div class="section-head"><h2>Daily reminder</h2></div>
+  <div class="panel">
+    <button class="list-row" data-reminder-toggle aria-pressed="${on}" ${perm === "unsupported" ? "disabled" : ""}>
+      <span class="ico">&#128276;</span>
+      <span class="label">Remind me to practise<small>${esc(helpText)}</small></span>
+      <span class="val">${on ? "On" : "Off"}</span>
+    </button>
+    ${on ? `<div class="field" style="padding:14px 16px 16px">
+      <label class="subtle" for="reminder-time">Remind me at</label>
+      <input type="time" id="reminder-time" value="${esc(cfg.time)}" />
+    </div>` : ""}
+  </div>`;
 }
 
 // AI coaching settings. Opt-in, off by default. Kept in its own localStorage key
@@ -889,7 +1003,7 @@ const CASE_TYPE_META = {
   contradiction: { label: "Contradictions", emoji: "⚡" },
   relationship: { label: "Possible relationships", emoji: "\u{1F517}" },
 };
-const CASE_TYPE_ORDER = ["fact", "claim", "assumption", "unknown", "evidence", "contradiction", "relationship"];
+const CASE_TYPE_ORDER = MTC.CASE_ITEM_TYPES;
 const CONFIDENCE_LABELS = { low: "Low", medium: "Medium", high: "High" };
 
 function casesHTML() {
@@ -2186,9 +2300,54 @@ document.addEventListener("click", (e) => {
     }
     return;
   }
+
+  if (e.target.closest("[data-install-app]") || e.target.closest("[data-install-app-row]")) {
+    if (deferredInstallEvent) {
+      deferredInstallEvent.prompt();
+      deferredInstallEvent.userChoice.finally(() => { deferredInstallEvent = null; render(); });
+    } else if (isIOSDevice()) {
+      alert('On iPhone: tap the Share icon, then "Add to Home Screen".');
+    } else {
+      alert('Your browser doesn\'t support installing this app directly. Check your browser\'s menu for "Install app" or "Add to Home Screen".');
+    }
+    return;
+  }
+  if (e.target.closest("[data-dismiss-install]")) {
+    installDismissed = true;
+    try { localStorage.setItem("mtc_install_dismissed_v1", "1"); } catch (err) {}
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-reminder-toggle]")) {
+    const cfg = MTC_REMINDERS.loadConfig();
+    // Match the same condition reminderSettingsHTML() uses to decide what
+    // the row shows ("On" only when enabled AND permission is granted) — a
+    // permission revoked outside the app must not make this button silently
+    // call disable() when the row already reads "Off".
+    const on = cfg.enabled && MTC_REMINDERS.permission() === "granted";
+    if (on) {
+      MTC_REMINDERS.disable();
+      render();
+    } else {
+      MTC_REMINDERS.enable().then((res) => {
+        render();
+        if (res.permission === "denied") alert("Notifications are blocked. Enable them for this site in your browser settings to get reminders.");
+      });
+    }
+    return;
+  }
 });
 
 document.addEventListener("change", (e) => {
+  if (e.target.id === "reminder-time") {
+    MTC_REMINDERS.saveConfig({ time: e.target.value });
+    return;
+  }
+  if (e.target.id === "ai-endpoint") {
+    MTC_AI.saveConfig({ endpoint: e.target.value });
+    return; // fires on blur/commit, not per keystroke
+  }
   if (e.target.id === "gym-area-filter") {
     gymAreaFilter = e.target.value;
     render();
@@ -2292,10 +2451,6 @@ document.addEventListener("input", (e) => {
     if (val) val.textContent = e.target.value;
     return;
   }
-  if (e.target.id === "ai-endpoint") {
-    MTC_AI.saveConfig({ endpoint: e.target.value });
-    return; // no re-render — keep focus in the field while typing
-  }
   // Investigation Mode: keep drafts in caseUI so a re-render never loses typing.
   if (caseUI && caseUI.mode === "new" && ["case-title", "case-problem", "case-context", "case-assessment"].includes(e.target.id)) {
     if (e.target.id === "case-title") caseUI.title = e.target.value;
@@ -2363,4 +2518,6 @@ window.addEventListener("storage", (e) => {
 window.addEventListener("DOMContentLoaded", () => {
   if (!location.hash) location.hash = "#/dashboard";
   render();
+  MTC_REMINDERS.startWatching(() => STATE.lastActiveDate);
+  MTC_REMINDERS.registerPeriodicSync();
 });

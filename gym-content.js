@@ -255,7 +255,7 @@ const MTC_GYM_CHALLENGES = [
       pairs: [
         { prompt: "Decide exactly which signs count as the illness before counting cases", match: "Write down exactly which kind of app failure you are studying, so different problems do not get mixed together" },
         { prompt: "Mark every case on a map and look for a place where many cases gather", match: "Group each failure by phone type, app version, internet connection and country, then look for a shared detail" },
-        { prompt: "The negative cases — brewery workers beside the pump who drank beer and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
+        { prompt: "The negative cases — workers at a nearby brewery, who had their own water supply and rarely drank from the pump, and never fell ill", match: "Hunt hard for users on the same version and device who never crash, and find what they do differently" },
         { prompt: "Homes using more water from the pump had more illness", match: "Check whether people who use the suspected feature more often also see more failures" },
         { prompt: "Close the pump, then watch whether new cases stop", match: "Give the possible fix to a small group and compare its failure rate with everyone else's" },
       ],
@@ -537,6 +537,366 @@ const MTC_GYM_CHALLENGES = [
     debrief: {
       principle: "The written terms of a deal may not show what each side truly wants. One side may value money. The other may value trust, access or being treated as an equal. A useful deal can exchange things the two sides value differently.",
       whereItMisleads: "This idea can be used to excuse a bad deal. Before agreeing, name the less visible gain you expect. Also decide how and when you will check whether you received it.",
+    },
+  },
+  {
+    id: "gym-map-15", format: "map", muscle: "notice", difficulty: 2, xpBase: 60,
+    title: "How a Bird's Trick Explains a Scam Text",
+    scenario: "A scam text claims your parcel could not be delivered and asks you to pay a small re-delivery fee through a link. Use the way a plover protects its nest to see how the message works.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "cognitive-bias-detection"],
+    emoji: "🐦",
+    hint: "The bird's trick works by giving the predator something more urgent to look at than the real target. Find the same shape in the text.",
+    payload: {
+      sourceDomain: "How a plover protects its nest from a predator",
+      targetDomain: "How a delivery scam text gets you to act",
+      pairs: [
+        { prompt: "The bird fakes a broken wing right where the predator can see it", match: "The text puts a fake, urgent problem right in front of you — a parcel you are not expecting" },
+        { prompt: "It drags the wing further away, always staying just out of reach", match: "The link keeps you moving toward payment one small step at a time, never giving you a moment to stop" },
+        { prompt: "The display only works if the predator's attention leaves the real nest", match: "The message only works if your attention leaves the one check that would reveal it — calling the courier directly" },
+        { prompt: "Once the predator is far enough away, the bird suddenly flies off, unharmed", match: "Once you have paid, the page disappears and there is no parcel and no delivery company to contact" },
+      ],
+      decoys: [
+        "Report the message to your phone's spam filter before doing anything else",
+        "Ask a friend if they got the same text",
+      ],
+      misleads: {
+        question: "Where does the bird comparison mislead you?",
+        options: [
+          "A plover chooses distraction because it cannot fight a predator; a scam text chooses distraction because a direct lie would be checked immediately — the two are avoiding different things",
+          "The plover has no equivalent of the text's fake sense of urgency, since birds do not create false deadlines",
+          "The predator eventually learns the trick from experience, but a new batch of scam recipients has not, so the message keeps working long after any one person catches on",
+          "Both tricks work only once against a given target",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "A distraction works by giving you something more urgent, and closer, to react to than the one thing that would expose it. Whenever a message manufactures urgency, ask what it is pulling your attention away from.",
+      whereItMisleads: "The bird only risks time; you risk money and details you cannot get back. Treat any urgent, unexpected message as a reason to check through a channel you already trust, not through anything the message itself provides.",
+    },
+  },
+  {
+    id: "gym-map-16", format: "map", muscle: "notice", difficulty: 1, xpBase: 60,
+    title: "What a Lifeguard's Scan Can Teach a Shop Floor",
+    scenario: "A small shop has had things go missing and, separately, a customer nearly slipped on a wet floor nobody noticed in time. One worker covers the whole floor. Use the way lifeguards scan a crowded pool to build a better habit.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "situational-awareness"],
+    emoji: "🏊",
+    hint: "A lifeguard does not stare at one point. Look for what makes their scan cover everything without missing the moment something changes.",
+    payload: {
+      sourceDomain: "How a lifeguard scans a crowded pool",
+      targetDomain: "How a lone shop worker watches the floor",
+      pairs: [
+        { prompt: "Sweep the whole area in a repeating pattern, a few seconds per section, rather than watching one spot", match: "Walk a short loop past the aisles and till on a set rhythm, instead of staying behind the counter" },
+        { prompt: "Count heads, so a missing swimmer is noticed within the sweep, not by accident", match: "Notice which aisles have a customer in them, so an aisle that empties suddenly stands out" },
+        { prompt: "Watch behaviour more than appearance — a swimmer moving oddly matters more than how they look", match: "Watch what people do with their hands and bags more than how they are dressed" },
+        { prompt: "Treat any obstruction to the view, like glare on the water, as something to fix immediately", match: "Treat a spill, a fallen sign or a blocked sightline as something to fix immediately, not at the end of the shift" },
+      ],
+      decoys: [
+        "Install a mirror in the corner of the shop",
+        "Ask customers to leave bags at the counter",
+      ],
+      misleads: {
+        question: "Where does the lifeguard comparison mislead you?",
+        options: [
+          "A lifeguard's whole job is watching; a shop worker also has to serve customers and work the till, so the scan has to fit around interruptions",
+          "A pool has no equivalent of a till, so the comparison breaks down completely",
+          "A lifeguard is trained to expect one kind of emergency; a shop worker has to watch for very different risks at once — theft, hazards, and customers needing help — which a single scanning habit cannot fully replace",
+          "Shop customers cannot hide what they are doing, so scanning teaches nothing useful here",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "A repeating, rhythmic scan beats staring at one place, because it guarantees every part of the space gets looked at often enough for a change to be caught quickly.",
+      whereItMisleads: "Watching is a lifeguard's only job; it is one of several for a shop worker. The scan has to survive being interrupted by a customer, or it will quietly stop happening.",
+    },
+  },
+  {
+    id: "gym-map-17", format: "map", muscle: "judge", difficulty: 2, xpBase: 60,
+    title: "What a Blind Taste Test Can Teach You About Judging a Claim",
+    scenario: "A colleague forwards a strong opinion about a new supplier, written by someone senior you respect. You have not checked the supplier yourself. Use the way tasters judge food without knowing the brand to judge the claim fairly.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "critical-thinking"],
+    emoji: "🍽️",
+    hint: "The point of the blind test is not that the taster's opinion does not matter — it is that knowing the brand changes the opinion before the tasting even starts.",
+    payload: {
+      sourceDomain: "How a blind taste test is judged",
+      targetDomain: "How to judge a strong opinion from someone you respect",
+      pairs: [
+        { prompt: "Hide the brand so the taster's opinion of the company cannot leak into the taste", match: "Read the claim's actual evidence first, before you notice or recall who wrote it" },
+        { prompt: "Score each sample on the same fixed criteria, not on a general impression", match: "Judge the supplier claim against your own checklist — cost, reliability, past record — not a general feeling" },
+        { prompt: "Use several tasters, since one palate can be an outlier", match: "Check whether anyone else, especially someone with no reason to agree, reaches the same conclusion" },
+        { prompt: "Repeat the tasting on a different day to catch a one-off mood or context", match: "Ask whether the colleague's opinion would survive being reviewed on a normal day, not right after one bad or good delivery" },
+      ],
+      decoys: [
+        "Ask the supplier directly for references",
+        "Compare the supplier's prices to two competitors",
+      ],
+      misleads: {
+        question: "Where does the blind-taste comparison mislead you?",
+        options: [
+          "A taster's reputation is not at risk the way a senior colleague's professional judgement is, so they have different reasons to be careful in the first place",
+          "Food has no equivalent of a written claim, so nothing here really transfers",
+          "A blind test removes only one kind of bias — the brand. A colleague's opinion can carry several other biases blind testing was never built to catch, like loyalty to whoever proposed the supplier",
+          "Taste is subjective, so a blind test proves nothing either",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Separate the strength of an opinion from the standing of the person holding it. Check the evidence on its own criteria before you let a trusted name attach itself to the conclusion.",
+      whereItMisleads: "Removing one source of bias does not remove them all. A colleague you respect can still be right, wrong, or simply closer to the decision than you — the blind-test habit only guards against one specific failure.",
+    },
+  },
+  {
+    id: "gym-map-18", format: "map", muscle: "judge", difficulty: 2, xpBase: 60,
+    title: "How a Jury's Method Applies to Conflicting Reviews",
+    scenario: "You are choosing a tradesperson. Online reviews contradict each other: some call the same person excellent, others call them unreliable. Use how a jury weighs conflicting witnesses to decide who to trust.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "base-rates"],
+    emoji: "⚖️",
+    hint: "A jury does not just count how many witnesses said what. Look at what makes one account more trustworthy than another.",
+    payload: {
+      sourceDomain: "How a jury weighs conflicting witness accounts",
+      targetDomain: "How to weigh conflicting online reviews",
+      pairs: [
+        { prompt: "Check whether a witness had a clear, close view of what happened, not just an opinion about it", match: "Check whether a review describes specific, checkable details of the actual job, not just a general star rating" },
+        { prompt: "Notice whether a witness has a reason to favour one side", match: "Notice whether a review looks like it was left by a competitor, or in exchange for a discount" },
+        { prompt: "Give more weight to accounts that agree on specific details, even if they disagree on the overall impression", match: "Look for the same specific detail — lateness, tidiness, price surprises — repeating across several unrelated reviews" },
+        { prompt: "Treat a single vivid, emotional account with caution until it is checked against the pattern", match: "Treat one extremely angry or glowing review with caution until you see whether the pattern of other reviews supports it" },
+      ],
+      decoys: [
+        "Message the tradesperson and ask about the bad reviews directly",
+        "Only trust reviews with photos attached",
+      ],
+      misleads: {
+        question: "Where does the jury comparison mislead you?",
+        options: [
+          "A jury can cross-examine a witness directly; you usually cannot question a reviewer, so you are working with less information than the analogy assumes",
+          "Reviews have no equivalent of a witness's motive, so this whole comparison fails",
+          "A jury judges one specific event; reviews are spread across many different jobs and years, so disagreement can mean the standard changed over time rather than that someone is lying",
+          "Star ratings are numbers, so they cannot be biased the way a witness account can",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Weigh the specificity and independence of an account more than its emotional pitch. Details that repeat across unrelated sources carry more evidence than one strong impression.",
+      whereItMisleads: "You cannot cross-examine a review, and a business's standard can genuinely change over time. A pattern across many reviews is still your best evidence — a single account, however vivid, is not.",
+    },
+  },
+  {
+    id: "gym-map-19", format: "map", muscle: "prioritise", difficulty: 2, xpBase: 60,
+    title: "What Air Traffic Control Can Teach a Chaotic Morning",
+    scenario: "Getting two children ready and out of the door on time keeps going wrong — something is always forgotten or someone is in tears. Use how air traffic control sequences landings to fix the order of the morning.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "prioritisation"],
+    emoji: "🛫",
+    hint: "A controller does not treat every plane as equally urgent. Some genuinely cannot wait; others have slack built in. Sort the morning's tasks the same way.",
+    payload: {
+      sourceDomain: "How air traffic control sequences landings",
+      targetDomain: "How to sequence a chaotic school morning",
+      pairs: [
+        { prompt: "Land the plane lowest on fuel first, whatever order it arrived in", match: "Do the task with the least slack first — the one that cannot be delayed even a few minutes, like a packed lunch that must be made before the fridge is emptied" },
+        { prompt: "Hold planes with plenty of fuel in a pattern, out of the way, until their turn", match: "Set out low-urgency items — bags, shoes — the night before, so they are not competing for morning attention" },
+        { prompt: "Give one controller a clear view of every plane in the queue at once", match: "Keep one visible list on the wall, instead of everyone tracking the morning in their own head" },
+        { prompt: "Reserve a small amount of runway time for something unexpected, since it always happens", match: "Build five spare minutes into the plan for the thing that always goes wrong, rather than a schedule with no slack at all" },
+      ],
+      decoys: [
+        "Wake everyone up fifteen minutes earlier",
+        "Buy a second alarm clock",
+      ],
+      misleads: {
+        question: "Where does the air-traffic comparison mislead you?",
+        options: [
+          "A controller is not also doing the tasks themselves; a parent is both the controller and every plane, so attention is split in a way the analogy does not capture",
+          "Planes have no equivalent of a child's mood, so nothing about waiting or urgency really transfers",
+          "Air traffic control can turn planes away or delay them; a school morning has a hard deadline that cannot simply be pushed, so the margin for error is smaller in one direction",
+          "There is no such thing as an unexpected event in a well-run control tower",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Sequence tasks by how much slack each one has, not by the order they occur to you. What cannot wait goes first; what can wait gets moved out of the morning entirely.",
+      whereItMisleads: "A controller only directs traffic; a parent is also flying one of the planes. And a school run has a fixed deadline a tower rarely faces — the sequencing helps, but it cannot manufacture time that genuinely is not there.",
+    },
+  },
+  {
+    id: "gym-map-20", format: "map", muscle: "prioritise", difficulty: 2, xpBase: 60,
+    title: "How a Firefighter's Call Applies to a Full Job List",
+    scenario: "A self-employed plumber has four call-outs booked for one afternoon and can only reach three. Use how a firefighter decides where to commit first to choose which jobs to take.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "risk-assessment"],
+    emoji: "🚒",
+    hint: "A firefighter is not choosing the biggest fire. They are weighing danger to people against how much worse things get if nobody comes at all.",
+    payload: {
+      sourceDomain: "How a firefighter decides which building to commit to first",
+      targetDomain: "How to choose which job to take first from a full afternoon",
+      pairs: [
+        { prompt: "Ask first whether anyone is in immediate danger, before anything else", match: "Ask first whether anyone has no water or heat, before anything else" },
+        { prompt: "Ask how fast the situation is getting worse if nobody acts", match: "Ask which leak is actively getting worse, versus one that has been stable for days" },
+        { prompt: "Check whether the people affected have anywhere else to go in the meantime", match: "Check whether the customer has a plumber they could call instead, or a simple workaround until tomorrow" },
+        { prompt: "Accept that one call will not be reached today, and say so clearly rather than promising everything", match: "Call the fourth customer now to say tomorrow, rather than letting them wait and find out this evening" },
+      ],
+      decoys: [
+        "Take the jobs in the order they were booked",
+        "Take the highest-paying job first",
+      ],
+      misleads: {
+        question: "Where does the firefighter comparison mislead you?",
+        options: [
+          "A firefighter's choices are about safety, and a plumber's are usually about comfort and cost, so the two are not actually equally urgent",
+          "Buildings have no equivalent of a paying customer, so the comparison fails immediately",
+          "A fire service can call for backup from another crew; a sole trader genuinely cannot be in two places, so the fourth customer's disappointment is a real cost with no equivalent fix",
+          "There is never a genuine emergency in plumbing",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Rank by how fast things worsen without you, and by whether the other person has any alternative — not by who asked first or who pays most.",
+      whereItMisleads: "A fire service can call in another crew; most tradespeople cannot. Telling someone early that you cannot come is itself part of the job, not a failure of it.",
+    },
+  },
+  {
+    id: "gym-map-21", format: "map", muscle: "question", difficulty: 2, xpBase: 60,
+    title: "What Checking an Alibi Teaches You About a Job Offer",
+    scenario: "A message offers a well-paid job: work from home, flexible hours, start immediately, no interview needed. Use how a detective checks an alibi to work out what to ask before replying.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "root-cause-analysis"],
+    emoji: "🕵️",
+    hint: "A detective does not ask 'is this true?' straight out. They ask questions the story would have to survive if it were true — and see whether it does.",
+    payload: {
+      sourceDomain: "How a detective checks whether an alibi holds up",
+      targetDomain: "How to question a job offer before replying",
+      pairs: [
+        { prompt: "Ask for a detail only someone genuinely there would know", match: "Ask which specific tasks the job involves day to day, not just the job title" },
+        { prompt: "Check the story against an independent record, not just the person's own word", match: "Search for the company by name plus the word 'reviews' or 'scam', separately from anything the message itself provides" },
+        { prompt: "Notice if the story changes slightly when asked a second time", match: "Ask the same question two different ways and see if the answers still line up" },
+        { prompt: "Ask why now — why does this story need to be believed today, without time to check it?", match: "Ask why the role must be accepted immediately, with no interview and no time to think it over" },
+      ],
+      decoys: [
+        "Accept the job and quit if it turns out to be false",
+        "Ask a friend if they have heard of the company",
+      ],
+      misleads: {
+        question: "Where does the detective comparison mislead you?",
+        options: [
+          "A detective usually has other evidence to cross-check against; you may be starting with only the message itself, so some checks the analogy assumes are simply unavailable to you",
+          "Alibis have no equivalent of a job title, so nothing here really transfers",
+          "A false alibi is tested against a known crime; a fake job offer is designed so nothing looks wrong until money has already been sent, so 'it looks fine so far' is weaker evidence than it would be for a detective",
+          "Genuine jobs never move quickly, so speed alone proves this one is fake",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Test the story against something independent of the story itself, and notice when it resists the one thing that would actually confirm or break it — like time to think, or an interview.",
+      whereItMisleads: "You often lack the independent evidence a detective would have. When you cannot verify a claim directly, treat pressure to act immediately as itself a reason for suspicion, not just a feature of a fast-moving opportunity.",
+    },
+  },
+  {
+    id: "gym-map-22", format: "map", muscle: "question", difficulty: 2, xpBase: 60,
+    title: "How an Auditor's Method Applies to Buying a Used Car",
+    scenario: "A secondhand car looks well cared for and is priced fairly. The seller says it has had one careful owner. Use how an auditor checks a company's accounts to decide what to verify before buying.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "questioning"],
+    emoji: "🚗",
+    hint: "An auditor does not accept the numbers because they look tidy. They trace a sample of claims back to an independent source.",
+    payload: {
+      sourceDomain: "How an auditor checks a company's accounts",
+      targetDomain: "How to check a secondhand car before buying",
+      pairs: [
+        { prompt: "Pick a sample of claims in the books and trace each one back to an independent document", match: "Take the registration number and check it against an independent vehicle history service, not just the seller's word" },
+        { prompt: "Compare this year's figures against last year's for anything that changed without explanation", match: "Compare the mileage on the odometer against the mileage recorded at the last few services" },
+        { prompt: "Ask who else has reviewed these figures before you", match: "Ask whether an independent mechanic can inspect the car before you commit to buying" },
+        { prompt: "Treat a set of books that looks unusually tidy as worth a second look, not automatically a good sign", match: "Treat a story that is unusually complete and reassuring as worth a second look, not automatically a good sign" },
+      ],
+      decoys: [
+        "Ask the seller for the original purchase receipt",
+        "Negotiate a lower price to cover any hidden problems",
+      ],
+      misleads: {
+        question: "Where does the auditor comparison mislead you?",
+        options: [
+          "An auditor has the standing to demand records and the time to do the work properly; a private buyer usually has neither, so fewer of these checks may be realistically available",
+          "Cars have no equivalent of a balance sheet, so nothing here really transfers",
+          "An auditor checks a business that expects to be checked again next year; a one-off private sale has no such repeat relationship, so there is less to stop a seller taking a shortcut with the truth",
+          "A tidy service history always means a car has no problems",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Trust the parts of a story you can trace to an independent record over the parts that are simply told to you well. A single independent check, like a history service or a mechanic's inspection, is worth more than a reassuring account.",
+      whereItMisleads: "You lack an auditor's formal access and time, and a private seller has none of a business's reason to expect future scrutiny. Use the few independent checks you do have — they carry more weight here than they would for a company being audited every year regardless.",
+    },
+  },
+  {
+    id: "gym-map-23", format: "map", muscle: "adapt", difficulty: 2, xpBase: 60,
+    title: "What Adjusting Sails Teaches a Business About a Cost Spike",
+    scenario: "A small bakery's flour supplier suddenly raises prices by 30%. The bakery's usual prices no longer cover costs. Use how a sailor responds to a sudden wind shift to decide what to change.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "second-order-thinking"],
+    emoji: "⛵",
+    hint: "A sailor does not fight the new wind by holding the old course. Look for what actually needs to change, and what can stay the same.",
+    payload: {
+      sourceDomain: "How a sailor responds to a sudden shift in the wind",
+      targetDomain: "How a small bakery responds to a sudden rise in ingredient costs",
+      pairs: [
+        { prompt: "Check the new wind direction before touching anything, rather than guessing", match: "Check the actual new cost per loaf before changing any price, rather than guessing at a round number" },
+        { prompt: "Adjust the sail's angle to the new wind — the destination has not changed, only the route to it", match: "Adjust prices or portion sizes to the new cost — the goal of covering costs and staying open has not changed" },
+        { prompt: "Watch for a further shift, since one change in the wind is not a promise there will not be another", match: "Watch the supplier's prices over the following weeks, since one rise is not a promise there will not be another" },
+        { prompt: "Decide in advance how much correction is too much and would mean turning back", match: "Decide in advance what price rise customers clearly will not accept, and what the fallback plan is if that point is reached" },
+      ],
+      decoys: [
+        "Wait a month to see if the price comes back down",
+        "Switch to the cheapest possible supplier immediately",
+      ],
+      misleads: {
+        question: "Where does the sailing comparison mislead you?",
+        options: [
+          "A sailor can adjust instantly; a bakery has existing prices printed, promises made to regular customers, and a reputation, so the same correction has social costs a sail does not",
+          "Wind has no equivalent of a supplier relationship, so nothing here really transfers",
+          "A sudden wind shift is usually temporary; a cost rise from a supplier is more often a new normal, so treating it as a one-off gust risks under-correcting",
+          "There is no way to prepare for a wind shift in advance",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "Separate what changed (the cost) from what did not (the goal of staying in business). Adjust the smallest thing that restores balance, and check whether the change is a one-off or the new normal before committing further.",
+      whereItMisleads: "A sail has no customers to disappoint and no reputation to protect. A price change that would be trivial for a boat can cost a bakery real trust — factor that into how much and how fast you correct.",
+    },
+  },
+  {
+    id: "gym-map-24", format: "map", muscle: "adapt", difficulty: 1, xpBase: 60,
+    title: "What a River Teaches a Blocked Project",
+    scenario: "A small team's project depends on another team finishing their part first. That team is now three weeks late with no clear end date. Use how a river responds to a fallen tree to find a way forward.",
+    frameworks: ["lateral-thinking", "creative-problem-solving", "adaptation"],
+    emoji: "🌊",
+    hint: "A river does not stop and wait for the tree to move. Look at what it does instead, and what stays true no matter which path it takes.",
+    payload: {
+      sourceDomain: "How a river responds to a fallen tree blocking its path",
+      targetDomain: "How a project team responds to a blocked dependency",
+      pairs: [
+        { prompt: "Keep flowing toward the same lower ground, just not through the blocked channel", match: "Keep working toward the same overall deadline, just not through the blocked task first" },
+        { prompt: "Find the smaller gaps around the obstacle that can carry some flow immediately", match: "Find the smaller parts of the project that do not depend on the other team, and start those now" },
+        { prompt: "Build up pressure behind the blockage that will eventually find or force a way through", match: "Keep a visible record of what is being blocked and for how long, so there is pressure and evidence when it is time to escalate" },
+        { prompt: "Never fully stop moving, even while working around the obstacle", match: "Keep the team doing useful work, even if it is not the most valuable work, rather than sitting idle" },
+      ],
+      decoys: [
+        "Wait for the other team without doing anything else",
+        "Redo the other team's part yourself without telling anyone",
+      ],
+      misleads: {
+        question: "Where does the river comparison mislead you?",
+        options: [
+          "A river has no deadline and no stakeholder to disappoint; a project team's rerouting still has to end at the same date, which limits how far it can wander",
+          "Trees have no equivalent of a missed deadline, so nothing here really transfers",
+          "A river eventually erodes or moves the obstacle itself; a project team usually cannot fix the other team's delay by working around it — the blockage still needs to be resolved by someone",
+          "There is always a way around any blocked dependency",
+        ],
+        answers: [0, 2],
+      },
+    },
+    debrief: {
+      principle: "When one path is blocked, keep moving toward the same goal through whatever is not blocked, while making the blockage visible rather than absorbing it silently.",
+      whereItMisleads: "A river has nowhere it needs to be by a certain date, and it can wear the obstacle away given enough time. A project usually cannot — working around a blocked dependency buys time, but someone still has to resolve it.",
     },
   },
 
@@ -1710,6 +2070,31 @@ const MTC_GYM_CHALLENGES = [
       whereItMisleads: "Three funded competitors pivoting away is the item most founders reframe as an opportunity. Sometimes it is: they may have been early, or wrong. But you have to name what you know that they discovered and dismissed, and 'we care more' is not an answer.",
     },
   },
+  {
+    id: "gym-signal-29", format: "signal", muscle: "notice", difficulty: 2, xpBase: 50,
+    title: "Is This Symptom Worth Tracking?",
+    scenario: "A small online shop's weekly sales are steady, but three unrelated customers this week mentioned the checkout page felt slow. Sort each fact by whether it supports treating this as an early warning worth tracking, or as noise.",
+    frameworks: ["systems-thinking", "signal-noise", "pattern-recognition"],
+    emoji: "📉",
+    hint: "A single complaint can be one unlucky customer. Look for what would tell you this is a pattern building, not a coincidence.",
+    payload: {
+      claim: "Slow checkout complaints are an early warning worth tracking, not just noise.",
+      evidence: [
+        { text: "All three customers mentioned checkout specifically, not the site in general", bucket: "supports" },
+        { text: "The complaints came in the same week, after weeks with none", bucket: "supports" },
+        { text: "Site traffic has grown 20% over the same month, which can slow shared systems before anything visibly breaks", bucket: "supports" },
+        { text: "Two of the three customers were using an unusually old phone or browser", bucket: "undermines" },
+        { text: "Checkout completion rate this week is the same as every other week", bucket: "undermines" },
+        { text: "The shop's homepage uses a bright colour scheme", bucket: "irrelevant" },
+        { text: "One of the three customers mentioned it while also praising the product", bucket: "irrelevant" },
+      ],
+      fairnessNote: "Everything needed to weigh this is on the card. No technical background is required.",
+    },
+    debrief: {
+      principle: "A handful of complaints becomes worth tracking when they point at the same specific part of the system and coincide with a plausible cause, like rising load. That is different from a shared, unrelated trait among the people complaining.",
+      whereItMisleads: "A steady completion rate is real evidence against a current problem, not proof there will never be one. Growing load can slow a system gradually before any single number clearly breaks — that is exactly the gap an early, specific, repeated complaint is useful for catching.",
+    },
+  },
 
   /* ---------------- WORK IT OUT ---------------- */
   {
@@ -1943,7 +2328,7 @@ const MTC_GYM_CHALLENGES = [
   },
   {
     id: "gym-workout-5", format: "workout", muscle: "question", difficulty: 3, xpBase: 50,
-    title: "Four Cards, Then Four Drinkers",
+    title: "Four Cards, Then Four Riders",
     scenario: "Four cards lie on a table showing 3, 8, red and blue. Each has a number on one side and a colour on the other. The rule: if a card shows an even number, its other side is red.",
     frameworks: ["deductive-reasoning", "cognitive-bias-detection", "critical-thinking"],
     emoji: "🃏",
@@ -1974,18 +2359,18 @@ const MTC_GYM_CHALLENGES = [
           because: "“Even implies red” says nothing about what may sit behind a red face. An odd number behind red breaks no rule — which is exactly why the card is uninformative.",
         },
         {
-          ask: "Now the same logic in a bar: someone drinking beer, someone drinking cola, a 17-year-old and a 23-year-old. The rule is that drinking alcohol requires being over 18. Whom must you check?",
+          ask: "Now the same logic at a fairground: someone riding the go-karts, someone riding the carousel, a 9-year-old and a 15-year-old. The rule is that riding the go-karts requires being at least 12. Whom must you check?",
           options: [
-            "The beer drinker's age and the 17-year-old's drink",
-            "The beer drinker's age and the 23-year-old's drink",
-            "The 17-year-old's drink and the cola drinker's age",
+            "The go-kart rider's age and the 9-year-old's ride",
+            "The go-kart rider's age and the 15-year-old's ride",
+            "The 9-year-old's ride and the carousel rider's age",
             "All four, since any of them could be breaking the rule",
           ],
           answer: 0,
-          because: "Structurally identical to the cards: beer is the “even number” and being under 18 is the “not red”. The 23-year-old may drink anything and the cola drinker may be any age.",
+          because: "Structurally identical to the cards: riding the go-karts is the “even number” and being under 12 is the “not red”. The 15-year-old may ride anything and the carousel rider may be any age.",
         },
         {
-          ask: "Most people find the bar version easy and the card version hard. What does that show?",
+          ask: "Most people find the fairground version easy and the card version hard. What does that show?",
           options: [
             "The mind hunts rule-breakers readily when the frame is social, and drifts to seeking confirmation when it is abstract",
             "The bar version is logically simpler than the card version",
@@ -2563,6 +2948,67 @@ const MTC_GYM_CHALLENGES = [
     debrief: {
       principle: "Imagining failure helps only when you can check the possible cause now. Sort worries into facts you can test and things nobody can know yet. Then turn the testable worries into clear questions before making the choice.",
       whereItMisleads: "The unknowable risks are not unimportant, they are just not answerable by more scrutiny of this candidate. They belong in the design of the role — a shorter first mandate, a handover plan — rather than in the hiring decision, and they are the ones a panel will happily discuss all afternoon instead of making the reference call.",
+    },
+  },
+  {
+    id: "gym-workout-30", format: "workout", muscle: "notice", difficulty: 2, xpBase: 50,
+    title: "The Warning Sign That Made the Queue Worse",
+    scenario: "A shop puts up a sign reading 'Busy — expect a wait' by the door to manage expectations. Since the sign went up, the queue has been consistently longer, not shorter. Work out what is happening, one step at a time.",
+    frameworks: ["systems-thinking", "feedback-loops", "critical-thinking"],
+    emoji: "🔁",
+    hint: "Ask what the sign itself changes about people's behaviour, not just what it tells them.",
+    payload: {
+      problem: "Work out why a sign meant to manage a queue made it longer.",
+      steps: [
+        {
+          ask: "What is the most useful first question?",
+          options: [
+            "What does the sign cause people to do, not just what it tells them",
+            "How big should the sign be so more people read it",
+            "Should the sign be removed immediately",
+            "Is the queue actually a real problem",
+          ],
+          answer: 0,
+          because: "The content of the sign is not the issue — its effect on behaviour is. That effect is what needs tracing before anything else.",
+        },
+        {
+          ask: "New customers see the sign and a long queue at the door. What is a likely effect?",
+          options: [
+            "Some slow down or stop to look, curious about why it is busy, which itself blocks the doorway",
+            "All of them decide not to enter at all",
+            "None of them notice the sign",
+            "They all queue faster to get through sooner",
+          ],
+          answer: 0,
+          because: "A busy scene itself draws attention. People slowing to look, even briefly, adds to the very blockage the sign was meant to manage.",
+        },
+        {
+          ask: "Regular customers also see the sign each day. What is a likely effect over time?",
+          options: [
+            "Some start arriving earlier to beat the expected queue, which shifts the busy period earlier without shortening it",
+            "They stop coming to the shop altogether",
+            "They ignore the sign completely with no effect",
+            "They start using a different door",
+          ],
+          answer: 0,
+          because: "If regulars arrive earlier to avoid a queue, the busy period simply shifts forward — the underlying flow of people has not reduced.",
+        },
+        {
+          ask: "What does this suggest about the sign as a fix?",
+          options: [
+            "The sign is part of the system it is trying to describe, and can change the very thing it reports on",
+            "The sign is completely unrelated to the queue length",
+            "The sign should say 'expect a longer wait' instead",
+            "The problem has nothing to do with the sign at all",
+          ],
+          answer: 0,
+          because: "A sign that reports on a queue also acts on the people reading it. Treating it as a neutral, one-way report misses that it is part of the loop it is trying to manage.",
+        },
+      ],
+    },
+    debrief: {
+      principle: "A warning about a system can become part of that system, changing the very behaviour it was meant to only describe. Before adding a fix, ask what the fix itself will cause people to do.",
+      whereItMisleads: "Not every warning backfires — sometimes a sign genuinely reduces frustration with no side effect. The habit worth keeping is checking for a loop, not assuming every sign is safe or every sign is harmful.",
     },
   },
 
@@ -4367,7 +4813,7 @@ const MTC_GYM_CHALLENGES = [
       problem: "Act safely without assuming that the drink was definitely changed.",
       steps: [
         { ask: "What can you honestly conclude?", options: ["I cannot know whether it was touched, so I should treat the uncertainty seriously", "The glass looks exactly as it did, so nothing has been added to it", "Nobody I do not know was standing near the table while I was away", "It was only a short time, so nobody would have had a real opportunity to do anything"], answer: 0, because: "Appearance cannot settle what happened, and uncertainty is not proof of harm. It is enough reason to choose the safer option." },
-        { ask: "What should you do with the drink?", options: ["Do not drink it. Replace it with one you watched being opened or prepared", "Smell it carefully and look for anything unusual before deciding", "Ask whoever was sitting nearby whether they saw anyone approach it", "Leave it and buy another one when you next go to the bar"], answer: 0, because: "Replacing one drink has a small cost. Tasting it cannot safely test for something you may not notice before it affects you." },
+        { ask: "What should you do with the drink?", options: ["Do not drink it. Replace it with one you watched being opened or prepared", "Smell it carefully and look for anything unusual before deciding", "Ask whoever was sitting nearby whether they saw anyone approach it", "Leave it and get another one when you next pass the drinks table"], answer: 0, because: "Replacing one drink has a small cost. Tasting it cannot safely test for something you may not notice before it affects you." },
         { ask: "Who should you tell?", options: ["A trusted friend and the venue staff", "A friend, once you are sure something is actually wrong", "The staff only, so no rumour starts among the people there", "Whoever was closest to the table while you were away"], answer: 0, because: "A trusted person can stay with you, and staff can help replace the drink or watch for a wider problem without making an unsupported accusation." },
         { ask: "You already drank some and suddenly feel unusually unwell. What now?", options: ["Tell someone immediately, seek urgent medical help and do not leave alone or drive", "Find somewhere quiet to sit down for a while and see whether the feeling passes on its own", "Ask a friend to take you home so you can rest properly there", "Drink plenty of water and stay where the staff can see you"], answer: 0, because: "Sudden unusual symptoms need prompt help. Staying with a trusted person and avoiding driving reduces the risk while help is arranged." },
       ],

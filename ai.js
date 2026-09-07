@@ -72,13 +72,14 @@
   // Typed errors so the UI can show the right state (retry vs. configure vs. off).
   function aiError(kind, message) {
     var e = new Error(message || kind);
-    e.aiKind = kind; // unavailable | timeout | network | ratelimit | malformed | server
+    e.aiKind = kind; // disabled | empty | timeout | network | ratelimit | malformed | server
     return e;
   }
 
   function messageForKind(kind) {
     switch (kind) {
-      case "unavailable": return "AI coaching is turned off. Turn it on in Profile → Settings.";
+      case "disabled": return "AI coaching is turned off. Turn it on in Profile → Settings.";
+      case "empty": return "Write something first, then ask the coach.";
       case "timeout": return "The coach took too long to respond. Check your connection and try again.";
       case "network": return "Couldn't reach the coach. Check your connection and try again.";
       case "ratelimit": return "The coach is busy right now. Give it a moment and try again.";
@@ -207,29 +208,16 @@
 
   /* ---------------- Backend provider ---------------- */
 
-  // POST a MINIMAL payload (§17) to the operator's endpoint. Never sends the
-  // player's identity, journal, or progress — only what's needed to coach this
-  // one answer.
-  function backendFeedback(ctx, cfg) {
+  // Shared by backendFeedback/backendCaseHelp: POST a JSON payload, apply the
+  // request timeout, and map transport/HTTP failures onto the same typed
+  // aiKinds either caller expects. Resolves with the parsed JSON body —
+  // picking the right field out of it and validating against the caller's
+  // own schema stays the caller's job, since the two shapes differ.
+  function postToBackend(endpoint, payload) {
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, DEFAULT_TIMEOUT_MS) : null;
 
-    var payload = {
-      exercise: {
-        prompt: ctx.prompt || "",
-        type: ctx.type || "",
-        skill: ctx.skill || "",
-        // Curated grounding for the trained skill — context we control, not RAG.
-        grounding: ctx.grounding || "",
-        // Model answer + rubric are grading context, not the user's data. Sent so
-        // the coach can judge against the intended reasoning, not invent its own.
-        modelAnswer: ctx.modelAnswer || "",
-        rubric: Array.isArray(ctx.rubric) ? ctx.rubric : [],
-      },
-      answer: ctx.answer || "",
-    };
-
-    return fetch(cfg.endpoint, {
+    return fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -242,13 +230,6 @@
           throw aiError("server", "Request failed (" + resp.status + ")");
         }
         return resp.json().catch(function () { throw aiError("malformed", "Response was not JSON"); });
-      })
-      .then(function (data) {
-        // Accept either the bare schema object or { feedback: {...} }.
-        var obj = data && data.feedback ? data.feedback : data;
-        var validated = validateFeedback(obj);
-        validated._provider = "backend";
-        return validated;
       })
       .catch(function (err) {
         if (err && err.aiKind) throw err;
@@ -264,6 +245,33 @@
       });
   }
 
+  // POST a MINIMAL payload (§17) to the operator's endpoint. Never sends the
+  // player's identity, journal, or progress — only what's needed to coach this
+  // one answer.
+  function backendFeedback(ctx, cfg) {
+    var payload = {
+      exercise: {
+        prompt: ctx.prompt || "",
+        type: ctx.type || "",
+        skill: ctx.skill || "",
+        // Curated grounding for the trained skill — context we control, not RAG.
+        grounding: ctx.grounding || "",
+        // Model answer + rubric are grading context, not the user's data. Sent so
+        // the coach can judge against the intended reasoning, not invent its own.
+        modelAnswer: ctx.modelAnswer || "",
+        rubric: Array.isArray(ctx.rubric) ? ctx.rubric : [],
+      },
+      answer: ctx.answer || "",
+    };
+    return postToBackend(cfg.endpoint, payload).then(function (data) {
+      // Accept either the bare schema object or { feedback: {...} }.
+      var obj = data && data.feedback ? data.feedback : data;
+      var validated = validateFeedback(obj);
+      validated._provider = "backend";
+      return validated;
+    });
+  }
+
   /* ---------------- Public entry point ---------------- */
 
   // Returns a Promise resolving to validated §8 feedback (with a `_provider`
@@ -271,17 +279,25 @@
   // loading/error states are identical for both providers.
   function getFeedback(ctx) {
     var cfg = loadConfig();
-    if (!isEnabled(cfg)) return Promise.reject(aiError("unavailable", "AI coaching is off"));
+    if (!isEnabled(cfg)) return Promise.reject(aiError("disabled", "AI coaching is off"));
     if (!ctx || !String(ctx.answer || "").trim()) {
-      return Promise.reject(aiError("unavailable", "Write an answer first"));
+      return Promise.reject(aiError("empty", "Write an answer first"));
     }
     if (activeProvider(cfg) === "backend") return backendFeedback(ctx, cfg);
-    // Local coach: shaped as a Promise, with a tiny delay so loading UI is real.
-    return new Promise(function (resolve) {
+    // Local coach: shaped as a Promise, with a tiny delay so loading UI is
+    // real. A throw inside a setTimeout callback does NOT reject a Promise
+    // whose executor scheduled it — only a synchronous throw would — so any
+    // error from localFeedback is caught explicitly and turned into a
+    // rejection instead of hanging the loading state forever.
+    return new Promise(function (resolve, reject) {
       setTimeout(function () {
-        var fb = localFeedback(ctx);
-        fb._provider = "local";
-        resolve(fb);
+        try {
+          var fb = localFeedback(ctx);
+          fb._provider = "local";
+          resolve(fb);
+        } catch (e) {
+          reject(e);
+        }
       }, 250);
     });
   }
@@ -387,8 +403,6 @@
   }
 
   function backendCaseHelp(kind, ctx, cfg) {
-    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = controller ? setTimeout(function () { controller.abort(); }, DEFAULT_TIMEOUT_MS) : null;
     var payload = {
       task: "case",
       kind: kind,
@@ -400,30 +414,10 @@
         hypotheses: Array.isArray(ctx.hypotheses) ? ctx.hypotheses : [],
       },
     };
-    return fetch(cfg.endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller ? controller.signal : undefined,
-    })
-      .then(function (resp) {
-        if (!resp.ok) {
-          if (resp.status === 429) throw aiError("ratelimit", "Rate limited (429)");
-          if (resp.status >= 500) throw aiError("server", "Server error (" + resp.status + ")");
-          throw aiError("server", "Request failed (" + resp.status + ")");
-        }
-        return resp.json().catch(function () { throw aiError("malformed", "Response was not JSON"); });
-      })
-      .then(function (data) {
-        var obj = data && data.result ? data.result : data;
-        return validateCaseHelp(kind, obj);
-      })
-      .catch(function (err) {
-        if (err && err.aiKind) throw err;
-        if (err && err.name === "AbortError") throw aiError("timeout", "Request timed out");
-        throw aiError("network", (err && err.message) || "Network error");
-      })
-      .then(function (v) { if (timer) clearTimeout(timer); return v; }, function (err) { if (timer) clearTimeout(timer); throw err; });
+    return postToBackend(cfg.endpoint, payload).then(function (data) {
+      var obj = data && data.result ? data.result : data;
+      return validateCaseHelp(kind, obj);
+    });
   }
 
   // Returns a Promise resolving to validated case help for one kind, or a typed
@@ -431,11 +425,17 @@
   function getCaseHelp(kind, ctx) {
     if (CASE_KINDS.indexOf(kind) === -1) return Promise.reject(aiError("malformed", "Unknown kind: " + kind));
     var cfg = loadConfig();
-    if (!isEnabled(cfg)) return Promise.reject(aiError("unavailable", "AI is off"));
-    if (!ctx || !String(ctx.problem || "").trim()) return Promise.reject(aiError("unavailable", "Describe the problem first"));
+    if (!isEnabled(cfg)) return Promise.reject(aiError("disabled", "AI is off"));
+    if (!ctx || !String(ctx.problem || "").trim()) return Promise.reject(aiError("empty", "Describe the problem first"));
     if (activeProvider(cfg) === "backend") return backendCaseHelp(kind, ctx, cfg);
-    return new Promise(function (resolve) {
-      setTimeout(function () { resolve(localCaseHelp(kind, ctx)); }, 250);
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        try {
+          resolve(localCaseHelp(kind, ctx));
+        } catch (e) {
+          reject(e);
+        }
+      }, 250);
     });
   }
 

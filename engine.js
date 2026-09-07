@@ -127,6 +127,20 @@ const MTC = (() => {
 
   function saveState(state) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    mirrorLastActiveDateToIndexedDB(state.lastActiveDate);
+  }
+
+  // Mirrors the one field the daily-reminder service worker needs — "did the
+  // user already practise today" — into IndexedDB, since a service worker
+  // cannot read localStorage. Best-effort and silent: if IndexedDB or
+  // reminders.js isn't around (private browsing, older browsers, or a test
+  // sandbox that only loads engine.js) the reminder feature just degrades to
+  // foreground-only checks; nothing here can fail visibly. Delegates to
+  // reminders.js's own dbPut rather than opening a second connection to the
+  // same "mtc-reminders" store.
+  function mirrorLastActiveDateToIndexedDB(lastActiveDate) {
+    if (typeof MTC_REMINDERS === "undefined" || !MTC_REMINDERS.dbPut) return;
+    MTC_REMINDERS.dbPut("lastActiveDate", lastActiveDate || null).catch(() => {});
   }
 
   function statsView(state) {

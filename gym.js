@@ -67,7 +67,7 @@ const GYM = (() => {
       // stepIdx is the step being worked; picks[i] is what was settled on (null = failed
       // out), tries[i] how many taps it took. Later steps stay hidden so the answer to
       // one cannot be reverse-engineered from the next.
-      return Object.assign(base, { stage: "board", stepIdx: 0, picks: {}, tries: {}, lastWrong: null });
+      return Object.assign(base, { stage: "board", stepIdx: 0, picks: {}, tries: {}, lastWrong: null, stepPick: null });
     }
     return Object.assign(base, { stage: "board", assign: {}, selectedCard: null });
   }
@@ -181,6 +181,25 @@ const GYM = (() => {
         : "That gap is worth noticing: the feeling of being right and being right came apart."}</p>`;
   }
 
+  // Settling a Work It Out step is a deliberate act now, not a side effect of tapping.
+  // Same 10 / 5 / 0 ladder as before.
+  function commitStep(ch) {
+    const i = play.stepIdx;
+    const step = ch.payload.steps[i];
+    const choice = play.stepPick;
+    if (choice === null || choice === undefined) return;
+    play.tries[i] = (play.tries[i] || 0) + 1;
+    if (choice === step.answer || play.tries[i] >= 2) {
+      play.picks[i] = choice;
+      play.lastWrong = null;
+      play.stepIdx++;
+    } else {
+      play.lastWrong = choice;         // first miss: flag it and let them retry for half
+    }
+    play.stepPick = null;
+    if (play.stepIdx >= ch.payload.steps.length) finish(ch);
+  }
+
   function finish(ch) {
     if (play.result) return;
     // Ask once, then score. play.pendingFinish keeps the interaction's own state
@@ -211,7 +230,9 @@ const GYM = (() => {
     study: "Check the full course cost, likely outcome and independent evidence. Compare it with at least one other route before deciding.",
     work: "Write down the facts, your priorities and the specific next step you want. This makes a difficult work conversation easier to handle.",
   };
-  const LIFE_TIP_PRIORITY = ["safety", "scams", "health", "money", "relationships", "home", "study", "work"];
+  // No global ranking here on purpose: ranking areas app-wide meant a hiring challenge
+  // tagged ["work", "study"] closed with the study tip (course fees). The challenge's
+  // own first tag is the one its author considered primary.
   const MODEL_TOMORROW_TIPS = {
     "map-territory": "Before trusting a list, report or plan, check one important detail against what is actually happening.",
     incentives: "When a target produces strange behaviour, ask what it rewards and whether that reward matches the real goal.",
@@ -233,44 +254,57 @@ const GYM = (() => {
     if (ch.payload && ch.payload.creativity) {
       return "When a plan gets stuck, write down the limits first. Create at least two options, then check which one is safe, clear and practical.";
     }
-    const areaTip = LIFE_TIP_PRIORITY
-      .filter((area) => (ch.lifeAreas || []).includes(area))
-      .map((area) => LIFE_TIPS[area])
-      .find(Boolean);
+    const areaTip = (ch.lifeAreas || []).map((area) => LIFE_TIPS[area]).find(Boolean);
     const modelTip = (ch.frameworks || []).map((model) => MODEL_TOMORROW_TIPS[model]).find(Boolean);
     return ch.useTomorrow || modelTip || areaTip || TOMORROW_TIPS[ch.muscle] || "Pause before your next decision, name what you know and choose one fact to check before acting.";
   }
 
   /* ---------- board renderers ---------- */
 
+  // The board used to stack all five slots above a separate Actions panel, which put a
+  // slot and its candidate actions ~750px apart on a phone: every pair cost a scroll
+  // down and a scroll back up. Now solved slots collapse to one line, the box being
+  // worked sits at the top of a sticky action sheet, and both halves of the tap-tap
+  // move are always on screen together.
   function mapBoardHTML(ch) {
     const p = ch.payload;
     const used = Object.values(play.placed);
+    const openIdx = play.selectedSlot !== null
+      ? play.selectedSlot
+      : p.pairs.findIndex((_, i) => !play.placed[i]);
     const slots = p.pairs.map((pair, i) => {
+      if (i === openIdx) return "";
       const filled = play.placed[i];
-      const sel = play.selectedSlot === i;
-      return `<div class="slot-row">
-        <button class="slot ${filled ? "filled" : ""} ${sel ? "selected" : ""}" data-gym-slot="${i}">
-          <span class="slot-prompt">${e(pair.prompt)}</span>
-          <span class="slot-fill">${filled ? e(filled) : "Tap to choose &rarr;"}</span>
-        </button>
-      </div>`;
+      return `<button class="slot-line ${filled ? "done" : ""}" data-gym-slot="${i}">
+        <span class="tick" aria-hidden="true">${filled ? "&#10003;" : "&#9675;"}</span>
+        <span class="slot-line-copy"><b>${e(pair.prompt)}</b>${filled ? `<small>${e(filled)}</small>` : ""}</span>
+        <span class="slot-line-act">${filled ? "Change" : "&#8250;"}</span>
+      </button>`;
     }).join("");
     const cards = play.cards.map((c, i) =>
       `<button class="gcard ${used.includes(c) ? "used" : ""}" data-gym-card="${i}">${e(c)}</button>`).join("");
-    const ready = p.pairs.every((_, i) => play.placed[i]);
+    const placedCount = p.pairs.filter((_, i) => play.placed[i]).length;
+    const left = p.pairs.length - placedCount;
+    const openPair = openIdx >= 0 ? p.pairs[openIdx] : null;
     return `<div class="panel">
       <h2>${e(p.sourceDomain)} &rarr; ${e(p.targetDomain)}</h2>
-      <p class="subtle">${play.selectedSlot === null ? "Tap one idea, then tap the action that does the same job." : "Now tap the action that matches."}</p>
-      ${slots}
-    </div>
-    <div class="panel">
-      <h2>Actions</h2>
-      <p class="subtle">Two of these belong nowhere.</p>
-      <div class="gcards">${cards}</div>
+      <p class="subtle">${placedCount} of ${p.pairs.length} paired. Tap any box to work on it.</p>
+      <div class="slot-list">${slots || `<p class="subtle">Every box is paired &mdash; check your mapping below.</p>`}</div>
     </div>
     ${ideasHTML()}
-    ${actionRowHTML("Check my mapping", ready)}`;
+    <div class="act-sheet">
+      <div class="sheet-grip" aria-hidden="true"></div>
+      ${openPair ? `<div class="sheet-focus">
+        <span class="sheet-focus-label">Box ${openIdx + 1} of ${p.pairs.length}${play.placed[openIdx] ? " &middot; swapping" : ""}</span>
+        <p>${e(openPair.prompt)}</p>
+      </div>` : ""}
+      <div class="sheet-head">
+        <b>${openPair ? "Which action does that job?" : "Everything is paired"}</b>
+        <span class="subtle">${openPair ? `${left} left &middot; 2 belong nowhere` : "Check it below"}</span>
+      </div>
+      <div class="gcards">${cards}</div>
+      ${actionRowHTML("Check my mapping", left === 0, `Pair ${left} more to check`)}
+    </div>`;
   }
 
   function mapMisleadsHTML(ch) {
@@ -308,9 +342,9 @@ const GYM = (() => {
         ? `You found it: <i>${e(p.argument[p.flawIdx])}</i>`
         : `The broken step was: <i>${e(p.argument[p.flawIdx])}</i>`}</p>
       ${optionOrder(p.flawOptions.length, ch.id + ":flaw").map((oi) =>
-        `<button class="opt" data-gym-flaw="${oi}">${e(p.flawOptions[oi])}</button>`).join("")}
+        `<button class="opt ${play.pickedFlaw === oi ? "picked" : ""}" data-gym-flaw="${oi}">${e(p.flawOptions[oi])}</button>`).join("")}
     </div>
-    ${hintRowHTML()}`;
+    ${actionRowHTML("Check my answer", play.pickedFlaw !== null, "Choose one to check")}`;
   }
 
   function chainHTML(ch) {
@@ -404,9 +438,9 @@ const GYM = (() => {
     <div class="panel">
       <h2>${e(p.decision.ask)}</h2>
       ${optionOrder(p.decision.options.length, ch.id + ":dec").map((oi) =>
-        `<button class="opt" data-gym-decide="${oi}">${e(p.decision.options[oi])}</button>`).join("")}
+        `<button class="opt ${play.pickedDecision === oi ? "picked" : ""}" data-gym-decide="${oi}">${e(p.decision.options[oi])}</button>`).join("")}
     </div>
-    ${hintRowHTML()}`;
+    ${actionRowHTML("Check my answer", play.pickedDecision !== null, "Choose one to check")}`;
   }
 
   function triageHTML(ch) {
@@ -457,7 +491,7 @@ const GYM = (() => {
         <h2>${e(step.ask)}</h2>
         ${optionOrder(step.options.length, ch.id + ":step" + play.stepIdx).map((oi) => {
           const wrong = play.lastWrong === oi;
-          return `<button class="opt ${wrong ? "wrong" : ""}" data-gym-step="${oi}">${e(step.options[oi])}</button>`;
+          return `<button class="opt ${wrong ? "wrong" : ""} ${play.stepPick === oi ? "picked" : ""}" data-gym-step="${oi}">${e(step.options[oi])}</button>`;
         }).join("")}
         ${tries >= 1 && play.lastWrong !== null
           ? `<p class="subtle nudge">Not that one &mdash; one more try, for half marks on this step.</p>` : ""}
@@ -471,7 +505,7 @@ const GYM = (() => {
     ${done ? `<div class="panel"><span class="tag">Working</span>${done}</div>` : ""}
     ${live}
     ${ideasHTML()}
-    ${hintRowHTML()}`;
+    ${step ? actionRowHTML("Lock in this step", play.stepPick !== null, "Choose one to continue") : hintRowHTML()}`;
   }
 
   // the reference's free-text box: optional, never graded, saved to the journal
@@ -493,14 +527,18 @@ const GYM = (() => {
       : `<div class="field"><button class="btn ghost" data-gym-hint>&#128161; Hint (costs 10%)</button></div>`;
   }
 
-  function actionRowHTML(label, ready) {
+  // A faded gradient button rendered its white label at ~1.9:1 against the page: the one
+  // control that tells a new player what the goal is was the least readable thing on
+  // screen. Disabled is now a ghost with full-opacity ink (see .btn[disabled]), and the
+  // label says what is still missing rather than repeating the goal.
+  function actionRowHTML(label, ready, waiting) {
     const ch = current();
     const hint = ch.hint && !play.hintShown
       ? `<button class="btn secondary" data-gym-hint>&#128161; Hint</button>`
       : "";
     return `${play.hintShown && ch.hint ? `<div class="hint-box">${e(ch.hint)}</div>` : ""}
       <div class="action-row">${hint}
-        <button class="btn" data-gym-check ${ready ? "" : "disabled"}>${label}</button>
+        <button class="btn" data-gym-check ${ready ? "" : "disabled"}>${ready || !waiting ? label : waiting}</button>
       </div>`;
   }
 
@@ -711,16 +749,34 @@ const GYM = (() => {
           <div class="row"><span>${e(fmt.name)}</span><span>${idx + 1} of ${session.length}</span></div>
           <div class="progress"><div class="fill" style="width:${Math.round(((idx + (play.result ? 1 : 0)) / session.length) * 100)}%"></div></div>
         </div>` : "";
-    const header = `${progress}
+    // Once you have played this format its rules are a fold, not four lines of prose
+    // above the fold; on the result screen the whole setup folds away so the score is
+    // the first thing you see instead of the last.
+    const seenFormat = Object.keys(STATE.gym || {}).some((id) => {
+      if (id === ch.id) return false;
+      const other = MTC.getGymChallenge(id);
+      return other && other.format === ch.format;
+    });
+    const badge = ch.emoji || (typeof muscleIcon === "function" ? muscleIcon(ch.muscle) : "\u{1F9E0}");
+    const titleBlock = `<div class="head">
+          <div class="emoji-badge">${badge}</div>
+          <div><h2 class="page-title">${e(ch.title)}</h2><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
+        </div>`;
+    const header = play.result
+      ? `${progress}
+      <div class="challenge-card compact">
+        ${titleBlock}
+        <details class="fold"><summary>Read the setup again</summary><p>${e(ch.scenario)}</p></details>
+      </div>`
+      : `${progress}
       <div class="challenge-card">
         <span class="label">Challenge</span>
-        <div class="head">
-          <div class="emoji-badge">${ch.emoji || (typeof muscleIcon === "function" ? muscleIcon(ch.muscle) : "\u{1F9E0}")}</div>
-          <div><h2 class="page-title">${e(ch.title)}</h2><p class="subtle">${e(muscle.name || ch.muscle)}</p></div>
-        </div>
+        ${titleBlock}
         <p>${e(ch.scenario)}</p>
-        ${ch.payload && ch.payload.fairnessNote ? `<p class="fairness-note"><b>How this is scored:</b> ${e(ch.payload.fairnessNote)}</p>` : ""}
-        ${play.result ? "" : `<p class="subtle" style="margin-top:10px">${e(fmt.how)}</p>`}
+        ${ch.payload && ch.payload.fairnessNote && !seenFormat ? `<p class="fairness-note"><b>How this is scored:</b> ${e(ch.payload.fairnessNote)}</p>` : ""}
+        ${seenFormat
+          ? `<details class="fold"><summary>How ${e(fmt.name)} works</summary><p>${e(fmt.how)}</p></details>`
+          : `<p class="subtle" style="margin-top:10px">${e(fmt.how)}</p>`}
       </div>`;
 
     if (play.result) return header + resultHTML(ch);
@@ -749,8 +805,13 @@ const GYM = (() => {
       const text = play.cards[Number(card.dataset.gymCard)];
       // a card can only sit in one slot: taking it moves it
       for (const k of Object.keys(play.placed)) if (play.placed[k] === text) delete play.placed[k];
-      if (play.selectedSlot !== null) {
-        play.placed[play.selectedSlot] = text;
+      // with no explicit selection the sheet is already showing the first empty box, so a
+      // tap on an action fills that one rather than doing nothing
+      const target = play.selectedSlot !== null
+        ? play.selectedSlot
+        : ch.payload.pairs.findIndex((_, i) => !play.placed[i]);
+      if (target >= 0) {
+        play.placed[target] = text;
         play.selectedSlot = null;
       }
       return true;
@@ -776,32 +837,10 @@ const GYM = (() => {
     }
 
     const flaw = hit("data-gym-flaw");
-    if (flaw) {
-      play.pickedFlaw = Number(flaw.dataset.gymFlaw);
-      finish(ch);
-      return true;
-    }
+    if (flaw) { play.pickedFlaw = Number(flaw.dataset.gymFlaw); return true; }
 
     const stepBtn = hit("data-gym-step");
-    if (stepBtn) {
-      const i = play.stepIdx;
-      const step = ch.payload.steps[i];
-      const choice = Number(stepBtn.dataset.gymStep);
-      play.tries[i] = (play.tries[i] || 0) + 1;
-      if (choice === step.answer) {
-        play.picks[i] = choice;          // right: settle it and move on
-        play.lastWrong = null;
-        play.stepIdx++;
-      } else if (play.tries[i] >= 2) {
-        play.picks[i] = choice;          // out of tries: record what they settled on, 0 marks
-        play.lastWrong = null;
-        play.stepIdx++;
-      } else {
-        play.lastWrong = choice;         // first miss: flag it and let them retry for half
-      }
-      if (play.stepIdx >= ch.payload.steps.length) finish(ch);
-      return true;
-    }
+    if (stepBtn) { play.stepPick = Number(stepBtn.dataset.gymStep); return true; }
 
     const ord = hit("data-gym-order");
     if (ord) { play.order = play.order.concat(ord.dataset.gymOrder); return true; }
@@ -823,11 +862,7 @@ const GYM = (() => {
     }
 
     const decide = hit("data-gym-decide");
-    if (decide) {
-      play.pickedDecision = Number(decide.dataset.gymDecide);
-      finish(ch);
-      return true;
-    }
+    if (decide) { play.pickedDecision = Number(decide.dataset.gymDecide); return true; }
 
     const item = hit("data-gym-item");
     if (item) { play.selectedCard = Number(item.dataset.gymItem); return true; }
@@ -852,6 +887,7 @@ const GYM = (() => {
 
     if (hit("data-gym-check")) {
       if (ch.format === "map" && play.stage === "board") play.stage = "misleads";
+      else if (ch.format === "workout") commitStep(ch);
       else finish(ch);
       return true;
     }
@@ -949,6 +985,9 @@ const GYM = (() => {
           ? "Shown to you. Now name what is wrong with it."
           : "Sentence chosen. Now name what is wrong with it.";
       }
+      if (play.pickedFlaw !== null && play.pickedFlaw !== undefined) {
+        return `Selected: ${p.flawOptions[play.pickedFlaw]}. Tap Check my answer to confirm.`;
+      }
       return play.attempts ? "Not that one. One try left." : `Pick the sentence that does not hold up. ${p.argument.length} to choose from.`;
     }
     if (ch.format === "chain") {
@@ -960,11 +999,19 @@ const GYM = (() => {
     if (ch.format === "workout") {
       const i = play.stepIdx;
       if (i >= p.steps.length) return "Last step answered.";
+      if (play.stepPick !== null && play.stepPick !== undefined) {
+        return `Selected: ${p.steps[i].options[play.stepPick]}. Tap Lock in this step to confirm.`;
+      }
       if (play.lastWrong !== null && play.lastWrong !== undefined) return `Not right. One try left on step ${i + 1}.`;
       return `Step ${i + 1} of ${p.steps.length}. ${p.steps[i].ask || ""}`.trim();
     }
     if (ch.format === "ask") {
-      if (play.stage === "deciding") return "Questions used up. All the answers are shown. Now make the call.";
+      if (play.stage === "deciding") {
+        if (play.pickedDecision !== null && play.pickedDecision !== undefined) {
+          return `Selected: ${p.decision.options[play.pickedDecision]}. Tap Check my answer to confirm.`;
+        }
+        return "Questions used up. All the answers are shown. Now make the call.";
+      }
       const left = p.budget - play.asked.length;
       return `Answer shown. ${left} question${left === 1 ? "" : "s"} left.`;
     }

@@ -80,8 +80,11 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
     }, [sel, text]);
 
     if (format === 'map') {
-      await page.waitForSelector('[data-gym-slot]');
-      for (let i = 0; i < p.pairs.length; i++) { await page.locator(`[data-gym-slot="${i}"]`).click(); await clickByText('[data-gym-card]', p.pairs[i].match); }
+      // The board keeps one slot open at a time (in a sticky sheet) and has no
+      // DOM element for it until it's filled, so tapping cards in order fills
+      // each open slot in turn rather than selecting a slot first.
+      await page.waitForSelector('[data-gym-card]');
+      for (let i = 0; i < p.pairs.length; i++) { await clickByText('[data-gym-card]', p.pairs[i].match); }
       await page.click('[data-gym-check]'); await page.waitForSelector('[data-gym-mislead]');
       for (const a of p.misleads.answers) await page.locator(`[data-gym-mislead="${a}"]`).click();
       await page.click('[data-gym-check]');
@@ -90,6 +93,7 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
       await page.locator(`[data-gym-sentence="${p.flawIdx}"]`).click();
       await page.waitForSelector('[data-gym-flaw]');
       await page.locator(`[data-gym-flaw="${p.flawAnswer}"]`).click();
+      await page.click('[data-gym-check]'); // pick, then confirm — no longer a single tap
     } else if (format === 'chain') {
       await page.waitForSelector('[data-gym-order]');
       for (const step of p.steps) await clickByText('[data-gym-order]', step);
@@ -100,13 +104,15 @@ const BASE = `http://localhost:${process.env.GYM_PORT || 8946}/index.html`;
       await page.click('[data-gym-check]');
     } else if (format === 'workout') {
       await page.waitForSelector('[data-gym-step]');
-      for (const s of p.steps) await page.locator(`[data-gym-step="${s.answer}"]`).click();
+      // Each step is now pick-then-lock-in, not a single committing tap.
+      for (const s of p.steps) { await page.locator(`[data-gym-step="${s.answer}"]`).click(); await page.click('[data-gym-check]'); }
     } else if (format === 'ask') {
       await page.waitForSelector('[data-gym-ask]');
       const best = p.questions.map((q, i) => [q, i]).filter(([q]) => q.value === 'high').map(([, i]) => i);
       for (const i of best.slice(0, p.budget)) { await page.locator(`[data-gym-ask="${i}"]`).click(); await page.waitForTimeout(45); }
       await page.waitForSelector('[data-gym-decide]');
       await page.locator(`[data-gym-decide="${p.decision.answer}"]`).click();
+      await page.click('[data-gym-check]'); // pick, then confirm
     } else if (format === 'triage') {
       await page.waitForSelector('[data-gym-item]');
       for (let i = 0; i < p.items.length; i++) { await page.locator(`[data-gym-item="${i}"]`).click(); await page.locator(`[data-gym-band="${p.items[i].band}"]`).click(); }

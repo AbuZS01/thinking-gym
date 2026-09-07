@@ -37,7 +37,7 @@ and the tab bar lights the owning tab whichever route you land on.
 ## The Gym
 
 Three challenges a day, about ten minutes, played by tapping rather than typing.
-**152 challenges** across seven formats, each objectively scored:
+**164 challenges** across seven formats, each objectively scored:
 
 - **Map It** — slots hold a mechanism from one domain (an immune system, an ant
   colony, an animation studio's process); you tap the action from a completely different
@@ -254,7 +254,22 @@ The app is an installable Progressive Web App: once it's served over HTTPS
 
 It gets its own icon, launches full-screen without browser chrome, and works
 fully offline (a service worker caches the whole app; your data was always
-local).
+local). The app also offers to install itself: a dismissible card appears on
+**Today** the first time your browser signals it's installable (or, on
+iPhone, with the manual steps above — Safari never fires that signal), and
+"Get the app" stays available under **You → Settings** either way.
+
+### Daily reminder
+
+**You → Settings → Daily reminder** turns on an optional nudge if you haven't
+practised yet by a time you choose. It's honest about what a backend-free app
+can actually promise: it fires reliably while the app or tab is open in the
+background, and best-effort via Periodic Background Sync when installed on
+Android/Chrome and fully closed (a browser-granted, no-prompt API — support
+varies). There's no push server, so exact-time delivery with the app fully
+closed isn't guaranteed on every platform; installing to the home screen
+noticeably improves the odds. It only ever fires once a day, and never if
+you've already practised — see `reminders.js`.
 
 The quickest free hosting: push this repo to GitHub, enable **GitHub Pages**
 on the repository (Settings → Pages → deploy from branch), and it's live over
@@ -284,14 +299,24 @@ copies pick up the update.
 - `api/feedback.js` — reference **server function** for the AI coach (keeps the
   model key server-side); `api/README.md` + `.env.example` document setup. Not
   loaded by `index.html`.
+- `reminders.js` — the optional daily reminder's **service abstraction**:
+  permission handling, the pure `isDueNow()` due-time check, a foreground
+  watcher, and a best-effort IndexedDB mirror + Periodic Background Sync
+  registration so `sw.js` can check while the app is closed. Settings live in
+  their own `localStorage` key. No notification fires unless the user turns it
+  on, and it never fires on a day you've already practised.
 - `app.js` — UI layer: renders screens from engine state, handles all
   interaction via event delegation.
-- `style.css`, `index.html` — presentation and shell. The theme is a violet
-  mobile design system driven by custom properties in `:root`; `--tabbar-h` and
-  the `scroll-padding` on `html` are coupled, since both sticky bars (app bar,
-  play-screen action row) have to stay clear of anything the browser scrolls to.
-- `sw.js` — service worker (stale-while-revalidate). Bump `CACHE_VERSION` on
-  every shipped change or installed copies keep serving the old build.
+- `style.css`, `index.html` — presentation and shell. The theme is the "Fresh
+  Growth" green design system driven by custom properties in `:root`, with a
+  functional accent set (facts/assumptions/unknowns/competing) used on the
+  Investigation Case Board; `--tabbar-h` and the `scroll-padding` on `html` are
+  coupled, since both sticky bars (app bar, play-screen action row) have to
+  stay clear of anything the browser scrolls to.
+- `sw.js` — service worker (stale-while-revalidate), plus the `periodicsync`
+  and `notificationclick` handlers for the daily reminder. Bump
+  `CACHE_VERSION` on every shipped change or installed copies keep serving the
+  old build.
 
 ## Extending it
 
